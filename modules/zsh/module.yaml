@@ -3,3 +3,5 @@ description: Zsh 及插件
 dotfiles:
   - source: dotfiles/.zshrc
     target: ~/.zshrc
+post_install_hook: scripts/set-default-shell.sh
+hook_behavior: once
