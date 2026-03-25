@@ -5,10 +5,14 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 source $ZSH/oh-my-zsh.sh
 
 # mise
-eval "$(mise activate zsh)"
+if command -v mise &> /dev/null; then
+    eval "$(mise activate zsh)"
+fi
 
 # zoxide
-eval "$(zoxide init zsh)"
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
 
 # Aliases
 alias ls='ls --color=auto'

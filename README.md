@@ -5,8 +5,9 @@
 ## 快速开始
 
 ```bash
-# 1. 克隆仓库
+# 1. 克隆仓库（SSH 或 HTTPS）
 git clone git@git-ssh.furtherverse.com:imbytecat/archlinux-wsl-init.git
+# 或: git clone https://git-ssh.furtherverse.com/imbytecat/archlinux-wsl-init.git
 cd archlinux-wsl-init
 
 # 2. 运行 bootstrap（安装 yay 和 dcli）

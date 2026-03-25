@@ -1,14 +1,15 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> 安装 yay..."
 if ! command -v yay &> /dev/null; then
     sudo pacman -S --needed --noconfirm base-devel git
-    cd /tmp
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
+    rm -rf /tmp/yay
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    cd /tmp/yay
     makepkg -si --noconfirm
-    cd ~
 fi
 
 echo "==> 安装 dcli..."
@@ -16,7 +17,7 @@ yay -S --needed --noconfirm dcli-arch-git
 
 echo "==> 复制配置..."
 mkdir -p ~/.config/arch-config
-cp -r ./arch-config/* ~/.config/arch-config/
+cp -r "$SCRIPT_DIR/arch-config"/* ~/.config/arch-config/
 
 echo ""
 echo "✓ Bootstrap 完成！"
