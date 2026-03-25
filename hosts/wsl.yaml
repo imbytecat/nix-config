@@ -1,9 +1,8 @@
 host: wsl
 aur_helper: yay
-modules:
+auto_prune: true
+
+enabled_modules:
   - base
   - zsh
   - dev-tools
-settings:
-  files_sync: true
-  auto_prune: true
