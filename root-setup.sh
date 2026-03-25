@@ -22,7 +22,7 @@ if id "$USERNAME" &> /dev/null; then
 else
     useradd -m -G wheel -s /bin/bash "$USERNAME"
     echo "请设置 $USERNAME 的密码："
-    passwd "$USERNAME"
+    passwd "$USERNAME" < /dev/tty
 fi
 
 echo "==> 配置 WSL 默认用户..."
