@@ -5,3 +5,9 @@ packages:
   - wget
   - vim
   - neovim
+
+aur_packages:
+  - dcli-arch-git
+
+aur_packages:
+  - dcli-arch-git

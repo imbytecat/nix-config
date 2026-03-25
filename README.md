@@ -9,9 +9,15 @@
 git clone git@git-ssh.furtherverse.com:imbytecat/archlinux-wsl-init.git
 cd archlinux-wsl-init
 
-# 2. 运行 bootstrap（仅首次）
+# 2. 运行 bootstrap（安装 yay 和 dcli）
 chmod +x bootstrap.sh
 ./bootstrap.sh
+
+# 3. 检查配置（可选）
+cat ~/.config/arch-config/hosts/wsl.yaml
+
+# 4. 应用配置
+dcli sync
 ```
 
 ## 配置说明
