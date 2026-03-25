@@ -6,8 +6,8 @@
 
 ```bash
 # 1. 克隆仓库
-git clone https://git-ssh.furtherverse.com/imbytecat/archlinux-wsl-init.git
-cd archlinux-wsl-init
+git clone https://git.furtherverse.com/imbytecat/archlinux-config.git
+cd archlinux-config
 
 # 2. 运行 bootstrap（安装 yay 和 dcli）
 chmod +x bootstrap.sh
@@ -30,7 +30,7 @@ dcli sync
 
 ```bash
 # 拉取最新配置
-cd ~/archlinux-wsl-init  # 或你的 clone 目录
+cd ~/archlinux-config  # 或你的 clone 目录
 git pull
 
 # 应用更新
