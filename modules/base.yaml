@@ -1,5 +1,6 @@
 packages:
   - base-devel
+  - sudo
   - git
   - curl
   - wget
