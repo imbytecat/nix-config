@@ -36,19 +36,13 @@ else
     passwd "$USERNAME" < /dev/tty
 fi
 
-echo "==> 配置 WSL 默认用户..."
-if [ -f /etc/wsl.conf ]; then
-    cp /etc/wsl.conf "/etc/wsl.conf.bak.$(date +%s)"
-fi
-cat > /etc/wsl.conf << EOF
-[user]
-default = $USERNAME
-EOF
-
 echo ""
 echo "✓ WSL 初始化完成！"
 echo ""
 echo "下一步："
-echo "  1. 在 PowerShell 中执行: wsl --terminate archlinux"
-echo "  2. 重新打开 Arch WSL（将以 $USERNAME 身份登录）"
-echo "  3. 运行: curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash"
+echo "  1. 在 PowerShell 中设置默认用户："
+echo "     wsl --manage archlinux --set-default-user $USERNAME"
+echo "  2. 重启 WSL："
+echo "     wsl --terminate archlinux"
+echo "  3. 重新打开 Arch WSL 后运行："
+echo "     curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash"
