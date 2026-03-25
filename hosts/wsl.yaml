@@ -6,3 +6,6 @@ enabled_modules:
   - base
   - zsh
   - dev-tools
+
+system_backups:
+  enabled: false
