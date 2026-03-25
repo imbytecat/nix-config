@@ -22,8 +22,14 @@ echo "==> 安装 dcli..."
 yay -S --needed --noconfirm dcli-arch-git
 
 echo "==> 克隆配置仓库..."
-rm -rf "$CONFIG_DIR"
-git clone "$REPO_URL" "$CONFIG_DIR"
+if [ -d "$CONFIG_DIR/.git" ]; then
+    echo "配置仓库已存在：$CONFIG_DIR，跳过克隆"
+elif [ -e "$CONFIG_DIR" ]; then
+    echo "目标路径已存在且不是 git 仓库：$CONFIG_DIR"
+    exit 1
+else
+    git clone "$REPO_URL" "$CONFIG_DIR"
+fi
 
 echo ""
 echo "✓ 安装完成！"

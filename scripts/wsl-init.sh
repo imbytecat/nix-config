@@ -6,15 +6,26 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+if ! grep -qiE '(microsoft|wsl)' /proc/sys/kernel/osrelease 2>/dev/null; then
+    echo "此脚本仅用于 Arch Linux on WSL 的首次初始化"
+    exit 1
+fi
+
 USERNAME="${1:-}"
 if [ -z "$USERNAME" ]; then
-    echo "用法: ./root-setup.sh <用户名>"
-    echo "示例: ./root-setup.sh imbytecat"
+    echo "用法: wsl-init.sh <用户名>"
+    echo "示例: wsl-init.sh imbytecat"
     exit 1
 fi
 
 echo "==> 安装 sudo..."
-pacman -Syu --noconfirm sudo
+pacman -S --needed --noconfirm sudo
+
+echo "==> 配置 sudo 权限..."
+cat > /etc/sudoers.d/10-wheel << 'EOF'
+%wheel ALL=(ALL:ALL) ALL
+EOF
+chmod 440 /etc/sudoers.d/10-wheel
 
 echo "==> 创建用户 $USERNAME..."
 if id "$USERNAME" &> /dev/null; then
@@ -26,13 +37,16 @@ else
 fi
 
 echo "==> 配置 WSL 默认用户..."
+if [ -f /etc/wsl.conf ]; then
+    cp /etc/wsl.conf "/etc/wsl.conf.bak.$(date +%s)"
+fi
 cat > /etc/wsl.conf << EOF
 [user]
 default = $USERNAME
 EOF
 
 echo ""
-echo "✓ 初始化完成！"
+echo "✓ WSL 初始化完成！"
 echo ""
 echo "下一步："
 echo "  1. 在 PowerShell 中执行: wsl --terminate archlinux"
