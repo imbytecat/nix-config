@@ -18,8 +18,8 @@ if [ -z "$USERNAME" ]; then
     exit 1
 fi
 
-echo "==> 安装 sudo..."
-pacman -S --needed --noconfirm sudo
+echo "==> 同步数据库并安装 sudo..."
+pacman -Sy --needed --noconfirm sudo
 
 echo "==> 配置 sudo 权限..."
 cat > /etc/sudoers.d/10-wheel << 'EOF'
