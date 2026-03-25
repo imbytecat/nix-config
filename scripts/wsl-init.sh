@@ -23,7 +23,7 @@ pacman -S --needed --noconfirm sudo
 
 echo "==> 配置 sudo 权限..."
 cat > /etc/sudoers.d/10-wheel << 'EOF'
-%wheel ALL=(ALL:ALL) ALL
+%wheel ALL=(ALL) NOPASSWD: ALL
 EOF
 chmod 440 /etc/sudoers.d/10-wheel
 
