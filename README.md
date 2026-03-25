@@ -5,37 +5,26 @@
 ## 快速开始
 
 ```bash
-# 1. 克隆仓库
-git clone https://git.furtherverse.com/imbytecat/archlinux-config.git
-cd archlinux-config
+curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/install.sh | bash
+```
 
-# 2. 运行 setup（安装 yay 和 dcli）
-chmod +x setup.sh
-./setup.sh
+安装完成后：
 
-# 3. 检查配置（可选）
-cat ~/.config/arch-config/hosts/wsl.yaml
-
-# 4. 应用配置
+```bash
+cd ~/.config/arch-config
 dcli sync
 ```
 
 ## 配置说明
 
-- `arch-config/hosts/wsl.yaml` - WSL 配置
-- `arch-config/modules/` - 模块化包管理
-- `arch-config/files/` - 配置文件（自动同步）
+- `hosts/wsl.yaml` - WSL 配置
+- `modules/` - 模块化包管理
+- `files/` - 配置文件（自动同步）
 
 ## 更新配置
 
 ```bash
-# 拉取最新配置
-cd ~/archlinux-config  # 或你的 clone 目录
+cd ~/.config/arch-config
 git pull
-
-# 应用更新
 dcli sync
-
-# 更新系统包
-dcli update
 ```
