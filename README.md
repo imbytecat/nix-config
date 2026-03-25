@@ -7,7 +7,7 @@
 ### 1. 初始化用户（以 root 身份，仅 WSL 首次）
 
 ```bash
-curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/root-setup.sh | bash -s -- <用户名>
+curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/root-setup.sh | bash -s -- <用户名>
 ```
 
 然后在 PowerShell 中重启 WSL：
@@ -19,7 +19,7 @@ wsl --terminate archlinux
 ### 2. 安装配置（以普通用户身份）
 
 ```bash
-curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/install.sh | bash
+curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash
 ```
 
 ### 3. 应用配置
