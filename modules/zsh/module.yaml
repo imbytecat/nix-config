@@ -1,5 +1,5 @@
+---
 description: Zsh 及插件
-
 dotfiles:
   - source: dotfiles/.zshrc
     target: ~/.zshrc

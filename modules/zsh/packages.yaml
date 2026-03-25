@@ -1,6 +1,8 @@
+---
 packages:
-  - zsh
-  - zsh-completions
+  - fzf-tab-git
   - oh-my-zsh-git
+  - zsh
   - zsh-autosuggestions
+  - zsh-completions
   - zsh-syntax-highlighting
