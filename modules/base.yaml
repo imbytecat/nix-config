@@ -8,4 +8,5 @@ packages:
   - neovim
 
 aur_packages:
+  - yay
   - dcli-arch-git
