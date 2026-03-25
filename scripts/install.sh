@@ -31,6 +31,11 @@ else
     git clone "$REPO_URL" "$CONFIG_DIR"
 fi
 
+echo "==> 配置系统文件..."
+sudo cp "$CONFIG_DIR/files/etc/pacman.d/mirrorlist" /etc/pacman.d/mirrorlist
+sudo cp "$CONFIG_DIR/files/etc/sudoers.d/10-wheel" /etc/sudoers.d/10-wheel
+sudo chmod 440 /etc/sudoers.d/10-wheel
+
 echo ""
 echo "✓ 安装完成！"
 echo ""

@@ -1,0 +1,6 @@
+description: Zsh 及插件
+
+dotfiles_sync: true
+dotfiles:
+  - source: .zshrc
+    target: ~/.zshrc
