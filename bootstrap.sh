@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> 安装 yay..."
 if ! command -v yay &> /dev/null; then
@@ -17,7 +17,7 @@ yay -S --needed --noconfirm dcli-arch-git
 
 echo "==> 链接配置..."
 rm -rf ~/.config/arch-config
-ln -sf "$SCRIPT_DIR/arch-config" ~/.config/arch-config
+ln -sf "$REPO_DIR/arch-config" ~/.config/arch-config
 
 echo ""
 echo "✓ Bootstrap 完成！"
