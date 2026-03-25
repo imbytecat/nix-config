@@ -1,9 +1,6 @@
+---
 description: 开发工具
-
 packages:
-  - fzf
-  - ripgrep
-  - fd
-  - bat
+  - bun
   - mise
-  - zoxide
+  - nodejs

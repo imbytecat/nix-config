@@ -1,12 +1,18 @@
+---
 description: 基础工具
-
 packages:
   - base-devel
-  - sudo
-  - git
+  - bat
   - curl
-  - wget
-  - vim
-  - neovim
-  - yay
   - dcli-arch-git
+  - fd
+  - fzf
+  - git
+  - neovim
+  - ripgrep
+  - sudo
+  - trash-cli
+  - vim
+  - wget
+  - yay
+  - zoxide
