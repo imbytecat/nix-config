@@ -1,0 +1,9 @@
+packages:
+  - fzf
+  - ripgrep
+  - fd
+  - bat
+
+aur_packages:
+  - mise
+  - zoxide

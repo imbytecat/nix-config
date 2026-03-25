@@ -1,0 +1,8 @@
+packages:
+  - zsh
+  - zsh-completions
+
+aur_packages:
+  - oh-my-zsh-git
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
