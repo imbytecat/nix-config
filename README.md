@@ -1,6 +1,6 @@
-# Arch Linux WSL 初始化配置
+# Arch Linux 配置仓库
 
-使用 dcli 声明式管理 Arch Linux 配置。
+使用 dcli 声明式管理 Arch Linux 配置（当前默认主机为 wsl，可扩展到其他主机）。
 
 ## 快速开始
 
@@ -9,9 +9,9 @@
 git clone https://git.furtherverse.com/imbytecat/archlinux-config.git
 cd archlinux-config
 
-# 2. 运行 bootstrap（安装 yay 和 dcli）
-chmod +x bootstrap.sh
-./bootstrap.sh
+# 2. 运行 setup（安装 yay 和 dcli）
+chmod +x setup.sh
+./setup.sh
 
 # 3. 检查配置（可选）
 cat ~/.config/arch-config/hosts/wsl.yaml
