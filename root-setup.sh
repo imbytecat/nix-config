@@ -25,10 +25,6 @@ else
     passwd "$USERNAME"
 fi
 
-echo "==> 配置 wheel 组免密 sudo..."
-echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel
-chmod 440 /etc/sudoers.d/wheel
-
 echo "==> 配置 WSL 默认用户..."
 cat > /etc/wsl.conf << EOF
 [user]
