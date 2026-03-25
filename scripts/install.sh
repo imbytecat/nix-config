@@ -22,6 +22,11 @@ sudo cp "$CONFIG_DIR/files/etc/pacman.d/mirrorlist" /etc/pacman.d/mirrorlist
 sudo cp "$CONFIG_DIR/files/etc/sudoers.d/10-wheel" /etc/sudoers.d/10-wheel
 sudo chmod 440 /etc/sudoers.d/10-wheel
 
+echo "==> 配置 locale..."
+sudo sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+sudo locale-gen
+echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf > /dev/null
+
 echo "==> 更新系统..."
 sudo pacman -Syu --noconfirm
 
