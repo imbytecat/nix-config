@@ -8,6 +8,3 @@ packages:
 
 aur_packages:
   - dcli-arch-git
-
-aur_packages:
-  - dcli-arch-git
