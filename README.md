@@ -11,7 +11,6 @@ curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/ma
 安装完成后：
 
 ```bash
-cd ~/.config/arch-config
 dcli sync
 ```
 
@@ -24,7 +23,6 @@ dcli sync
 ## 更新配置
 
 ```bash
-cd ~/.config/arch-config
-git pull
+cd ~/.config/arch-config && git pull
 dcli sync
 ```
