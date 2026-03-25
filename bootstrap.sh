@@ -15,9 +15,9 @@ fi
 echo "==> 安装 dcli..."
 yay -S --needed --noconfirm dcli-arch-git
 
-echo "==> 复制配置..."
-mkdir -p ~/.config/arch-config
-cp -r "$SCRIPT_DIR/arch-config"/* ~/.config/arch-config/
+echo "==> 链接配置..."
+rm -rf ~/.config/arch-config
+ln -sf "$SCRIPT_DIR/arch-config" ~/.config/arch-config
 
 echo ""
 echo "✓ Bootstrap 完成！"
