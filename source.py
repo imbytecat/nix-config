@@ -43,7 +43,8 @@ decman.pacman.packages |= {
 
 # ── AUR 包 ────────────────────────────────────────────────────
 decman.aur.packages |= {
-    "decman",  # 管理自身更新
+    "decman",
+    "yay",
     # 开发工具
     "bun",
     "mise",
@@ -51,9 +52,6 @@ decman.aur.packages |= {
     "fzf-tab-git",
     "oh-my-zsh-git",
 }
-
-# yay 由 bootstrap 脚本安装，decman 不管理其生命周期
-decman.aur.ignored_packages |= {"yay"}
 
 # ── 系统文件（/etc/）──────────────────────────────────────────
 decman.files["/etc/pacman.d/mirrorlist"] = File(
