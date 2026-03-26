@@ -11,6 +11,7 @@ source = { virtual = "." }
 dev = [
     { name = "decman" },
     { name = "decman-pacman" },
+    { name = "decman-systemd" },
 ]
 
 [package.metadata]
@@ -19,6 +20,7 @@ dev = [
 dev = [
     { name = "decman", git = "https://github.com/kiviktnm/decman.git" },
     { name = "decman-pacman", git = "https://github.com/kiviktnm/decman.git?subdirectory=plugins%2Fdecman-pacman" },
+    { name = "decman-systemd", git = "https://github.com/kiviktnm/decman.git?subdirectory=plugins%2Fdecman-systemd" },
 ]
 
 [[package]]
@@ -100,6 +102,14 @@ dependencies = [
     { name = "decman" },
     { name = "pyalpm" },
     { name = "requests" },
+]
+
+[[package]]
+name = "decman-systemd"
+version = "1.1.0"
+source = { git = "https://github.com/kiviktnm/decman.git?subdirectory=plugins%2Fdecman-systemd#8c54220dbcb793836e99c567c43718aaed08acd2" }
+dependencies = [
+    { name = "decman" },
 ]
 
 [[package]]
