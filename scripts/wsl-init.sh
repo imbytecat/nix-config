@@ -6,7 +6,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-if ! grep -qiE '(microsoft|wsl)' /proc/sys/kernel/osrelease 2>/dev/null; then
+if [[ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
     echo "此脚本仅用于 Arch Linux on WSL 的首次初始化"
     exit 1
 fi
