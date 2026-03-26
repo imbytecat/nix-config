@@ -35,7 +35,7 @@ echo "==> 安装 decman..."
 yay -S --needed --noconfirm decman
 
 echo "==> 应用系统配置..."
-sudo decman --source "$CONFIG_DIR/source.py"
+sudo decman --source "$CONFIG_DIR/source.py" < /dev/tty
 
 echo "==> 设置默认 shell 为 zsh..."
 if [ "$SHELL" != "$(which zsh)" ]; then
