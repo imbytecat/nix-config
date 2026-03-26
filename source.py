@@ -3,7 +3,7 @@ import os
 import decman
 
 import modules.base
-import modules.docker
+import modules.dev
 import modules.locale
 import modules.zsh
 
@@ -17,7 +17,7 @@ if not USERNAME:
 
 decman.modules += [
     modules.base.BaseModule(),
+    modules.dev.DevModule(USERNAME),
     modules.locale.LocaleModule(),
-    modules.docker.DockerModule(USERNAME),
     modules.zsh.ZshModule(USERNAME),
 ]

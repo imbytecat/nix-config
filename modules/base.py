@@ -22,25 +22,11 @@ class BaseModule(Module):
     def pacman_packages(self) -> set[str]:
         return {
             "base-devel",
-            "bat",
-            "btop",
-            "bun",
             "curl",
-            "eza",
-            "fastfetch",
-            "fd",
             "git",
-            "lazygit",
-            "micro",
-            "mise",
-            "neovim",
-            "nodejs",
-            "ripgrep",
             "sudo",
-            "trash-cli",
             "vim",
             "wget",
-            "zoxide",
         }
 
     @aur_packages
