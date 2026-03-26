@@ -23,12 +23,12 @@ sudo pacman -Syu --noconfirm
 echo "==> 安装 base-devel..."
 sudo pacman -S --needed --noconfirm base-devel
 
-echo "==> 安装 yay..."
+echo "==> 安装 yay-bin..."
 if ! command -v yay &> /dev/null; then
-    rm -rf /tmp/yay
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    (cd /tmp/yay && makepkg -si --noconfirm)
-    rm -rf /tmp/yay
+    rm -rf /tmp/yay-bin
+    git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin
+    (cd /tmp/yay-bin && makepkg -si --noconfirm)
+    rm -rf /tmp/yay-bin
 fi
 
 echo "==> 安装 decman..."
