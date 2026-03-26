@@ -20,8 +20,9 @@ assert decman.aur is not None
 assert decman.systemd is not None
 
 # ── 用户 ──────────────────────────────────────────────────────
-# sudo decman 时 SUDO_USER 为调用 sudo 的原始用户
-USERNAME = os.environ.get("SUDO_USER", "imbytecat")
+USERNAME = os.environ.get("SUDO_USER")
+if not USERNAME:
+    raise decman.SourceError("请使用 sudo decman 运行")
 HOME = f"/home/{USERNAME}"
 
 # ── 系统文件（/etc/）──────────────────────────────────────────
