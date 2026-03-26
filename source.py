@@ -57,11 +57,11 @@ decman.aur.ignored_packages |= {"yay"}
 
 # ── 系统文件（/etc/）──────────────────────────────────────────
 decman.files["/etc/pacman.d/mirrorlist"] = File(
-    source_file="./files/etc/pacman.d/mirrorlist",
+    source_file="./system/etc/pacman.d/mirrorlist",
 )
 
 decman.files["/etc/sudoers.d/10-wheel"] = File(
-    source_file="./files/etc/sudoers.d/10-wheel",
+    source_file="./system/etc/sudoers.d/10-wheel",
     permissions=0o440,
 )
 
@@ -70,8 +70,8 @@ decman.files["/etc/locale.conf"] = File(content="LANG=en_US.UTF-8\n")
 # 仅保留需要的 locale；修改后需手动执行 locale-gen
 decman.files["/etc/locale.gen"] = File(content="en_US.UTF-8 UTF-8\n")
 
-# ── 用户 Dotfiles ────────────────────────────────────────────
+# ── 用户配置 ─────────────────────────────────────────────────
 decman.files[f"{HOME}/.zshrc"] = File(
-    source_file="./dotfiles/.zshrc",
+    source_file="./home/.zshrc",
     owner=USERNAME,
 )

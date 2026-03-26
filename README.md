@@ -44,11 +44,11 @@ cd ~/.config/arch-config && git pull && sudo decman
 ```
 .
 ├── source.py         # decman 主配置（包、系统文件、dotfiles）
-├── files/            # 系统配置文件源
+├── system/           # 系统配置文件源
 │   └── etc/
 │       ├── pacman.d/mirrorlist
 │       └── sudoers.d/10-wheel
-├── dotfiles/         # 用户配置文件源
+├── home/             # 用户配置文件源
 │   └── .zshrc
 └── scripts/
     ├── install.sh    # 安装脚本（bootstrap → decman）
@@ -58,6 +58,6 @@ cd ~/.config/arch-config && git pull && sudo decman
 ## 配置说明
 
 - `source.py` — 所有声明集中在一个文件：pacman 包、AUR 包、系统文件、dotfiles
-- `files/` — 需要部署到 `/etc/` 的系统配置文件，目录结构对应目标路径
-- `dotfiles/` — 需要部署到用户目录的配置文件
+- `system/` — 系统配置文件，目录结构对应目标路径（如 `system/etc/` → `/etc/`）
+- `home/` — 用户配置文件，部署到 `~/`
 - `scripts/` — 一次性引导脚本，安装完成后由 `sudo decman` 接管日常管理

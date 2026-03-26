@@ -13,11 +13,11 @@ This is a declarative Arch Linux configuration repository managed by `decman` (D
 ```
 .
 ├── source.py         # decman main configuration (packages, system files, dotfiles)
-├── files/            # System configuration files to deploy
+├── system/           # System configuration files to deploy
 │   └── etc/
 │       ├── pacman.d/mirrorlist
 │       └── sudoers.d/10-wheel
-├── dotfiles/         # User dotfiles to deploy
+├── home/             # User configuration files to deploy
 │   └── .zshrc
 └── scripts/
     ├── install.sh    # Bootstrap script (git → yay → decman → first sync)
@@ -140,11 +140,11 @@ decman.pacman.packages |= {"git", "neovim", "zsh"}
 decman.aur.packages |= {"decman", "bun"}
 
 decman.files["/etc/pacman.d/mirrorlist"] = File(
-    source_file="./files/etc/pacman.d/mirrorlist",
+    source_file="./system/etc/pacman.d/mirrorlist",
 )
 
 decman.files[f"{HOME}/.zshrc"] = File(
-    source_file="./dotfiles/.zshrc",
+    source_file="./home/.zshrc",
     owner=USERNAME,
 )
 ```
@@ -172,9 +172,9 @@ decman.files[f"{HOME}/.zshrc"] = File(
 
 2. **Pacman vs AUR**: Packages must be correctly categorized into `decman.pacman.packages` (official repos) and `decman.aur.packages` (AUR).
 
-3. **System files**: Files in `files/` are copied (not symlinked) to system locations by decman. Use `File(source_file=..., permissions=...)` with correct permissions.
+3. **System files**: Files in `system/` are copied (not symlinked) to system locations by decman. Use `File(source_file=..., permissions=...)` with correct permissions.
 
-4. **Dotfiles**: Files in `dotfiles/` are copied to user home by decman. Use `File(source_file=..., owner=USERNAME)`.
+4. **User config**: Files in `home/` are copied to user home by decman. Use `File(source_file=..., owner=USERNAME)`.
 
 5. **No dry-run**: decman does not have a `--dry-run` option. Review changes in `source.py` before running `sudo decman`.
 
@@ -196,15 +196,15 @@ decman.files[f"{HOME}/.zshrc"] = File(
 - Run `sudo decman`
 
 **Add a new system file**:
-- Place the file in `files/` matching target path structure (e.g., `files/etc/foo.conf` → `/etc/foo.conf`)
-- Add `decman.files["/etc/foo.conf"] = File(source_file="./files/etc/foo.conf")` to `source.py`
+- Place the file in `system/` matching target path structure (e.g., `system/etc/foo.conf` → `/etc/foo.conf`)
+- Add `decman.files["/etc/foo.conf"] = File(source_file="./system/etc/foo.conf")` to `source.py`
 - Run `sudo decman`
 
 **Add a new dotfile**:
-- Place the file in `dotfiles/`
-- Add `decman.files[f"{HOME}/.config/foo"] = File(source_file="./dotfiles/foo", owner=USERNAME)` to `source.py`
+- Place the file in `home/`
+- Add `decman.files[f"{HOME}/.config/foo"] = File(source_file="./home/foo", owner=USERNAME)` to `source.py`
 - Run `sudo decman`
 
 **Update an existing configuration file**:
-- Edit the source file in `files/` or `dotfiles/`
+- Edit the source file in `system/` or `home/`
 - Run `sudo decman`
