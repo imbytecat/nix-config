@@ -11,9 +11,6 @@ source /usr/share/zsh/plugins/fzf-tab-git/fzf-tab.plugin.zsh
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# bun
-export PATH="$HOME/.bun/bin:$PATH"
-
 # mise
 if command -v mise &> /dev/null; then
     eval "$(mise activate zsh)"

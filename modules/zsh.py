@@ -11,6 +11,10 @@ class ZshModule(Module):
 
     def files(self):
         return {
+            f"/home/{self.user}/.zshenv": File(
+                source_file="./home/.zshenv",
+                owner=self.user,
+            ),
             f"/home/{self.user}/.zshrc": File(
                 source_file="./home/.zshrc",
                 owner=self.user,
