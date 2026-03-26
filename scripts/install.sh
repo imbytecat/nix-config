@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_URL="https://git.furtherverse.com/imbytecat/archlinux-config.git"
-CONFIG_DIR="$HOME/.config/arch-config"
+CONFIG_DIR="$HOME/.config/archlinux-config"
 
 echo "==> 安装 git..."
 sudo pacman -S --needed --noconfirm git

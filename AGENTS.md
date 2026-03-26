@@ -1,210 +1,152 @@
-# AGENTS.md - Arch Linux Configuration Repository
+# AGENTS.md — Arch Linux 声明式配置仓库
 
-## Project Overview
+## 概要
 
-This is a declarative Arch Linux configuration repository managed by `decman` (Declarative package & configuration manager for Arch Linux). The project uses a Python source file to declare packages, system files, and dotfiles.
+使用 [decman](https://github.com/kiviktnm/decman) 声明式管理 Arch Linux 系统配置。Python 源文件声明包、系统文件、dotfiles 和 systemd 服务。
 
-**Primary Tool**: `decman` - Declarative package & configuration manager for Arch Linux
-**Target Environment**: Arch Linux (primarily WSL, but supports bare metal)
-**Language**: Shell scripts (Bash), Python configuration (source.py)
+- **运行环境**：Arch Linux（主要面向 WSL，兼容裸机）
+- **语言**：Python（配置）、Bash（引导脚本）
+- **包管理器**：uv（开发依赖）、pacman/yay（系统包）
 
-## Repository Structure
+## 仓库结构
 
 ```
 .
-├── source.py         # decman main configuration (packages, system files, dotfiles)
-├── system/           # System configuration files to deploy
-│   └── etc/
-│       ├── pacman.d/mirrorlist
-│       └── sudoers.d/10-wheel
-├── home/             # User configuration files to deploy
-│   └── .zshrc
-└── scripts/
-    ├── install.sh    # Bootstrap script (git → yay → decman → first sync)
-    └── wsl-init.sh   # WSL-specific initialization (user creation)
+├── source.py            # decman 主配置入口
+├── locale_module.py     # locale 模块（files + on_change hook）
+├── docker_module.py     # Docker 模块（packages + systemd units）
+├── system/etc/          # 系统配置文件源 → 部署到 /etc/
+├── home/                # 用户配置文件源 → 部署到 ~/
+├── scripts/
+│   ├── install.sh       # 引导脚本（git → yay → decman → 首次 sync）
+│   └── wsl-init.sh      # WSL 首次初始化（创建用户）
+└── pyproject.toml       # 开发依赖（decman + 插件，仅用于类型检查）
 ```
 
-## Build/Test/Sync Commands
-
-### Primary Commands
+## 命令
 
 ```bash
-# Apply configuration (install/update packages, sync files)
+# 应用配置（安装/更新包、同步文件、启用服务）
 sudo decman
 
-# First-time run (specify source file)
-sudo decman --source ~/.config/arch-config/source.py
+# 首次运行（需指定 source 路径）
+sudo decman --source ~/.config/archlinux-config/source.py
 
-# Skip specific plugins
+# 跳过特定插件
 sudo decman --skip aur
-sudo decman --skip flatpak
+sudo decman --skip systemd
 
-# Only apply file operations
+# 仅同步文件
 sudo decman --no-hooks --only files
 
-# Debug mode
+# 调试模式
 sudo decman --debug
 ```
 
-### Installation Commands
+### 验证
 
 ```bash
-# WSL first-time setup (as root)
-curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/wsl-init.sh | bash -s -- <username>
+# Python 语法检查（所有 .py 文件）
+python -c "import py_compile; py_compile.compile('source.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('docker_module.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('locale_module.py', doraise=True)"
 
-# Install decman and apply config (as regular user)
-curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash
-```
-
-### Testing Scripts
-
-```bash
-# Test shell scripts for syntax errors
+# Shell 语法检查
 bash -n scripts/install.sh
 bash -n scripts/wsl-init.sh
 
-# Run shellcheck if available
-shellcheck scripts/*.sh
-
-# Validate Python syntax
-python -c "import py_compile; py_compile.compile('source.py', doraise=True)"
+# 同步开发依赖
+uv sync
 ```
 
-## Code Style Guidelines
+## decman 执行顺序
 
-### Shell Scripts
+声明顺序必须匹配执行顺序，从上到下阅读即从上到下执行：
 
-**Shebang & Options**:
-- Always use `#!/bin/bash` (not `#!/bin/sh`)
-- Start with `set -euo pipefail` for safety
-
-**Error Handling**:
-- Check command success with `if ! command; then`
-- Validate user input before proceeding
-- Provide clear error messages in Chinese (matching project language)
-- Exit with non-zero status on errors
-
-**Variables**:
-- Use `UPPERCASE` for constants and environment variables
-- Use `lowercase` for local variables
-- Always quote variables: `"$VAR"` not `$VAR`
-
-**Conditionals**:
-- Prefer `[[ ]]` over `[ ]` for tests
-- Use `&> /dev/null` for suppressing output
-- Check command existence: `if command -v cmd &> /dev/null; then`
-
-**User Feedback**:
-- Use `echo "==> Action..."` for major steps
-- Use Chinese for user-facing messages
-- Show clear success indicators: `✓`
-
-**Example Pattern**:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-USERNAME="${1:-}"
-if [ -z "$USERNAME" ]; then
-    echo "用法: script.sh <参数>"
-    exit 1
-fi
-
-echo "==> 执行操作..."
-if ! some_command; then
-    echo "错误：操作失败"
-    exit 1
-fi
-
-echo "✓ 完成！"
+```
+files → pacman → aur → systemd
 ```
 
-### Python Configuration (source.py)
+`source.py` 中的声明分区按此排列：系统文件 → 用户配置 → modules → pacman 包 → AUR 包。
 
-**Structure**:
-- Use section dividers (`# ── Section ──`) to separate logical groups
-- Group packages by purpose (基础工具, 开发工具, Zsh)
-- Keep packages in sets (`|=` syntax)
-- Use `os.environ.get("SUDO_USER")` for dynamic username
+## 代码风格
 
-**Example Pattern**:
+### Python（source.py 及模块）
+
+**source.py 结构**：
+- 用 `# ── Section ──` 分隔逻辑分区
+- 包集合用 `|=` 语法，元素按字母排序
+- `SUDO_USER` 必须存在，不设 fallback——没有则抛 `SourceError`
+- 文件默认权限 `0o644`，仅需特殊权限时显式指定（如 sudoers `0o440`）
+
+**模块模式**（适用于需要 hook 或跨步骤声明的场景）：
 ```python
-import os
-import decman
-from decman import File
+from decman import Module
+from decman.plugins.pacman import packages
+from decman.plugins.systemd import units
 
-USERNAME = os.environ.get("SUDO_USER", "imbytecat")
-HOME = f"/home/{USERNAME}"
+class DockerModule(Module):
+    def __init__(self):
+        super().__init__("docker")
 
-decman.pacman.packages |= {"git", "neovim", "zsh"}
-decman.aur.packages |= {"decman", "bun"}
+    @packages
+    def packages(self) -> set[str]:
+        return {"docker", "docker-compose"}
 
-decman.files["/etc/pacman.d/mirrorlist"] = File(
-    source_file="./system/etc/pacman.d/mirrorlist",
-)
-
-decman.files[f"{HOME}/.zshrc"] = File(
-    source_file="./home/.zshrc",
-    owner=USERNAME,
-)
+    @units
+    def units(self) -> set[str]:
+        return {"docker.service"}
 ```
 
-### Git Workflow
+**何时用模块 vs 直接声明**：
+- 需要 `on_change` hook（如 `locale-gen`）→ Module
+- 需要绑定 packages + systemd units → Module（`@packages` + `@units` 装饰器）
+- 纯静态文件、无副作用 → 直接在 `source.py` 用 `File()`
 
-**Commit Messages**:
-- Follow commitlint conventional commits format
-- Use Chinese for commit messages (matching project language)
-- Format: `<type>(<scope>): <subject>`
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Examples:
-  - `feat(source): 添加开发工具包`
-  - `fix(scripts): 更新安装脚本`
-  - `docs: 更新 README 说明`
-  - `chore(files): 更新镜像源列表`
+### Shell 脚本
 
-**Branching**:
-- Main branch: `main`
-- Work directly on main for personal config repos
+- Shebang：`#!/bin/bash`
+- 安全选项：`set -euo pipefail`
+- 变量引用：始终加双引号 `"$VAR"`
+- 条件测试：优先 `[[ ]]`
+- 命令检测：`if command -v cmd &> /dev/null; then`
+- 用户消息：中文，用 `echo "==> 动作..."` 标记主要步骤，`✓` 表示完成
+- 错误消息：`echo "错误：描述"` + `exit 1`
 
-## Important Notes for Agents
+### Git
 
-1. **decman is the source of truth**: Don't manually install packages. Add them to `source.py` and run `sudo decman`.
+- 提交消息：中文，conventional commits 格式
+- 格式：`<type>(<scope>): <中文描述>`
+- 类型：`feat` / `fix` / `docs` / `refactor` / `chore`
+- 示例：`feat(docker): 添加 Docker 支持并重排声明顺序`
+- 分支：直接在 `main` 上工作
 
-2. **Pacman vs AUR**: Packages must be correctly categorized into `decman.pacman.packages` (official repos) and `decman.aur.packages` (AUR).
+## Agent 须知
 
-3. **System files**: Files in `system/` are copied (not symlinked) to system locations by decman. Use `File(source_file=..., permissions=...)` with correct permissions.
+1. **decman 是唯一真相**：不要手动装包，加到 `source.py` 或模块里，跑 `sudo decman`。
 
-4. **User config**: Files in `home/` are copied to user home by decman. Use `File(source_file=..., owner=USERNAME)`.
+2. **Pacman vs AUR**：用 `pacman -Ss` 确认包在官方仓库还是 AUR，分别加到 `decman.pacman.packages` 或 `decman.aur.packages`。
 
-5. **No dry-run**: decman does not have a `--dry-run` option. Review changes in `source.py` before running `sudo decman`.
+3. **系统文件**：源文件放 `system/`，目录结构对应目标路径（`system/etc/foo.conf` → `/etc/foo.conf`）。decman 复制（非 symlink）到目标位置。
 
-6. **Runs as root**: `sudo decman` executes `source.py` as root. `SUDO_USER` contains the original username.
+4. **用户配置**：源文件放 `home/`，必须指定 `owner=USERNAME`。
 
-7. **Language**: User-facing messages and documentation are in Chinese. Keep this consistent.
+5. **Runs as root**：`sudo decman` 以 root 执行 `source.py`。`SUDO_USER` 是调用 sudo 的原始用户名，不要 fallback。
 
-8. **Safety first**: Scripts use `set -euo pipefail` and validate inputs.
+6. **开发环境**：`pyproject.toml` + `uv sync` 管理开发依赖（decman、decman-pacman、decman-systemd），仅用于 IDE 类型检查，不影响运行时。
 
-9. **Idempotency**: Scripts should be safe to run multiple times.
+7. **幂等性**：所有脚本和配置必须可安全重复执行。
 
-10. **Bootstrap flow**: `scripts/install.sh` handles one-time setup (yay, decman, locale-gen, chsh). After that, `sudo decman` handles ongoing management.
+8. **语言**：用户消息、文档、提交消息使用中文。
 
-## Common Tasks
+## 常见任务
 
-**Add a new package**:
-- Determine if it's pacman or AUR
-- Add to the appropriate set in `source.py`
-- Run `sudo decman`
+**添加包**：确认 pacman/AUR → 加到 `source.py` 对应集合 → `sudo decman`
 
-**Add a new system file**:
-- Place the file in `system/` matching target path structure (e.g., `system/etc/foo.conf` → `/etc/foo.conf`)
-- Add `decman.files["/etc/foo.conf"] = File(source_file="./system/etc/foo.conf")` to `source.py`
-- Run `sudo decman`
+**添加系统文件**：放 `system/` → 在 `source.py` 加 `File(source_file=...)` → `sudo decman`
 
-**Add a new dotfile**:
-- Place the file in `home/`
-- Add `decman.files[f"{HOME}/.config/foo"] = File(source_file="./home/foo", owner=USERNAME)` to `source.py`
-- Run `sudo decman`
+**添加 dotfile**：放 `home/` → 在 `source.py` 加 `File(source_file=..., owner=USERNAME)` → `sudo decman`
 
-**Update an existing configuration file**:
-- Edit the source file in `system/` or `home/`
-- Run `sudo decman`
+**添加需要 systemd 服务的软件**：创建 Module 文件，用 `@packages` + `@units` 装饰器 → 在 `source.py` 注册 → `sudo decman`
+
+**添加开发依赖（decman 插件）**：加到 `pyproject.toml` 的 `[dependency-groups] dev` 和 `[tool.uv.sources]` → `uv sync`
