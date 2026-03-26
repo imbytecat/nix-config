@@ -22,6 +22,7 @@ class BaseModule(Module):
     def pacman_packages(self) -> set[str]:
         return {
             "base-devel",
+            "base",
             "curl",
             "git",
             "sudo",
