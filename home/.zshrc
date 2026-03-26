@@ -27,4 +27,7 @@ fi
 # Aliases
 alias cd="z"
 alias cdi="zi"
+alias ls="eza"
+alias tree="eza --tree"
+alias cat="bat --paging=never"
 alias rm="trash-put"

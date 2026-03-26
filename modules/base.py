@@ -26,6 +26,7 @@ class BaseModule(Module):
             "btop",
             "bun",
             "curl",
+            "eza",
             "fastfetch",
             "fd",
             "git",
