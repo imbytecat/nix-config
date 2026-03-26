@@ -40,7 +40,7 @@ class DevModule(Module):
             "zoxide",
         }
 
-    def on_change(self, store):
+    def after_update(self, store):
         for pkg in BUN_GLOBAL_PACKAGES:
             decman.prg(["su", "-", self.user, "-c", f"bun add -g {pkg}"])
         for pkg in GO_INSTALL_PACKAGES:
