@@ -18,6 +18,6 @@ if not USERNAME:
 decman.modules += [
     modules.base.BaseModule(),
     modules.locale.LocaleModule(),
-    modules.docker.DockerModule(),
+    modules.docker.DockerModule(USERNAME),
     modules.zsh.ZshModule(USERNAME),
 ]
