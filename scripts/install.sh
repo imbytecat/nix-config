@@ -37,9 +37,6 @@ yay -S --needed --noconfirm decman
 echo "==> 应用系统配置..."
 sudo decman --source "$CONFIG_DIR/source.py"
 
-echo "==> 生成 locale..."
-sudo locale-gen
-
 echo "==> 设置默认 shell 为 zsh..."
 if [ "$SHELL" != "$(which zsh)" ]; then
     sudo chsh -s "$(which zsh)" "$USER"

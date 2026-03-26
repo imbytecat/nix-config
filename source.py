@@ -11,6 +11,8 @@ import os
 import decman
 from decman import File
 
+import locale_module
+
 assert decman.pacman is not None
 assert decman.aur is not None
 
@@ -43,14 +45,12 @@ decman.pacman.packages |= {
 
 # ── AUR 包 ────────────────────────────────────────────────────
 decman.aur.packages |= {
-    "decman",
-    "yay",
-    # 开发工具
     "bun",
-    "mise",
-    # Zsh 插件
+    "decman",
     "fzf-tab-git",
+    "mise",
     "oh-my-zsh-git",
+    "yay",
 }
 
 # ── 系统文件（/etc/）──────────────────────────────────────────
@@ -63,10 +63,7 @@ decman.files["/etc/sudoers.d/10-wheel"] = File(
     permissions=0o440,
 )
 
-decman.files["/etc/locale.conf"] = File(content="LANG=en_US.UTF-8\n")
-
-# 仅保留需要的 locale；修改后需手动执行 locale-gen
-decman.files["/etc/locale.gen"] = File(content="en_US.UTF-8 UTF-8\n")
+decman.modules += [locale_module.LocaleModule()]
 
 # ── 用户配置 ─────────────────────────────────────────────────
 decman.files[f"{HOME}/.zshrc"] = File(
