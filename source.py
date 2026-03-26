@@ -12,8 +12,9 @@ import os
 import decman
 from decman import File
 
-import docker_module
-import locale_module
+import modules.docker
+import modules.locale
+import modules.zsh
 
 assert decman.pacman is not None
 assert decman.aur is not None
@@ -35,16 +36,11 @@ decman.files["/etc/sudoers.d/10-wheel"] = File(
     permissions=0o440,
 )
 
-# ── 用户配置 ─────────────────────────────────────────────────
-decman.files[f"{HOME}/.zshrc"] = File(
-    source_file="./home/.zshrc",
-    owner=USERNAME,
-)
-
 # ── Modules ──────────────────────────────────────────────────
 decman.modules += [
-    locale_module.LocaleModule(),
-    docker_module.DockerModule(),
+    modules.locale.LocaleModule(),
+    modules.docker.DockerModule(),
+    modules.zsh.ZshModule(USERNAME),
 ]
 
 # ── Pacman 包（官方仓库）──────────────────────────────────────
@@ -54,7 +50,6 @@ decman.pacman.packages |= {
     "bun",
     "curl",
     "fd",
-    "fzf",
     "git",
     "mise",
     "neovim",
@@ -65,16 +60,10 @@ decman.pacman.packages |= {
     "vim",
     "wget",
     "zoxide",
-    "zsh",
-    "zsh-autosuggestions",
-    "zsh-completions",
-    "zsh-syntax-highlighting",
 }
 
 # ── AUR 包 ────────────────────────────────────────────────────
 decman.aur.packages |= {
     "decman",
-    "fzf-tab-git",
-    "oh-my-zsh-git",
     "yay",
 }

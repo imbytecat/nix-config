@@ -37,11 +37,6 @@ yay -S --needed --noconfirm decman
 echo "==> 应用系统配置..."
 sudo decman --source "$CONFIG_DIR/source.py" < /dev/tty
 
-echo "==> 设置默认 shell 为 zsh..."
-if [ "$SHELL" != "$(which zsh)" ]; then
-    sudo chsh -s "$(which zsh)" "$USER"
-fi
-
 echo ""
 echo "✓ 安装完成！重新登录以使用 zsh。"
 echo ""
