@@ -51,10 +51,12 @@ decman.modules += [
 decman.pacman.packages |= {
     "base-devel",
     "bat",
+    "bun",
     "curl",
     "fd",
     "fzf",
     "git",
+    "mise",
     "neovim",
     "nodejs",
     "ripgrep",
@@ -71,10 +73,8 @@ decman.pacman.packages |= {
 
 # ── AUR 包 ────────────────────────────────────────────────────
 decman.aur.packages |= {
-    "bun",
     "decman",
     "fzf-tab-git",
-    "mise",
     "oh-my-zsh-git",
     "yay",
 }
