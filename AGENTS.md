@@ -2,31 +2,26 @@
 
 ## Project Overview
 
-This is a declarative Arch Linux configuration repository managed by `dcli` (Declarative CLI for Arch). The project uses YAML-based configuration files to manage packages, modules, and system files across different hosts.
+This is a declarative Arch Linux configuration repository managed by `decman` (Declarative package & configuration manager for Arch Linux). The project uses a Python source file to declare packages, system files, and dotfiles.
 
-**Primary Tool**: `dcli` - Declarative package and configuration manager for Arch Linux
+**Primary Tool**: `decman` - Declarative package & configuration manager for Arch Linux
 **Target Environment**: Arch Linux (primarily WSL, but supports bare metal)
-**Language**: Shell scripts (Bash), YAML configuration files
+**Language**: Shell scripts (Bash), Python configuration (source.py)
 
 ## Repository Structure
 
 ```
 .
-├── config.yaml           # Main config (specifies active host)
-├── hosts/                # Host-specific configurations
-│   └── wsl.yaml         # WSL host config (enabled modules, AUR helper)
-├── modules/             # Modular package definitions
-│   ├── base.yaml        # Core utilities (git, neovim, ripgrep, etc.)
-│   ├── dev-tools.yaml   # Development tools (nodejs, bun, mise)
-│   └── zsh/             # Zsh module with dotfiles
-│       ├── module.yaml
-│       └── packages.yaml
-├── files/               # System configuration files to sync
-│   └── etc/            # Files that go to /etc
-├── scripts/             # Installation and setup scripts
-│   ├── install.sh      # Main installation script
-│   └── wsl-init.sh     # WSL-specific initialization
-└── state/              # dcli state directory (auto-generated)
+├── source.py         # decman main configuration (packages, system files, dotfiles)
+├── files/            # System configuration files to deploy
+│   └── etc/
+│       ├── pacman.d/mirrorlist
+│       └── sudoers.d/10-wheel
+├── dotfiles/         # User dotfiles to deploy
+│   └── .zshrc
+└── scripts/
+    ├── install.sh    # Bootstrap script (git → yay → decman → first sync)
+    └── wsl-init.sh   # WSL-specific initialization (user creation)
 ```
 
 ## Build/Test/Sync Commands
@@ -35,13 +30,20 @@ This is a declarative Arch Linux configuration repository managed by `dcli` (Dec
 
 ```bash
 # Apply configuration (install/update packages, sync files)
-dcli sync
+sudo decman
 
-# Check what would change without applying
-dcli sync --dry-run
+# First-time run (specify source file)
+sudo decman --source ~/.config/arch-config/source.py
 
-# Update configuration from git
-cd ~/.config/arch-config && git pull && dcli sync
+# Skip specific plugins
+sudo decman --skip aur
+sudo decman --skip flatpak
+
+# Only apply file operations
+sudo decman --no-hooks --only files
+
+# Debug mode
+sudo decman --debug
 ```
 
 ### Installation Commands
@@ -50,11 +52,8 @@ cd ~/.config/arch-config && git pull && dcli sync
 # WSL first-time setup (as root)
 curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/wsl-init.sh | bash -s -- <username>
 
-# Install dcli and clone config (as regular user)
+# Install decman and apply config (as regular user)
 curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash
-
-# Then sync configuration
-dcli sync
 ```
 
 ### Testing Scripts
@@ -66,17 +65,9 @@ bash -n scripts/wsl-init.sh
 
 # Run shellcheck if available
 shellcheck scripts/*.sh
-```
 
-### Package Management
-
-```bash
-# Install packages manually (if needed)
-sudo pacman -S <package>          # Official repos
-yay -S <package>                  # AUR packages
-
-# Update system
-sudo pacman -Syu
+# Validate Python syntax
+python -c "import py_compile; py_compile.compile('source.py', doraise=True)"
 ```
 
 ## Code Style Guidelines
@@ -86,7 +77,6 @@ sudo pacman -Syu
 **Shebang & Options**:
 - Always use `#!/bin/bash` (not `#!/bin/sh`)
 - Start with `set -euo pipefail` for safety
-- Exit on errors, undefined variables, and pipe failures
 
 **Error Handling**:
 - Check command success with `if ! command; then`
@@ -98,19 +88,16 @@ sudo pacman -Syu
 - Use `UPPERCASE` for constants and environment variables
 - Use `lowercase` for local variables
 - Always quote variables: `"$VAR"` not `$VAR`
-- Use `${VAR}` for clarity when needed
 
 **Conditionals**:
 - Prefer `[[ ]]` over `[ ]` for tests
 - Use `&> /dev/null` for suppressing output
-- Check file existence: `if [ -e "$FILE" ]; then`
 - Check command existence: `if command -v cmd &> /dev/null; then`
 
 **User Feedback**:
 - Use `echo "==> Action..."` for major steps
 - Use Chinese for user-facing messages
 - Show clear success indicators: `✓`
-- Provide next steps after completion
 
 **Example Pattern**:
 ```bash
@@ -132,71 +119,35 @@ fi
 echo "✓ 完成！"
 ```
 
-### YAML Configuration Files
+### Python Configuration (source.py)
 
 **Structure**:
-- Use `---` document separator at the start
-- Use 2-space indentation (no tabs)
-- Keep files minimal and focused
+- Use section dividers (`# ── Section ──`) to separate logical groups
+- Group packages by purpose (基础工具, 开发工具, Zsh)
+- Keep packages in sets (`|=` syntax)
+- Use `os.environ.get("SUDO_USER")` for dynamic username
 
-**Module Files** (`modules/*.yaml`):
-```yaml
----
-description: 模块描述
-packages:
-  - package-name
-  - another-package
+**Example Pattern**:
+```python
+import os
+import decman
+from decman import File
+
+USERNAME = os.environ.get("SUDO_USER", "imbytecat")
+HOME = f"/home/{USERNAME}"
+
+decman.pacman.packages |= {"git", "neovim", "zsh"}
+decman.aur.packages |= {"decman", "bun"}
+
+decman.files["/etc/pacman.d/mirrorlist"] = File(
+    source_file="./files/etc/pacman.d/mirrorlist",
+)
+
+decman.files[f"{HOME}/.zshrc"] = File(
+    source_file="./dotfiles/.zshrc",
+    owner=USERNAME,
+)
 ```
-
-**Module with Dotfiles** (`modules/*/module.yaml`):
-```yaml
----
-description: 模块描述
-dotfiles:
-  - source: dotfiles/.config/file
-    target: ~/.config/file
-```
-
-**Host Files** (`hosts/*.yaml`):
-```yaml
-host: hostname
-aur_helper: yay
-auto_prune: true
-
-enabled_modules:
-  - base
-  - module-name
-
-system_backups:
-  enabled: false
-```
-
-**Main Config** (`config.yaml`):
-```yaml
-host: hostname
-```
-
-**Naming Conventions**:
-- Use lowercase with hyphens for module names: `dev-tools`, not `DevTools`
-- Use descriptive names in Chinese for descriptions
-- Keep package lists alphabetically sorted
-
-### File Organization
-
-**Adding New Modules**:
-1. Create `modules/module-name.yaml` with package list
-2. Add module to `hosts/*.yaml` under `enabled_modules`
-3. Run `dcli sync` to apply
-
-**Adding Dotfiles**:
-1. Create `modules/module-name/dotfiles/` directory
-2. Add dotfile mapping in `modules/module-name/module.yaml`
-3. Place actual dotfiles in the dotfiles subdirectory
-
-**Adding System Files**:
-1. Place files in `files/` matching target path structure
-2. Example: `files/etc/pacman.d/mirrorlist` → `/etc/pacman.d/mirrorlist`
-3. Scripts handle copying with proper permissions
 
 ### Git Workflow
 
@@ -205,58 +156,55 @@ host: hostname
 - Use Chinese for commit messages (matching project language)
 - Format: `<type>(<scope>): <subject>`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Examples: 
-  - `feat(modules): 添加开发工具模块`
-  - `fix(scripts): 更新 WSL 初始化脚本`
+- Examples:
+  - `feat(source): 添加开发工具包`
+  - `fix(scripts): 更新安装脚本`
   - `docs: 更新 README 说明`
-  - `chore(deps): 更新包列表`
+  - `chore(files): 更新镜像源列表`
 
 **Branching**:
 - Main branch: `main`
 - Work directly on main for personal config repos
-- Test changes with `dcli sync --dry-run` before committing
 
 ## Important Notes for Agents
 
-1. **dcli is the source of truth**: Don't manually install packages. Add them to module YAML files and run `dcli sync`.
+1. **decman is the source of truth**: Don't manually install packages. Add them to `source.py` and run `sudo decman`.
 
-2. **Host-specific configuration**: The active host is defined in `config.yaml`. Different hosts can have different enabled modules.
+2. **Pacman vs AUR**: Packages must be correctly categorized into `decman.pacman.packages` (official repos) and `decman.aur.packages` (AUR).
 
-3. **AUR packages**: This repo uses `yay` as the AUR helper. Both official and AUR packages go in the same `packages:` list.
+3. **System files**: Files in `files/` are copied (not symlinked) to system locations by decman. Use `File(source_file=..., permissions=...)` with correct permissions.
 
-4. **WSL-specific**: The default configuration targets WSL. For bare metal, create a new host file and switch `config.yaml`.
+4. **Dotfiles**: Files in `dotfiles/` are copied to user home by decman. Use `File(source_file=..., owner=USERNAME)`.
 
-5. **File syncing**: Files in `files/` are copied to system locations. Maintain the directory structure matching the target paths.
+5. **No dry-run**: decman does not have a `--dry-run` option. Review changes in `source.py` before running `sudo decman`.
 
-6. **No tests**: This is a configuration repository. Testing is done via `dcli sync --dry-run` and manual verification.
+6. **Runs as root**: `sudo decman` executes `source.py` as root. `SUDO_USER` contains the original username.
 
 7. **Language**: User-facing messages and documentation are in Chinese. Keep this consistent.
 
-8. **Safety first**: Scripts use `set -euo pipefail` and validate inputs. Maintain this pattern.
+8. **Safety first**: Scripts use `set -euo pipefail` and validate inputs.
 
-9. **Idempotency**: Scripts should be safe to run multiple times. Check if resources exist before creating.
+9. **Idempotency**: Scripts should be safe to run multiple times.
 
-10. **State management**: The `state/` directory is managed by dcli. Don't modify it manually.
+10. **Bootstrap flow**: `scripts/install.sh` handles one-time setup (yay, decman, locale-gen, chsh). After that, `sudo decman` handles ongoing management.
 
 ## Common Tasks
 
 **Add a new package**:
-- Edit appropriate module YAML file
-- Add package name to `packages:` list
-- Run `dcli sync`
+- Determine if it's pacman or AUR
+- Add to the appropriate set in `source.py`
+- Run `sudo decman`
 
-**Create a new module**:
-- Create `modules/new-module.yaml`
-- Add packages and optional dotfiles config
-- Enable in `hosts/*.yaml`
-- Run `dcli sync`
+**Add a new system file**:
+- Place the file in `files/` matching target path structure (e.g., `files/etc/foo.conf` → `/etc/foo.conf`)
+- Add `decman.files["/etc/foo.conf"] = File(source_file="./files/etc/foo.conf")` to `source.py`
+- Run `sudo decman`
 
-**Update system configuration file**:
-- Edit file in `files/` directory
-- Run install script or manually copy to system location
-- Restart affected services if needed
+**Add a new dotfile**:
+- Place the file in `dotfiles/`
+- Add `decman.files[f"{HOME}/.config/foo"] = File(source_file="./dotfiles/foo", owner=USERNAME)` to `source.py`
+- Run `sudo decman`
 
-**Switch to a different host**:
-- Create `hosts/new-host.yaml` if needed
-- Edit `config.yaml` to change `host:` value
-- Run `dcli sync`
+**Update an existing configuration file**:
+- Edit the source file in `files/` or `dotfiles/`
+- Run `sudo decman`

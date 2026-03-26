@@ -1,7 +1,7 @@
 # Arch Linux 配置仓库
 
-使用 dcli 声明式管理 Arch Linux 配置。
-当前默认主机为 `wsl`；非 WSL 环境请先新增/切换 host，再执行同步。
+使用 [decman](https://github.com/kiviktnm/decman) 声明式管理 Arch Linux 系统配置。
+当前默认面向 WSL 环境；裸机使用请按需修改 `source.py`。
 
 ## 使用方式
 
@@ -23,7 +23,6 @@ wsl --terminate archlinux
 
 ```bash
 curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash
-dcli sync
 ```
 
 ### B. 普通 Arch 安装（已存在普通用户）
@@ -32,20 +31,33 @@ dcli sync
 
 ```bash
 curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/main/scripts/install.sh | bash
-dcli sync
 ```
-
-> 注意：当前 `config.yaml` 的 `active_host` 是 `wsl`。非 WSL 环境请先新增对应 `hosts/*.yaml` 并切换 `active_host`。
-
-## 配置说明
-
-- `hosts/` - 主机配置
-- `modules/` - 模块化包管理
-- `files/` - 配置文件（自动同步）
 
 ## 更新配置
 
 ```bash
-cd ~/.config/arch-config && git pull
-dcli sync
+cd ~/.config/arch-config && git pull && sudo decman
 ```
+
+## 仓库结构
+
+```
+.
+├── source.py         # decman 主配置（包、系统文件、dotfiles）
+├── files/            # 系统配置文件源
+│   └── etc/
+│       ├── pacman.d/mirrorlist
+│       └── sudoers.d/10-wheel
+├── dotfiles/         # 用户配置文件源
+│   └── .zshrc
+└── scripts/
+    ├── install.sh    # 安装脚本（bootstrap → decman）
+    └── wsl-init.sh   # WSL 首次初始化（创建用户）
+```
+
+## 配置说明
+
+- `source.py` — 所有声明集中在一个文件：pacman 包、AUR 包、系统文件、dotfiles
+- `files/` — 需要部署到 `/etc/` 的系统配置文件，目录结构对应目标路径
+- `dotfiles/` — 需要部署到用户目录的配置文件
+- `scripts/` — 一次性引导脚本，安装完成后由 `sudo decman` 接管日常管理

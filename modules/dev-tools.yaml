@@ -1,6 +1,0 @@
----
-description: 开发工具
-packages:
-  - bun
-  - mise
-  - nodejs

@@ -1,0 +1,14 @@
+[project]
+name = "archlinux-config"
+version = "0.0.0"
+requires-python = ">=3.13"
+
+[dependency-groups]
+dev = ["decman", "decman-pacman"]
+
+[tool.uv.sources]
+decman = { git = "https://github.com/kiviktnm/decman.git" }
+decman-pacman = { git = "https://github.com/kiviktnm/decman.git", subdirectory = "plugins/decman-pacman" }
+
+[tool.ty.environment]
+python = ".venv"
