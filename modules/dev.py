@@ -42,6 +42,12 @@ class DevModule(Module):
 
     def after_update(self, store):
         for pkg in BUN_GLOBAL_PACKAGES:
-            decman.prg(["su", "-", self.user, "-c", f"bun add -g {pkg}"])
+            try:
+                decman.prg(["su", "-", self.user, "-c", f"bun add -g {pkg}"])
+            except Exception:
+                print(f"警告：安装 {pkg} 失败，跳过")
         for pkg in GO_INSTALL_PACKAGES:
-            decman.prg(["su", "-", self.user, "-c", f"go install {pkg}"])
+            try:
+                decman.prg(["su", "-", self.user, "-c", f"go install {pkg}"])
+            except Exception:
+                print(f"警告：安装 {pkg} 失败，跳过")

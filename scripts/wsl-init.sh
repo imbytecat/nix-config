@@ -18,8 +18,13 @@ if [ -z "$USERNAME" ]; then
     exit 1
 fi
 
-echo "==> 同步数据库并安装 sudo..."
-pacman -Sy --needed --noconfirm sudo
+echo "==> 更新系统..."
+pacman -Syu --noconfirm
+
+if ! command -v sudo &> /dev/null; then
+    echo "==> 安装 sudo..."
+    pacman -S --needed --noconfirm sudo
+fi
 
 echo "==> 配置 sudo 权限..."
 cat > /etc/sudoers.d/10-wheel << 'EOF'
@@ -29,7 +34,8 @@ chmod 440 /etc/sudoers.d/10-wheel
 
 echo "==> 创建用户 $USERNAME..."
 if id "$USERNAME" &> /dev/null; then
-    echo "用户 $USERNAME 已存在，跳过创建"
+    echo "用户 $USERNAME 已存在，确保 wheel 组成员"
+    usermod -aG wheel "$USERNAME"
 else
     useradd -m -G wheel -s /bin/bash "$USERNAME"
     echo "请设置 $USERNAME 的密码："

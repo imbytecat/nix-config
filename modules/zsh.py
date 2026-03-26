@@ -1,3 +1,5 @@
+import subprocess
+
 import decman
 from decman import File, Module
 from decman.plugins.aur import packages as aur_packages
@@ -38,5 +40,13 @@ class ZshModule(Module):
             "oh-my-zsh-git",
         }
 
-    def on_enable(self, store):
-        decman.prg(["chsh", "-s", "/usr/bin/zsh", self.user])
+    def after_update(self, store):
+        result = subprocess.run(
+            ["getent", "passwd", self.user], capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            return
+        # passwd 格式: name:x:uid:gid:gecos:home:shell
+        shell = result.stdout.strip().split(":")[-1]
+        if shell != "/usr/bin/zsh":
+            decman.prg(["chsh", "-s", "/usr/bin/zsh", self.user])

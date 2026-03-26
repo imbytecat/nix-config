@@ -1,6 +1,8 @@
+import subprocess
+
 import decman
 from decman import Module
-from decman.plugins.pacman import packages
+from decman.plugins.pacman import packages as pacman_packages
 from decman.plugins.systemd import units
 
 
@@ -9,13 +11,19 @@ class DockerModule(Module):
         super().__init__("docker")
         self.user = user
 
-    @packages
-    def packages(self) -> set[str]:
+    @pacman_packages
+    def pacman_packages(self) -> set[str]:
         return {"docker", "docker-compose"}
 
     @units
     def units(self) -> set[str]:
         return {"docker.socket"}
 
-    def on_enable(self, store):
-        decman.prg(["gpasswd", "-a", self.user, "docker"])
+    def after_update(self, store):
+        result = subprocess.run(
+            ["id", "-nG", self.user], capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            return
+        if "docker" not in result.stdout.split():
+            decman.prg(["gpasswd", "-a", self.user, "docker"])
