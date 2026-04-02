@@ -33,5 +33,5 @@ alias tree="eza --tree"
 alias cat="bat --paging=never"
 alias rm="trash-put"
 
-# Local overrides (secrets, machine-specific config)
+# Local
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
