@@ -13,8 +13,13 @@
 ```
 .
 ├── source.py            # decman 主配置入口
-├── locale_module.py     # locale 模块（files + on_change hook）
-├── docker_module.py     # Docker 模块（packages + systemd units）
+├── modules/
+│   ├── base.py          # 基础模块（系统包 + 现代 CLI 工具 + 配置文件）
+│   ├── dev.py           # 开发模块（语言运行时 + 编辑器 + 工具链）
+│   ├── docker.py        # Docker 模块（packages + systemd units）
+│   ├── locale.py        # locale 模块（files + on_change hook）
+│   ├── wsl.py           # WSL 模块（WSL 特定适配）
+│   └── zsh.py           # Zsh 模块（shell + oh-my-zsh + 插件）
 ├── system/etc/          # 系统配置文件源 → 部署到 /etc/
 ├── home/                # 用户配置文件源 → 部署到 ~/
 ├── scripts/
@@ -46,10 +51,9 @@ sudo decman --debug
 ### 验证
 
 ```bash
-# Python 语法检查（所有 .py 文件）
+# Python 语法检查（所有模块）
 python -c "import py_compile; py_compile.compile('source.py', doraise=True)"
-python -c "import py_compile; py_compile.compile('docker_module.py', doraise=True)"
-python -c "import py_compile; py_compile.compile('locale_module.py', doraise=True)"
+for f in modules/*.py; do python -c "import py_compile; py_compile.compile('$f', doraise=True)"; done
 
 # Shell 语法检查
 bash -n scripts/install.sh
@@ -82,20 +86,21 @@ files → pacman → aur → systemd
 **模块模式**（适用于需要 hook 或跨步骤声明的场景）：
 ```python
 from decman import Module
-from decman.plugins.pacman import packages
+from decman.plugins.pacman import packages as pacman_packages
 from decman.plugins.systemd import units
 
 class DockerModule(Module):
-    def __init__(self):
+    def __init__(self, user: str):
         super().__init__("docker")
+        self.user = user
 
-    @packages
-    def packages(self) -> set[str]:
+    @pacman_packages
+    def pacman_packages(self) -> set[str]:
         return {"docker", "docker-compose"}
 
     @units
     def units(self) -> set[str]:
-        return {"docker.service"}
+        return {"docker.socket"}
 ```
 
 **何时用模块 vs 直接声明**：
