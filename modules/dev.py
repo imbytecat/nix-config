@@ -28,13 +28,16 @@ class DevModule(Module):
     @pacman_packages
     def pacman_packages(self) -> set[str]:
         return {
+            "ast-grep",
             "biome",
             "bun",
+            "github-cli",
             "go",
             "lazygit",
             "mise",
             "neovim",
             "nodejs",
+            "tmux",
             "uv",
             "yaml-language-server",
         }
