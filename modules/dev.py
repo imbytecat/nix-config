@@ -1,5 +1,5 @@
 import decman
-from decman import File, Module
+from decman import Module
 from decman.plugins.pacman import packages as pacman_packages
 
 BUN_GLOBAL_PACKAGES = [
@@ -17,35 +17,18 @@ class DevModule(Module):
         super().__init__("dev")
         self.user = user
 
-    def files(self):
-        return {
-            f"/home/{self.user}/.config/mise/config.toml": File(
-                source_file="./home/.config/mise/config.toml",
-                owner=self.user,
-            ),
-        }
-
     @pacman_packages
     def pacman_packages(self) -> set[str]:
         return {
-            "bat",
             "biome",
-            "btop",
             "bun",
-            "eza",
-            "fastfetch",
-            "fd",
             "go",
             "lazygit",
-            "micro",
             "mise",
             "neovim",
             "nodejs",
-            "ripgrep",
-            "trash-cli",
             "uv",
             "yaml-language-server",
-            "zoxide",
         }
 
     def after_update(self, store):
