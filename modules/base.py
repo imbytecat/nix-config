@@ -4,8 +4,9 @@ from decman.plugins.pacman import packages as pacman_packages
 
 
 class BaseModule(Module):
-    def __init__(self):
+    def __init__(self, user: str):
         super().__init__("base")
+        self.user = user
 
     def files(self):
         return {
@@ -15,6 +16,10 @@ class BaseModule(Module):
             "/etc/sudoers.d/10-wheel": File(
                 source_file="./system/etc/sudoers.d/10-wheel",
                 permissions=0o440,
+            ),
+            f"/home/{self.user}/.config/git/config": File(
+                source_file="./home/.config/git/config",
+                owner=self.user,
             ),
         }
 
