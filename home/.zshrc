@@ -1,3 +1,7 @@
+# PATH
+export PATH="$HOME/go/bin:$PATH"
+export PATH="$HOME/.bun/bin:$PATH"
+
 # Oh My Zsh
 ZSH=/usr/share/oh-my-zsh/
 ZSH_THEME="ys"
@@ -28,3 +32,6 @@ alias ls="eza"
 alias tree="eza --tree"
 alias cat="bat --paging=never"
 alias rm="trash-put"
+
+# Local overrides (secrets, machine-specific config)
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
