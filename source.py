@@ -3,7 +3,6 @@ import os
 import decman
 
 import modules.base
-import modules.cli
 import modules.dev
 import modules.docker
 import modules.locale
@@ -21,8 +20,7 @@ if not USERNAME:
 IS_WSL = os.path.exists("/proc/sys/fs/binfmt_misc/WSLInterop")
 
 decman.modules += [
-    modules.base.BaseModule(),
-    modules.cli.CliModule(USERNAME),
+    modules.base.BaseModule(USERNAME),
     modules.dev.DevModule(USERNAME),
     modules.docker.DockerModule(USERNAME),
     modules.locale.LocaleModule(),
