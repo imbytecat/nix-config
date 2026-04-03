@@ -1,5 +1,5 @@
 {
-  description = "NixOS 声明式系统配置";
+  description = "Multi-platform Nix configuration — NixOS / nix-darwin / standalone Home Manager";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -13,47 +13,67 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    catppuccin = {
+      url = "github:catppuccin/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
       nixpkgs,
-      nixos-wsl,
-      home-manager,
       ...
-    }:
+    }@inputs:
     let
-      system = "x86_64-linux";
-
-      # 所有主机共享的模块
-      commonModules = [
-        ./modules/base.nix
-        ./modules/dev.nix
-        ./modules/docker.nix
-        ./modules/locale.nix
-        ./modules/shell.nix
-        home-manager.nixosModules.home-manager
-      ];
+      mylib = import ./lib { inherit inputs; };
     in
     {
+      # ── NixOS hosts ────────────────────────────────────
       nixosConfigurations = {
-        # WSL 配置
-        wsl = nixpkgs.lib.nixosSystem {
-          inherit system;
-          modules = commonModules ++ [
-            nixos-wsl.nixosModules.default
-            ./hosts/wsl/default.nix
+        wsl = mylib.mkNixos {
+          hostname = "nixos-wsl";
+          system = "x86_64-linux";
+          username = "dev";
+          extraModules = [
+            inputs.nixos-wsl.nixosModules.default
+            ./hosts/wsl
           ];
         };
 
-        # 裸机配置
-        bare = nixpkgs.lib.nixosSystem {
-          inherit system;
-          modules = commonModules ++ [
-            ./hosts/bare/default.nix
-          ];
+        bare = mylib.mkNixos {
+          hostname = "nixos";
+          system = "x86_64-linux";
+          username = "dev";
+          extraModules = [ ./hosts/bare ];
         };
       };
+
+      # ── macOS hosts (uncomment when ready) ─────────────
+      # darwinConfigurations = {
+      #   macbook = mylib.mkDarwin {
+      #     hostname = "macbook";
+      #     system = "aarch64-darwin";
+      #     username = "imbytecat";
+      #     extraModules = [ ./hosts/macbook ];
+      #   };
+      # };
+
+      # ── Standalone Home Manager (non-NixOS / non-Darwin) ─
+      homeConfigurations = {
+        "dev" = mylib.mkHome {
+          system = "x86_64-linux";
+          username = "dev";
+        };
+      };
+
+      # ── Overlays ───────────────────────────────────────
+      overlays.default = import ./overlays;
     };
 }

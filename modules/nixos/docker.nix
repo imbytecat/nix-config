@@ -1,16 +1,14 @@
-{ config, pkgs, ... }:
+{ pkgs, username, ... }:
 
 {
-  virtualisation.docker = {
-    enable = true;
-  };
+  virtualisation.docker.enable = true;
+
+  users.users.${username}.extraGroups = [ "docker" ];
 
   environment.systemPackages = with pkgs; [
     docker-compose
   ];
 
-  # 注：用户 docker 组权限在 hosts/*/default.nix 中配置
-  #
   # WSL 环境下如使用 Docker Desktop，可改为：
   #   wsl.docker-desktop.enable = true;
   # 并将上面的 virtualisation.docker.enable 设为 false
