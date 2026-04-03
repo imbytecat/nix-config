@@ -7,8 +7,11 @@ CONFIG_DIR="$HOME/.config/archlinux-config"
 echo "==> 验证 sudo 权限..."
 sudo -v < /dev/tty || { echo "错误：需要 sudo 权限，请确认当前用户已配置 sudo"; exit 1; }
 
-echo "==> 安装 git..."
-sudo pacman -S --needed --noconfirm git
+echo "==> 更新系统..."
+sudo pacman -Syu --noconfirm
+
+echo "==> 安装基础依赖..."
+sudo pacman -S --needed --noconfirm git base-devel
 
 echo "==> 克隆配置仓库..."
 mkdir -p "$(dirname "$CONFIG_DIR")"
@@ -21,22 +24,13 @@ else
     git clone "$REPO_URL" "$CONFIG_DIR"
 fi
 
-echo "==> 更新系统..."
-sudo pacman -Syu --noconfirm
-
-echo "==> 安装 base-devel..."
-sudo pacman -S --needed --noconfirm base-devel
-
-echo "==> 安装 yay-bin..."
-if ! command -v yay &> /dev/null; then
-    rm -rf /tmp/yay-bin
-    git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin
-    (cd /tmp/yay-bin && makepkg -si --noconfirm)
-    rm -rf /tmp/yay-bin
-fi
-
 echo "==> 安装 decman..."
-yay -S --needed --noconfirm decman
+if ! command -v decman &> /dev/null; then
+    rm -rf /tmp/decman
+    git clone https://aur.archlinux.org/decman.git /tmp/decman
+    (cd /tmp/decman && makepkg -si --noconfirm)
+    rm -rf /tmp/decman
+fi
 
 echo "==> 应用系统配置..."
 sudo decman --source "$CONFIG_DIR/source.py" < /dev/tty

@@ -65,5 +65,4 @@ class BaseModule(Module):
     def aur_packages(self) -> set[str]:
         return {
             "decman",
-            "yay-bin",
         }

@@ -6,7 +6,7 @@
 
 - **运行环境**：Arch Linux（主要面向 WSL，兼容裸机）
 - **语言**：Python（配置）、Bash（引导脚本）
-- **包管理器**：uv（开发依赖）、pacman/yay（系统包）
+- **包管理器**：uv（开发依赖）、pacman（系统包）、decman AUR 插件（AUR 包）
 
 ## 仓库结构
 
@@ -23,7 +23,7 @@
 ├── system/etc/          # 系统配置文件源 → 部署到 /etc/
 ├── home/                # 用户配置文件源 → 部署到 ~/
 ├── scripts/
-│   ├── install.sh       # 引导脚本（git → yay → decman → 首次 sync）
+│   ├── install.sh       # 引导脚本（git → decman → 首次 sync）
 │   └── wsl-init.sh      # WSL 首次初始化（创建用户）
 └── pyproject.toml       # 开发依赖（decman + 插件，仅用于类型检查）
 ```
