@@ -78,10 +78,9 @@ files → pacman → aur → systemd
 ### Python（source.py 及模块）
 
 **source.py 结构**：
-- 用 `# ── Section ──` 分隔逻辑分区
-- 包集合用 `|=` 语法，元素按字母排序
-- `SUDO_USER` 必须存在，不设 fallback——没有则抛 `SourceError`
-- 文件默认权限 `0o644`，仅需特殊权限时显式指定（如 sudoers `0o440`）
+- 纯模块注册，不直接声明文件或包
+- 校验 `SUDO_USER` 和必要插件存在性
+- 通过 `decman.modules += [...]` 注册所有模块
 
 **模块模式**（适用于需要 hook 或跨步骤声明的场景）：
 ```python

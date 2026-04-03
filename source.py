@@ -8,9 +8,8 @@ import modules.docker
 import modules.locale
 import modules.zsh
 
-assert decman.pacman is not None
-assert decman.aur is not None
-assert decman.systemd is not None
+if decman.pacman is None or decman.aur is None or decman.systemd is None:
+    raise decman.SourceError("缺少必要插件，请检查 decman 安装")
 
 USERNAME = os.environ.get("SUDO_USER")
 if not USERNAME:
