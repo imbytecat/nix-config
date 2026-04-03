@@ -15,11 +15,11 @@ let
     };
     "x86_64-linux" = {
       url = "https://github.com/code-yeongyu/go-claude-code-comment-checker/releases/download/v${version}/comment-checker_v${version}_linux_amd64.tar.gz";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash = "sha256-YLmHQc0bBqyyR9LXRt2k/xWZLpHjna0twNsBbr1lVkY=";
     };
     "aarch64-linux" = {
       url = "https://github.com/code-yeongyu/go-claude-code-comment-checker/releases/download/v${version}/comment-checker_v${version}_linux_arm64.tar.gz";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash = "sha256-R3MX5L6t/pllCREVrd54qBFMZEsiaQmeG/0EVu6VwjE=";
     };
   };
 
