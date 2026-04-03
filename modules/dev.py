@@ -3,6 +3,7 @@ from decman import File, Module
 from decman.plugins.pacman import packages as pacman_packages
 
 BUN_GLOBAL_PACKAGES = [
+    "dockerfile-language-server",  # TODO: 等 extra-testing -> extra 后改用 pacman
     "opencode-ai",
 ]
 
@@ -38,6 +39,7 @@ class DevModule(Module):
             "mise",
             "neovim",
             "nodejs",
+            "ruff",
             "shellcheck",
             "shfmt",
             "tmux",
