@@ -2,12 +2,12 @@
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "请以 root 身份运行此脚本"
+    echo "❌ 请以 root 身份运行此脚本"
     exit 1
 fi
 
 if [[ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
-    echo "此脚本仅用于 Arch Linux on WSL 的首次初始化"
+    echo "❌ 此脚本仅用于 Arch Linux on WSL 的首次初始化"
     exit 1
 fi
 
@@ -18,23 +18,23 @@ if [ -z "$USERNAME" ]; then
     exit 1
 fi
 
-echo "==> 更新系统..."
+echo "🔄 更新系统..."
 pacman -Syu --noconfirm
 
 if ! command -v sudo &> /dev/null; then
-    echo "==> 安装 sudo..."
+    echo "📦 安装 sudo..."
     pacman -S --needed --noconfirm sudo
 fi
 
-echo "==> 配置 sudo 权限..."
+echo "🔐 配置 sudo 权限..."
 cat > /etc/sudoers.d/10-wheel << 'EOF'
 %wheel ALL=(ALL) NOPASSWD: ALL
 EOF
 chmod 440 /etc/sudoers.d/10-wheel
 
-echo "==> 创建用户 $USERNAME..."
+echo "👤 创建用户 $USERNAME..."
 if id "$USERNAME" &> /dev/null; then
-    echo "用户 $USERNAME 已存在，确保 wheel 组成员"
+    echo "⏩ 用户 $USERNAME 已存在，确保 wheel 组成员"
     usermod -aG wheel "$USERNAME"
 else
     useradd -m -G wheel -s /bin/bash "$USERNAME"
@@ -43,7 +43,7 @@ else
 fi
 
 echo ""
-echo "✓ WSL 初始化完成！"
+echo "🎉 WSL 初始化完成！"
 echo ""
 echo "下一步："
 echo "  1. 在 PowerShell 中设置默认用户："
