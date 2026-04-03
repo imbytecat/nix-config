@@ -1,42 +1,25 @@
 #!/bin/bash
+# NixOS 配置安装脚本
+# 在 NixOS-WSL 或裸机 NixOS 中运行
 set -euo pipefail
 
 REPO_URL="https://git.furtherverse.com/imbytecat/archlinux-config.git"
-CONFIG_DIR="$HOME/.config/archlinux-config"
+CONFIG_DIR="$HOME/.config/nixos-config"
+FLAKE_TARGET="${1:-wsl}" # 默认 wsl，裸机传入 bare
 
-echo "🔑 验证 sudo 权限..."
-sudo -v < /dev/tty || { echo "❌ 需要 sudo 权限，请确认当前用户已配置 sudo"; exit 1; }
-
-echo "🔄 更新系统..."
-sudo pacman -Syu --noconfirm
-
-echo "📦 安装基础依赖..."
-sudo pacman -S --needed --noconfirm git base-devel
-
-echo "📥 克隆配置仓库..."
-mkdir -p "$(dirname "$CONFIG_DIR")"
+echo "📥 获取配置仓库..."
 if [[ -d "$CONFIG_DIR/.git" ]]; then
-    echo "⏩ 配置仓库已存在，跳过克隆"
-elif [[ -e "$CONFIG_DIR" ]]; then
-    echo "❌ 目标路径已存在且不是 git 仓库：$CONFIG_DIR"
-    exit 1
+    echo "⏩ 仓库已存在，拉取最新..."
+    git -C "$CONFIG_DIR" pull
 else
-    git clone "$REPO_URL" "$CONFIG_DIR"
+    git clone -b nixos "$REPO_URL" "$CONFIG_DIR"
 fi
 
-echo "📦 安装 decman..."
-if ! command -v decman &> /dev/null; then
-    _tmpdir=$(mktemp -d)
-    trap 'rm -rf "$_tmpdir"' EXIT
-    git clone https://aur.archlinux.org/decman.git "$_tmpdir"
-    (cd "$_tmpdir" && makepkg -si --noconfirm)
-fi
-
-echo "⚙️ 应用系统配置..."
-sudo decman --source "$CONFIG_DIR/source.py" < /dev/tty
+echo "⚙️ 应用系统配置（目标: $FLAKE_TARGET）..."
+sudo nixos-rebuild switch --flake "$CONFIG_DIR#$FLAKE_TARGET"
 
 echo ""
-echo "🎉 安装完成！重新登录以使用 zsh。"
+echo "🎉 安装完成！请重新登录以使用 zsh。"
 echo ""
-echo "后续更新配置："
-echo "  cd $CONFIG_DIR && git pull && sudo decman"
+echo "后续更新："
+echo "  cd $CONFIG_DIR && git pull && sudo nixos-rebuild switch --flake .#$FLAKE_TARGET"
