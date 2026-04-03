@@ -18,7 +18,7 @@ wsl -d NixOS
 2. 运行安装脚本：
 
 ```bash
-bash <(curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/nixos/scripts/install.sh)
+bash <(curl -fsSL https://git.furtherverse.com/imbytecat/nix-config/raw/branch/main/scripts/install.sh)
 ```
 
 3. 重新登录，配置 Git 身份：
@@ -34,13 +34,13 @@ git config --global user.email "你的邮箱"
 2. 运行安装脚本（传入 `bare` 参数）：
 
 ```bash
-bash <(curl -fsSL https://git.furtherverse.com/imbytecat/archlinux-config/raw/branch/nixos/scripts/install.sh) bare
+bash <(curl -fsSL https://git.furtherverse.com/imbytecat/nix-config/raw/branch/main/scripts/install.sh) bare
 ```
 
 3. 生成硬件配置并重新应用：
 
 ```bash
-cd ~/.config/nixos-config
+cd ~/.config/nix-config
 sudo nixos-generate-config --show-hardware-config > hosts/bare/hardware-configuration.nix
 # 取消 hosts/bare/default.nix 中 imports 的注释
 sudo nixos-rebuild switch --flake .#bare
@@ -72,7 +72,7 @@ sudo nixos-rebuild switch --flake .#bare
 ## 日常使用
 
 ```bash
-cd ~/.config/nixos-config
+cd ~/.config/nix-config
 
 # 更新配置
 git pull && sudo nixos-rebuild switch --flake .#wsl

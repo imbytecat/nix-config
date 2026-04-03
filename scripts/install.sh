@@ -3,8 +3,8 @@
 # 在 NixOS-WSL 或裸机 NixOS 中运行
 set -euo pipefail
 
-REPO_URL="https://git.furtherverse.com/imbytecat/archlinux-config.git"
-CONFIG_DIR="$HOME/.config/nixos-config"
+REPO_URL="https://git.furtherverse.com/imbytecat/nix-config.git"
+CONFIG_DIR="$HOME/.config/nix-config"
 FLAKE_TARGET="${1:-wsl}" # 默认 wsl，裸机传入 bare
 
 echo "📥 获取配置仓库..."
@@ -12,7 +12,7 @@ if [[ -d "$CONFIG_DIR/.git" ]]; then
     echo "⏩ 仓库已存在，拉取最新..."
     git -C "$CONFIG_DIR" pull
 else
-    git clone -b nixos "$REPO_URL" "$CONFIG_DIR"
+    git clone "$REPO_URL" "$CONFIG_DIR"
 fi
 
 echo "⚙️ 应用系统配置（目标: $FLAKE_TARGET）..."
