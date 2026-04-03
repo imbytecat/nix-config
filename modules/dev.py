@@ -28,6 +28,7 @@ class DevModule(Module):
     def pacman_packages(self) -> set[str]:
         return {
             "ast-grep",
+            "bash-language-server",
             "biome",
             "bun",
             "github-cli",
@@ -36,6 +37,8 @@ class DevModule(Module):
             "mise",
             "neovim",
             "nodejs",
+            "shellcheck",
+            "shfmt",
             "tmux",
             "uv",
             "yaml-language-server",
