@@ -40,6 +40,7 @@ class DevModule(Module):
             "tmux",
             "uv",
             "yaml-language-server",
+            "zellij",
         }
 
     def after_update(self, store):

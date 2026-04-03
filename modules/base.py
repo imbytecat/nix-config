@@ -21,16 +21,22 @@ class BaseModule(Module):
                 source_file="./home/.config/git/config",
                 owner=self.user,
             ),
+            f"/home/{self.user}/.config/starship.toml": File(
+                source_file="./home/.config/starship.toml",
+                owner=self.user,
+            ),
         }
 
     @pacman_packages
     def pacman_packages(self) -> set[str]:
         return {
+            "atuin",
             "base-devel",
             "base",
             "bat",
             "btop",
             "curl",
+            "direnv",
             "duf",
             "dust",
             "eza",
@@ -42,12 +48,16 @@ class BaseModule(Module):
             "micro",
             "procs",
             "ripgrep",
+            "sd",
+            "starship",
             "sudo",
             "tealdeer",
             "trash-cli",
             "vim",
             "wget",
+            "xh",
             "yazi",
+            "yq",
             "zoxide",
         }
 

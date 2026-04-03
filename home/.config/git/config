@@ -1,4 +1,4 @@
-[http]
+[http "https://202.127.0.42:32443"]
 	sslVerify = false
 [core]
 	pager = delta
@@ -7,7 +7,16 @@
 [delta]
 	navigate = true
 	side-by-side = true
+	line-numbers = true
 [credential]
 	helper = store
 [merge]
 	conflictstyle = zdiff3
+[pull]
+	rebase = true
+[push]
+	autoSetupRemote = true
+[init]
+	defaultBranch = main
+[rerere]
+	enabled = true
