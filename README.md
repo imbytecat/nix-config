@@ -50,24 +50,60 @@ sudo nixos-rebuild switch --flake .#bare
 
 ```
 ├── flake.nix                  # 入口：输入源 + 输出配置
+├── flake.lock                 # 依赖锁定文件（需手动生成）
 ├── hosts/
 │   ├── wsl/default.nix        # WSL：用户、WSL 设置
 │   └── bare/default.nix       # 裸机：引导、网络、硬件
 ├── modules/
-│   ├── base.nix               # 基础包（现代 CLI 工具）
-│   ├── dev.nix                # 开发工具链 + LSP
-│   ├── docker.nix             # Docker
-│   ├── locale.nix             # 区域 / 语言
-│   └── shell.nix              # Zsh 系统级启用
-├── home/
-│   ├── default.nix            # Home Manager 入口
-│   ├── shell.nix              # Zsh + 终端增强工具
-│   └── git.nix                # Git + Delta
+│   ├── nixos/                 # NixOS 专用模块
+│   │   ├── base.nix           # 基础包
+│   │   ├── docker.nix         # Docker 配置
+│   │   ├── locale.nix         # 区域 / 语言
+│   │   └── default.nix        # 入口
+│   ├── darwin/                # macOS 专用模块（预留）
+│   └── shared/                # 共享模块
+│       ├── nix.nix            # Nix 设置
+│       └── default.nix        # 入口
+├── home/                      # Home Manager 配置
+│   ├── default.nix            # 入口
+│   ├── theme.nix              # Catppuccin 主题
+│   ├── dev/                   # 开发工具
+│   │   ├── neovim.nix
+│   │   ├── languages.nix      # 语言运行时、LSP
+│   │   ├── git.nix
+│   │   └── default.nix
+│   └── shell/                 # Shell 配置
+│       ├── zsh.nix
+│       ├── tmux.nix
+│       ├── starship.nix
+│       ├── tools.nix          # fzf, atuin, zoxide 等
+│       └── default.nix
+├── lib/                       # 辅助函数
+│   └── default.nix
+├── overlays/                  # 自定义包覆盖
+│   └── default.nix
+├── pkgs/                      # 自定义包（预留）
+│   └── default.nix
 └── scripts/
     └── install.sh             # 一键安装脚本
 ```
 
 **配置层级**：`hosts/*`（主机特定） → `modules/*`（共享系统） → `home/*`（用户级）
+
+## 首次设置（重要）
+
+### 生成 flake.lock
+
+首次克隆仓库后，必须生成锁定文件以确保依赖版本一致：
+
+```bash
+cd ~/.config/nix-config
+nix flake lock
+git add flake.lock
+git commit -m "Add flake.lock"
+```
+
+**为什么需要？** `flake.lock` 锁定所有输入（nixpkgs、home-manager 等）的确切版本，确保不同机器构建结果一致。
 
 ## 日常使用
 
@@ -100,7 +136,7 @@ let
 
 ### 添加包
 
-编辑 `modules/base.nix` 或 `modules/dev.nix`，在 `environment.systemPackages` 中添加：
+编辑 `modules/nixos/base.nix` 或 `home/dev/languages.nix`，在对应 `packages` 列表中添加：
 
 ```nix
 environment.systemPackages = with pkgs; [
@@ -108,8 +144,8 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
-> 查包名：`nix search nixpkgs <关键词>`
+> 查包名：`nix search nixpkgs <关键词>` 或查看 [NixOS 包搜索](https://search.nixos.org/packages)
 
 ### 添加 Shell 别名
 
-编辑 `home/shell.nix` 中的 `shellAliases`。
+编辑 `home/shell/zsh.nix` 中的 `shellAliases`。

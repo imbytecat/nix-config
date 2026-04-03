@@ -73,6 +73,14 @@
         };
       };
 
+      # ── Packages ────────────────────────────────────────
+      packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (system: {
+        comment-checker = (import nixpkgs {
+          inherit system;
+          overlays = [ self.overlays.default ];
+        }).comment-checker;
+      });
+
       # ── Overlays ───────────────────────────────────────
       overlays.default = import ./overlays;
     };

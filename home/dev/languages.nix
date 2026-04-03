@@ -3,6 +3,8 @@
 {
   home.packages = with pkgs; [
     # ── Language runtimes ──
+    # Node.js: 默认跟随 nixpkgs，当前 unstable 为 v24.14.0
+    # 如需固定 LTS 版本，改为: nodejs_22 或 nodejs_20
     nodejs
     go
     bun

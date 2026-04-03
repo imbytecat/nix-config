@@ -47,6 +47,10 @@
     nvd # nix version diff
     nh # nix helper (nixos-rebuild wrapper)
 
+    # AI coding agent
+    opencode
+    comment-checker # AI code comment detection hook
+
     # Misc
     micro # simple editor fallback
   ];
