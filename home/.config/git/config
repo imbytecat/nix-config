@@ -7,5 +7,7 @@
 [delta]
 	navigate = true
 	side-by-side = true
+[credential]
+	helper = store
 [merge]
 	conflictstyle = zdiff3
