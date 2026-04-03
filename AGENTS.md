@@ -18,7 +18,6 @@
 │   ├── dev.py           # 开发模块（语言运行时 + 编辑器 + 工具链）
 │   ├── docker.py        # Docker 模块（packages + systemd units）
 │   ├── locale.py        # locale 模块（files + on_change hook）
-│   ├── wsl.py           # WSL 模块（WSL 特定适配）
 │   └── zsh.py           # Zsh 模块（shell + oh-my-zsh + 插件）
 ├── system/etc/          # 系统配置文件源 → 部署到 /etc/
 ├── home/                # 用户配置文件源 → 部署到 ~/

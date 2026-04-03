@@ -10,6 +10,9 @@ class BaseModule(Module):
 
     def files(self):
         return {
+            "/etc/pacman.conf": File(
+                source_file="./system/etc/pacman.conf",
+            ),
             "/etc/pacman.d/mirrorlist": File(
                 source_file="./system/etc/pacman.d/mirrorlist",
             ),

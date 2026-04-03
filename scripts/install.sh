@@ -26,10 +26,10 @@ fi
 
 echo "==> 安装 decman..."
 if ! command -v decman &> /dev/null; then
-    rm -rf /tmp/decman
-    git clone https://aur.archlinux.org/decman.git /tmp/decman
-    (cd /tmp/decman && makepkg -si --noconfirm)
-    rm -rf /tmp/decman
+    _tmpdir=$(mktemp -d)
+    trap 'rm -rf "$_tmpdir"' EXIT
+    git clone https://aur.archlinux.org/decman.git "$_tmpdir"
+    (cd "$_tmpdir" && makepkg -si --noconfirm)
 fi
 
 echo "==> 应用系统配置..."

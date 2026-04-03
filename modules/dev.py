@@ -1,5 +1,3 @@
-import shlex
-
 import decman
 from decman import File, Module
 from decman.plugins.pacman import packages as pacman_packages
@@ -46,17 +44,19 @@ class DevModule(Module):
         }
 
     def after_update(self, store):
+        failures: list[str] = []
         for pkg in BUN_GLOBAL_PACKAGES:
             try:
-                decman.prg(
-                    ["su", "-", self.user, "-c", shlex.join(["bun", "add", "-g", pkg])]
-                )
-            except Exception:
-                print(f"警告：安装 {pkg} 失败，跳过")
+                decman.prg(["bun", "add", "-g", pkg], user=self.user, mimic_login=True)
+            except Exception as e:
+                failures.append(f"bun: {pkg} ({e})")
         for pkg in GO_INSTALL_PACKAGES:
             try:
-                decman.prg(
-                    ["su", "-", self.user, "-c", shlex.join(["go", "install", pkg])]
-                )
-            except Exception:
-                print(f"警告：安装 {pkg} 失败，跳过")
+                decman.prg(["go", "install", pkg], user=self.user, mimic_login=True)
+            except Exception as e:
+                failures.append(f"go: {pkg} ({e})")
+        if failures:
+            print(f"\n⚠ {len(failures)} 个全局包安装失败：")
+            for f in failures:
+                print(f"  - {f}")
+            print()
