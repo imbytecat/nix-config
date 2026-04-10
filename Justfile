@@ -28,6 +28,12 @@ gc:
 show:
     nix flake show
 
-# Check flake for errors
+# Check configs evaluate without errors (platform-aware, avoids cross-platform IFD)
+[macos]
 check:
-    nix flake check --no-build
+    @nix eval .#darwinConfigurations.mac-mini.system > /dev/null && echo "mac-mini: ok"
+    @nix eval .#darwinConfigurations.macbook-air.system > /dev/null && echo "macbook-air: ok"
+
+[linux]
+check:
+    @nix eval .#nixosConfigurations.wsl.config.system.build.toplevel > /dev/null && echo "wsl: ok"
