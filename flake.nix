@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -67,10 +72,11 @@
 
       # ── Packages ────────────────────────────────────────
       packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (system: {
-        comment-checker = (import nixpkgs {
-          inherit system;
-          overlays = [ self.overlays.default ];
-        }).comment-checker;
+        comment-checker =
+          (import nixpkgs {
+            inherit system;
+            overlays = [ self.overlays.default ];
+          }).comment-checker;
       });
 
       # ── Overlays ───────────────────────────────────────

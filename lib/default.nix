@@ -9,6 +9,9 @@ let
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "bak";
+      sharedModules = [
+        inputs.sops-nix.homeManagerModules.sops
+      ];
       extraSpecialArgs = {
         inherit inputs username;
       };
@@ -30,16 +33,15 @@ in
       specialArgs = {
         inherit inputs hostname username;
       };
-      modules =
-        [
-          ../modules/shared
-          ../modules/nixos
-          inputs.home-manager.nixosModules.home-manager
-          inputs.catppuccin.nixosModules.catppuccin
-          (homeManagerConfig username)
-          { networking.hostName = hostname; }
-        ]
-        ++ extraModules;
+      modules = [
+        ../modules/shared
+        ../modules/nixos
+        inputs.home-manager.nixosModules.home-manager
+        inputs.catppuccin.nixosModules.catppuccin
+        (homeManagerConfig username)
+        { networking.hostName = hostname; }
+      ]
+      ++ extraModules;
     };
 
   # ── nix-darwin host builder ─────────────────────────
@@ -55,15 +57,14 @@ in
       specialArgs = {
         inherit inputs hostname username;
       };
-      modules =
-        [
-          ../modules/shared
-          ../modules/darwin
-          inputs.home-manager.darwinModules.home-manager
-          (homeManagerConfig username)
-          { networking.hostName = hostname; }
-        ]
-        ++ extraModules;
+      modules = [
+        ../modules/shared
+        ../modules/darwin
+        inputs.home-manager.darwinModules.home-manager
+        (homeManagerConfig username)
+        { networking.hostName = hostname; }
+      ]
+      ++ extraModules;
     };
 
   # ── Standalone Home Manager (no NixOS / no Darwin) ──

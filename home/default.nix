@@ -12,12 +12,12 @@
     ./shell
     ./dev
     ./theme.nix
+    ./secrets.nix
   ];
 
   home = {
     username = username;
-    homeDirectory =
-      if pkgs.stdenv.isDarwin then "/Users/${username}" else "/home/${username}";
+    homeDirectory = if pkgs.stdenv.isDarwin then "/Users/${username}" else "/home/${username}";
     stateVersion = "24.11";
   };
 
@@ -44,6 +44,10 @@
     nix-output-monitor # nom
     nvd # nix version diff
     nh # nix helper
+
+    # Secrets management
+    sops
+    age
 
     # AI coding agent
     opencode
