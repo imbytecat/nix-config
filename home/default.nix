@@ -44,6 +44,7 @@
     nix-output-monitor # nom
     nvd # nix version diff
     nh # nix helper
+    just
 
     # Secrets management
     sops
