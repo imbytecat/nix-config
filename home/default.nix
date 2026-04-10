@@ -31,6 +31,7 @@
     xh # curl/httpie
     jq # JSON
     yq # YAML
+    wget
 
     # System info
     fastfetch
@@ -39,20 +40,17 @@
     # File management
     trash-cli
 
-    # Terminal multiplexer (alternative)
-    zellij
-
     # Nix tools
-    nix-output-monitor # nom — better nix build output
+    nix-output-monitor # nom
     nvd # nix version diff
-    nh # nix helper (nixos-rebuild wrapper)
+    nh # nix helper
 
     # AI coding agent
     opencode
-    comment-checker # AI code comment detection hook
+    comment-checker
 
     # Misc
-    micro # simple editor fallback
+    micro
   ];
 
   # XDG directories
