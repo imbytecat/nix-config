@@ -2,12 +2,12 @@
 
 {
   # ── Shell ──────────────────────────────────────────
-  programs.zsh.enable = true;
+  programs.fish.enable = true;
 
   # ── User ───────────────────────────────────────────
   users.users.${username} = {
     home = "/Users/${username}";
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
   };
 
   # ── Fonts ──────────────────────────────────────────
@@ -35,12 +35,12 @@
   };
 
   # ── Homebrew (GUI apps not in nixpkgs) ─────────────
-  # homebrew = {
-  #   enable = true;
-  #   casks = [
-  #     "raycast"
-  #     "arc"
-  #   ];
-  #   onActivation.cleanup = "zap";
-  # };
+  homebrew = {
+    enable = true;
+    casks = [
+      "raycast"
+      "arc"
+    ];
+    onActivation.cleanup = "zap";
+  };
 }

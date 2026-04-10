@@ -4,7 +4,7 @@
   # ── FZF ──────────────────────────────────────────────
   programs.fzf = {
     enable = true;
-    enableZshIntegration = true;
+    enableFishIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
     defaultOptions = [
       "--height=40%"
@@ -22,7 +22,7 @@
   # ── Atuin (shell history) ────────────────────────────
   programs.atuin = {
     enable = true;
-    enableZshIntegration = true;
+    enableFishIntegration = true;
     settings = {
       enter_accept = true;
       filter_mode = "host";
@@ -36,13 +36,14 @@
   # ── Zoxide (smart cd) ───────────────────────────────
   programs.zoxide = {
     enable = true;
-    enableZshIntegration = true;
+    enableFishIntegration = true;
+    options = [ "--cmd cd" ]; # cd/cdi instead of z/zi
   };
 
   # ── Direnv + nix-direnv ─────────────────────────────
   programs.direnv = {
     enable = true;
-    enableZshIntegration = true;
+    enableFishIntegration = true;
     nix-direnv.enable = true;
     config.global = {
       warn_timeout = "120s";
@@ -61,7 +62,7 @@
   # ── Eza (ls replacement) ────────────────────────────
   programs.eza = {
     enable = true;
-    enableZshIntegration = false; # we use custom aliases in zsh.nix
+    enableFishIntegration = false; # we use custom abbrs in fish.nix
     git = true;
     icons = "auto";
     extraOptions = [
@@ -73,7 +74,7 @@
   # ── Yazi (file manager) ─────────────────────────────
   programs.yazi = {
     enable = true;
-    enableZshIntegration = true;
+    enableFishIntegration = true;
   };
 
   # ── Btop (system monitor) ───────────────────────────

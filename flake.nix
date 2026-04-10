@@ -1,5 +1,5 @@
 {
-  description = "Multi-platform Nix configuration — NixOS / nix-darwin / standalone Home Manager";
+  description = "Multi-platform Nix configuration — nix-darwin / NixOS-WSL";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -35,41 +35,33 @@
       mylib = import ./lib { inherit inputs; };
     in
     {
-      # ── NixOS hosts ────────────────────────────────────
+      # ── macOS hosts ─────────────────────────────────────
+      darwinConfigurations = {
+        mac-mini = mylib.mkDarwin {
+          hostname = "awesome-mac-mini";
+          system = "aarch64-darwin";
+          username = "imbytecat";
+          extraModules = [ ./hosts/mac-mini ];
+        };
+
+        macbook-air = mylib.mkDarwin {
+          hostname = "awesome-macbook-air";
+          system = "aarch64-darwin";
+          username = "imbytecat";
+          extraModules = [ ./hosts/macbook-air ];
+        };
+      };
+
+      # ── NixOS hosts (WSL on Windows PC) ─────────────────
       nixosConfigurations = {
         wsl = mylib.mkNixos {
-          hostname = "nixos-wsl";
+          hostname = "awesome-wsl";
           system = "x86_64-linux";
-          username = "dev";
+          username = "imbytecat";
           extraModules = [
             inputs.nixos-wsl.nixosModules.default
             ./hosts/wsl
           ];
-        };
-
-        bare = mylib.mkNixos {
-          hostname = "nixos";
-          system = "x86_64-linux";
-          username = "dev";
-          extraModules = [ ./hosts/bare ];
-        };
-      };
-
-      # ── macOS hosts (uncomment when ready) ─────────────
-      # darwinConfigurations = {
-      #   macbook = mylib.mkDarwin {
-      #     hostname = "macbook";
-      #     system = "aarch64-darwin";
-      #     username = "imbytecat";
-      #     extraModules = [ ./hosts/macbook ];
-      #   };
-      # };
-
-      # ── Standalone Home Manager (non-NixOS / non-Darwin) ─
-      homeConfigurations = {
-        "dev" = mylib.mkHome {
-          system = "x86_64-linux";
-          username = "dev";
         };
       };
 

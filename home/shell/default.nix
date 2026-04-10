@@ -1,6 +1,6 @@
 {
   imports = [
-    ./zsh.nix
+    ./fish.nix
     ./starship.nix
     ./tools.nix
     ./tmux.nix

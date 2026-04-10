@@ -59,7 +59,6 @@ in
           ../modules/shared
           ../modules/darwin
           inputs.home-manager.darwinModules.home-manager
-          inputs.catppuccin.nixosModules.catppuccin
           (homeManagerConfig username)
           { networking.hostName = hostname; }
         ]

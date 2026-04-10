@@ -8,12 +8,12 @@
   ];
 
   # ── Default shell ──────────────────────────────────
-  programs.zsh.enable = true;
+  programs.fish.enable = true;
 
   # ── Default user ───────────────────────────────────
   users.users.${username} = {
     isNormalUser = true;
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
     extraGroups = [ "wheel" ];
   };
 
