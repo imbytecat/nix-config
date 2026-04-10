@@ -14,15 +14,22 @@ flake.nix
 ```
 
 - `lib/default.nix` — builders: `mkDarwin`, `mkNixos`, `mkHome`
-- `modules/shared/` — both platforms (nixpkgs config, overlays)
+- `modules/shared/` — both platforms (nixpkgs config, overlays, nix settings)
 - `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), fonts
 - `modules/nixos/` — NixOS: base packages, docker, locale, user
 - `home/` — home-manager (shared across all hosts via `useGlobalPkgs`)
 - `overlays/` — custom packages (comment-checker)
 
+## Nix implementation
+
+All platforms use **Lix** (`nix.package = pkgs.lix` in `modules/shared/nix.nix`). Lix is a community fork of CppNix — same CLI, different implementation (partial Rust rewrite, ~20-30% faster, better error messages).
+
+- macOS installed via [Lix installer](https://lix.systems/install/)
+- `nix.enable = true` on all platforms — nix-darwin fully manages the Nix daemon, `/etc/nix/nix.conf`, and `nix.settings`
+- `nix.settings` (flakes, warn-dirty) applies uniformly across all 3 devices
+
 ## Critical gotchas
 
-- **Determinate Nix on macOS (tech debt)**: macOS currently runs Determinate Nix (commercial downstream). `modules/shared/nix.nix` sets `nix.enable = !pkgs.stdenv.isDarwin` — on darwin, nix-darwin does NOT manage: nix daemon, `/etc/nix/nix.conf`, nix version, `nix.settings`. All nix configuration on macOS is controlled by Determinate's `determinate-nixd`. The `nix.settings` block (flakes, warn-dirty) only applies on NixOS/WSL. **nix-darwin officially recommends Lix installer (not Determinate) as of 2025-12.** README already updated to recommend Lix for new installs. Migration to Lix would restore `nix.enable = true` and unified `nix.settings` across all 3 devices.
 - **catppuccin.nvim disabled**: `catppuccin.nvim.enable = false` in `home/theme.nix` due to `catppuccin.lib.detect_integrations` require check failure in nixpkgs. Re-test periodically.
 - **catppuccin module name**: Uses `catppuccin.homeModules.catppuccin` (not the old `homeManagerModules`).
 - **Homebrew tap casks**: Casks from taps need full path in the casks list (e.g. `"goooler/repo/fl-clash"`), not just the short name.
@@ -75,28 +82,3 @@ Uses `nixd` (not `nil`). nixd provides nixpkgs/option completion; nil does not. 
 ## Formatter
 
 `nixfmt` (was `nixfmt-rfc-style`, now unified). Run: `nixfmt <file.nix>`
-
-## Nix installer situation (as of 2025-12)
-
-macOS currently uses **Determinate Nix** (installed via `install.determinate.systems`). This is a commercial downstream of Nix by Determinate Systems with extras (lazy trees, parallel eval, FlakeHub).
-
-**Why this matters**: Determinate runs its own daemon (`determinate-nixd`), conflicting with nix-darwin's native nix management. This forces `nix.enable = false` on darwin, splitting nix config across two owners:
-
-| What | macOS (Determinate manages) | NixOS/WSL (nix-darwin manages) |
-|------|---|---|
-| nix daemon | `determinate-nixd` | nix-darwin |
-| `/etc/nix/nix.conf` | Determinate | nix-darwin via `nix.settings` |
-| flakes enabled | Determinate default | `nix.settings.experimental-features` |
-| nix version | Determinate auto-update | nixpkgs pin |
-
-**nix-darwin maintainer stance** (issue #1632, PR #1659, 2025-12): *"We explicitly recommend upstream Nix over Determinate Nix."* README now only recommends Lix installer.
-
-**Migration path to Lix** (if/when decided):
-1. `/nix/nix-installer uninstall` (Determinate's uninstaller)
-2. `curl -sSf -L https://install.lix.systems/lix | sh -s -- install`
-3. Remove `nix.enable` conditional in `modules/shared/nix.nix` (let it default to true)
-4. `nix.settings` will then apply to all platforms
-5. Update `README.md` install command
-6. Lix is a community fork of Nix — same CLI (`nix build`, `nix flake`), different implementation (partial Rust rewrite, ~20-30% faster)
-
-**Key distinction**: "Lix installer" is the install tool; "Lix" is the Nix implementation you run after. They are a package deal — using the Lix installer means running Lix (not upstream Nix).

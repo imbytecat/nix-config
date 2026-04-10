@@ -1,10 +1,9 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  # Determinate Nix manages the daemon on macOS
-  nix.enable = !pkgs.stdenv.isDarwin;
+  nix.package = pkgs.lix;
 
-  nix.settings = lib.mkIf (!pkgs.stdenv.isDarwin) {
+  nix.settings = {
     experimental-features = [
       "nix-command"
       "flakes"

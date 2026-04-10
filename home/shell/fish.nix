@@ -43,7 +43,7 @@
 
       # Platform-specific rebuild command (derive flake attr from hostname)
       if test (uname) = Darwin
-        set -l attr (scutil --get LocalHostName | string lower | string replace 'awesome-' '')
+        set -l attr (scutil --get LocalHostName | string lower | string replace 'awesome-' "")
         abbr --add rebuild "sudo darwin-rebuild switch --flake ~/Developer/nix-config#$attr"
       else
         abbr --add rebuild "sudo nixos-rebuild switch --flake ~/Developer/nix-config#wsl"

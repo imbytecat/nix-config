@@ -14,13 +14,11 @@
 
 ### macOS (Mac Mini / MacBook Air)
 
-1. 安装 Nix（推荐 [Lix 安装器](https://lix.systems/install/)）：
+1. 安装 [Lix](https://lix.systems/)（Nix 的社区分支，nix-darwin 官方推荐）：
 
 ```bash
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```
-
-> **注意**：当前机器使用 Determinate Nix，需要 `nix.enable = false`（已在 `modules/shared/nix.nix` 中配置）。新机器建议使用 Lix，可省去此限制。详见 `AGENTS.md`。
 
 2. 克隆仓库并首次构建：
 
