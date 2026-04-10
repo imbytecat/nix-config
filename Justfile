@@ -2,12 +2,10 @@
 default:
     @just --list
 
-# Rebuild current macOS host (auto-detect from hostname)
+# Rebuild macOS host
 [macos]
-darwin:
-    #!/usr/bin/env bash
-    attr=$(scutil --get LocalHostName | tr '[:upper:]' '[:lower:]' | sed 's/awesome-//')
-    sudo darwin-rebuild switch --flake .#"$attr"
+darwin host:
+    sudo darwin-rebuild switch --flake .#{{host}}
 
 # Rebuild WSL host
 [linux]
