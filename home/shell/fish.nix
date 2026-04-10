@@ -25,7 +25,7 @@
       http = "xh";
 
       # Nix
-      update = "nix flake update --flake ~/.config/nix-config";
+      update = "nix flake update --flake ~/Developer/nix-config";
     };
 
     interactiveShellInit = ''
@@ -43,9 +43,9 @@
 
       # Platform-specific rebuild command
       if test (uname) = Darwin
-        abbr --add rebuild "darwin-rebuild switch --flake ~/.config/nix-config"
+        abbr --add rebuild "sudo darwin-rebuild switch --flake ~/Developer/nix-config"
       else
-        abbr --add rebuild "sudo nixos-rebuild switch --flake ~/.config/nix-config"
+        abbr --add rebuild "sudo nixos-rebuild switch --flake ~/Developer/nix-config"
       end
 
       # WSL clipboard

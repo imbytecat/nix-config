@@ -22,12 +22,12 @@ flake.nix
 
 ## Critical gotchas
 
-- **Determinate Nix on macOS (tech debt)**: macOS currently runs Determinate Nix (commercial downstream). `modules/shared/nix.nix` sets `nix.enable = !pkgs.stdenv.isDarwin` — on darwin, nix-darwin does NOT manage: nix daemon, `/etc/nix/nix.conf`, nix version, `nix.settings`. All nix configuration on macOS is controlled by Determinate's `determinate-nixd`. The `nix.settings` block (flakes, warn-dirty) only applies on NixOS/WSL. **nix-darwin officially recommends Lix installer (not Determinate) as of 2025-12.** Migration to Lix would restore `nix.enable = true` and unified `nix.settings` across all 3 devices. README still references `install.determinate.systems` — update if/when migrating.
+- **Determinate Nix on macOS (tech debt)**: macOS currently runs Determinate Nix (commercial downstream). `modules/shared/nix.nix` sets `nix.enable = !pkgs.stdenv.isDarwin` — on darwin, nix-darwin does NOT manage: nix daemon, `/etc/nix/nix.conf`, nix version, `nix.settings`. All nix configuration on macOS is controlled by Determinate's `determinate-nixd`. The `nix.settings` block (flakes, warn-dirty) only applies on NixOS/WSL. **nix-darwin officially recommends Lix installer (not Determinate) as of 2025-12.** README already updated to recommend Lix for new installs. Migration to Lix would restore `nix.enable = true` and unified `nix.settings` across all 3 devices.
 - **catppuccin.nvim disabled**: `catppuccin.nvim.enable = false` in `home/theme.nix` due to `catppuccin.lib.detect_integrations` require check failure in nixpkgs. Re-test periodically.
 - **catppuccin module name**: Uses `catppuccin.homeModules.catppuccin` (not the old `homeManagerModules`).
 - **Homebrew tap casks**: Casks from taps need full path in the casks list (e.g. `"goooler/repo/fl-clash"`), not just the short name.
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
-- **Repo location**: The repo lives at `~/Developer/nix-config`, NOT `~/.config/nix-config`. The `rebuild` fish abbreviation references `~/.config/nix-config` — symlink or update if needed.
+- **Repo location**: The repo lives at `~/Developer/nix-config`. Fish abbreviations (`rebuild`, `update`) reference this path.
 - **First-time bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
 
 ## Commands
