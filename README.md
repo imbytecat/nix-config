@@ -14,21 +14,23 @@
 
 ### macOS (Mac Mini / MacBook Air)
 
-1. 安装 Nix：
+1. 安装 Nix（推荐 [Lix 安装器](https://lix.systems/install/)）：
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh
+curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```
 
-2. 克隆仓库并构建：
+> **注意**：当前机器使用 Determinate Nix，需要 `nix.enable = false`（已在 `modules/shared/nix.nix` 中配置）。新机器建议使用 Lix，可省去此限制。详见 `AGENTS.md`。
+
+2. 克隆仓库并首次构建：
 
 ```bash
-git clone <repo-url> ~/.config/nix-config
-cd ~/.config/nix-config
-# Mac Mini:
-darwin-rebuild switch --flake .#mac-mini
-# MacBook Air:
-darwin-rebuild switch --flake .#macbook-air
+git clone <repo-url> ~/Developer/nix-config
+cd ~/Developer/nix-config
+# 首次（nix-darwin 尚未安装）：
+sudo nix run nix-darwin -- switch --flake .#mac-mini
+# 之后日常重建：
+sudo darwin-rebuild switch --flake .#mac-mini
 ```
 
 ### WSL (Windows PC)
@@ -43,8 +45,8 @@ wsl -d NixOS
 2. 克隆仓库并构建：
 
 ```bash
-git clone <repo-url> ~/.config/nix-config
-cd ~/.config/nix-config
+git clone <repo-url> ~/Developer/nix-config
+cd ~/Developer/nix-config
 sudo nixos-rebuild switch --flake .#wsl
 ```
 
