@@ -49,7 +49,6 @@
     brews = [
       "ffmpeg"
       "mas"
-      "memo"
       "mole"
       "pandoc"
       "tailscale"
