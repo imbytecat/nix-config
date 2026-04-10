@@ -1,6 +1,9 @@
 { pkgs, username, ... }:
 
 {
+  # ── Primary user (required by nix-darwin) ──────────
+  system.primaryUser = username;
+
   # ── Shell ──────────────────────────────────────────
   programs.fish.enable = true;
 

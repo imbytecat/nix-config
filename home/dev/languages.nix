@@ -19,16 +19,16 @@
     typescript-language-server
     yaml-language-server
     vue-language-server
-    dockerfile-language-server-nodejs
+    dockerfile-language-server
     lua-language-server
-    nil # Nix LSP
+    nixd # Nix LSP
 
     # ── Linter / Formatter ──
     biome
     ruff
     shellcheck
     shfmt
-    nixfmt-rfc-style # nix formatter
+    nixfmt # nix formatter
     stylua
 
     # ── Code intelligence ──

@@ -3,19 +3,11 @@
 {
   programs.git = {
     enable = true;
-    userName = "imbytecat";
-    userEmail = "imbytecat@gmail.com";
-
-    delta = {
-      enable = true;
-      options = {
-        navigate = true;
-        side-by-side = true;
-        line-numbers = true;
+    settings = {
+      user = {
+        name = "imbytecat";
+        email = "imbytecat@gmail.com";
       };
-    };
-
-    extraConfig = {
       merge.conflictstyle = "zdiff3";
       pull.rebase = true;
       push.autoSetupRemote = true;
@@ -23,6 +15,16 @@
       rerere.enabled = true;
       diff.algorithm = "histogram";
       core.autocrlf = "input";
+    };
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
+      line-numbers = true;
     };
   };
 
@@ -46,7 +48,9 @@
 
   programs.ssh = {
     enable = true;
-    addKeysToAgent = "yes";
-    matchBlocks."*".identityFile = "~/.ssh/id_ed25519";
+    matchBlocks."*" = {
+      identityFile = "~/.ssh/id_ed25519";
+      addKeysToAgent = "yes";
+    };
   };
 }
