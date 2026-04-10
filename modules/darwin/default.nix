@@ -39,34 +39,28 @@
     enable = true;
 
     taps = [
-      "antoniorodr/memo"
-      "steipete/tap"
+      "goooler/repo"
     ];
 
     # CLI tools not in nixpkgs or needing brew services
     brews = [
       "ffmpeg"
-      "gitui"
       "mas"
       "memo"
       "mole"
-      "ollama"
       "pandoc"
-      "poppler"
       "tailscale"
-      "steipete/tap/gogcli"
-      "steipete/tap/remindctl"
     ];
 
     # GUI apps
     casks = [
       "1password"
       "brave-browser"
-      "cc-switch"
       "cherry-studio"
       "dbeaver-community"
       "discord"
       "feishu"
+      "fl-clash"
       "ghostty"
       "keka"
       "logitech-g-hub"
@@ -85,6 +79,8 @@
     # Mac App Store
     masApps = {
       "Microsoft Word" = 462054704;
+      "Microsoft Excel" = 462058435;
+      "Microsoft PowerPoint" = 462062816;
       "Windows App" = 1295203466;
       "Xnip" = 1221250572;
     };
