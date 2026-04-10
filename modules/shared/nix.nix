@@ -11,6 +11,9 @@
     warn-dirty = false;
   };
 
+  # Disable channels — we use flakes exclusively
+  nix.channel.enable = false;
+
   nixpkgs = {
     config.allowUnfree = true;
     overlays = [ (import ../../overlays) ];
