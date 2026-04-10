@@ -8,9 +8,11 @@
   programs.fish.enable = true;
 
   # ── User ───────────────────────────────────────────
+  users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
     shell = pkgs.fish;
+    uid = 501;
   };
 
   # ── Fonts ──────────────────────────────────────────

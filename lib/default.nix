@@ -8,7 +8,7 @@ let
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
-      backupFileExtension = "backup";
+      backupFileExtension = "bak";
       extraSpecialArgs = {
         inherit inputs username;
       };
