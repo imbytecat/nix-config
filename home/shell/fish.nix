@@ -41,11 +41,12 @@
       # Sudo: double Escape to prepend sudo
       bind \e\e 'fish_commandline_prepend sudo'
 
-      # Platform-specific rebuild command
+      # Platform-specific rebuild command (derive flake attr from hostname)
       if test (uname) = Darwin
-        abbr --add rebuild "sudo darwin-rebuild switch --flake ~/Developer/nix-config"
+        set -l attr (scutil --get LocalHostName | string lower | string replace 'awesome-' '')
+        abbr --add rebuild "sudo darwin-rebuild switch --flake ~/Developer/nix-config#$attr"
       else
-        abbr --add rebuild "sudo nixos-rebuild switch --flake ~/Developer/nix-config"
+        abbr --add rebuild "sudo nixos-rebuild switch --flake ~/Developer/nix-config#wsl"
       end
 
       # WSL clipboard
