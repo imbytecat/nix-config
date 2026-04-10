@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ ... }:
 
 {
   programs.fish = {
@@ -38,7 +38,7 @@
       # mise
       mise activate fish | source
 
-      # Sudo: double Escape to prepend sudo (like zsh sudo plugin)
+      # Sudo: double Escape to prepend sudo
       bind \e\e 'fish_commandline_prepend sudo'
 
       # Platform-specific rebuild command
