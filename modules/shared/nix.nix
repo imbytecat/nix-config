@@ -1,17 +1,15 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
-  nix.settings = {
+  # Determinate Nix manages the daemon on macOS
+  nix.enable = !pkgs.stdenv.isDarwin;
+
+  nix.settings = lib.mkIf (!pkgs.stdenv.isDarwin) {
     experimental-features = [
       "nix-command"
       "flakes"
     ];
     warn-dirty = false;
-    # 国内镜像（按需取消注释）
-    # substituters = [
-    #   "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-    #   "https://cache.nixos.org"
-    # ];
   };
 
   nixpkgs = {

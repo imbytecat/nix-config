@@ -4,6 +4,6 @@
   catppuccin = {
     enable = true;
     flavor = "mocha";
-    # Automatically themes: bat, btop, delta, fish, fzf, lazygit, starship, tmux, etc.
+    nvim.enable = false; # catppuccin-nvim require check broken in nixpkgs
   };
 }

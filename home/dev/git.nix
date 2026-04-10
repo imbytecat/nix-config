@@ -3,6 +3,7 @@
 {
   programs.git = {
     enable = true;
+    signing.format = null;
     settings = {
       user = {
         name = "imbytecat";
@@ -48,6 +49,7 @@
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     matchBlocks."*" = {
       identityFile = "~/.ssh/id_ed25519";
       addKeysToAgent = "yes";

@@ -63,7 +63,7 @@
       "dbeaver-community"
       "discord"
       "feishu"
-      "fl-clash"
+      "goooler/repo/fl-clash"
       "ghostty"
       "keka"
       "logitech-g-hub"
