@@ -56,7 +56,6 @@
 
     # Misc
     ffmpeg
-    mole
     pandoc
   ];
 

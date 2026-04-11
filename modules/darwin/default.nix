@@ -48,6 +48,7 @@
     ];
 
     brews = [
+      "mole" # broken in nixpkgs
     ];
 
     # GUI apps
