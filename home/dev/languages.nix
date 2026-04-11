@@ -30,6 +30,7 @@
     shellcheck
     shfmt
     nixfmt # nix formatter
+    statix # nix linter
     stylua
 
     # ── Code intelligence ──
