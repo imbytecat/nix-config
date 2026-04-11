@@ -55,6 +55,9 @@
     comment-checker
 
     # Misc
+    ffmpeg
+    mole
+    pandoc
   ];
 
   # XDG directories

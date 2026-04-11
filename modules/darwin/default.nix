@@ -47,13 +47,7 @@
       "goooler/repo"
     ];
 
-    # CLI tools not in nixpkgs or needing brew services
     brews = [
-      "ffmpeg"
-      "mas"
-      "mole"
-      "pandoc"
-      "tailscale"
     ];
 
     # GUI apps
@@ -66,6 +60,7 @@
       "feishu"
       "goooler/repo/fl-clash"
       "ghostty"
+      "tailscale-app"
       "keka"
       "logitech-g-hub"
       "mos"
