@@ -23,6 +23,7 @@
 
   # ── macOS system preferences ───────────────────────
   system.defaults = {
+    LaunchServices.LSQuarantine = false;
     dock = {
       autohide = true;
       show-recents = false;

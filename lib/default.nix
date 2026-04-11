@@ -67,21 +67,4 @@ in
       ++ extraModules;
     };
 
-  # ── Standalone Home Manager (no NixOS / no Darwin) ──
-  mkHome =
-    {
-      system,
-      username,
-    }:
-    inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-      extraSpecialArgs = {
-        inherit inputs username;
-        hostname = "standalone";
-      };
-      modules = [ ../home ];
-    };
 }
