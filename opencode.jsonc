@@ -1,5 +1,11 @@
 {
 	"$schema": "https://opencode.ai/config.json",
+	"lsp": {
+		"just": {
+			"command": ["just-lsp"],
+			"extensions": [""]
+		}
+	},
 	"mcp": {
 		"nixos": {
 			"type": "local",

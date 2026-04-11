@@ -37,3 +37,14 @@ check:
 [linux]
 check:
     @nix eval .#nixosConfigurations.wsl.config.system.build.toplevel > /dev/null && echo "wsl: ok"
+
+# Generate .nixd.json for nixd LSP option completion
+[macos]
+nixd host:
+    @echo '{"options":{"nix-darwin":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
+    @echo "Generated .nixd.json for {{host}}"
+
+[linux]
+nixd host="wsl":
+    @echo '{"options":{"nixos":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
+    @echo "Generated .nixd.json for {{host}}"

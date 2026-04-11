@@ -1,5 +1,6 @@
 result
 .direnv
+.nixd.json
 
 # Never commit plaintext secrets
 *.dec.yaml
