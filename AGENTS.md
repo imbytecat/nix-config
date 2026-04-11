@@ -13,7 +13,7 @@ flake.nix
 └── nixosConfigurations.wsl          (x86_64-linux)
 ```
 
-- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + catppuccin.
+- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + catppuccin + lazyvim-nix + sops-nix.
 - `modules/shared/` — both platforms: nixpkgs config, overlays, nix settings, Lix
 - `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), fonts, fish shell, user
 - `modules/nixos/` — NixOS: base packages, docker, locale, user
@@ -32,14 +32,17 @@ All platforms use **Lix** (`nix.package = pkgs.lix` in `modules/shared/nix.nix`)
 
 ```bash
 # Justfile shortcuts (preferred)
-just darwin mac-mini       # rebuild macOS host
-just darwin macbook-air
-just nixos                 # rebuild WSL (linux only)
-just check                 # eval configs without building (platform-aware)
-just update                # nix flake update
-just secrets               # sops secrets/secrets.yaml
-just gc                    # nix-collect-garbage -d
-just show                  # nix flake show
+just rebuild mac-mini       # rebuild macOS host (on macOS)
+just rebuild macbook-air
+just rebuild                # rebuild WSL (linux only, default: "wsl")
+just check                  # eval configs without building (platform-aware)
+just update                 # nix flake update
+just up nixpkgs             # update a single flake input
+just show                   # nix flake show
+just secrets                # sops secrets/secrets.yaml
+just clean                  # nix-collect-garbage -d
+just history                # list system profile generations
+just lsp mac-mini           # generate .vscode/settings.json for nixd option completion
 
 # Direct (when just isn't available)
 sudo darwin-rebuild switch --flake .#mac-mini
@@ -51,29 +54,27 @@ nix build .#darwinConfigurations.mac-mini.system             # validate (full bu
 sudo nix run nix-darwin -- switch --flake .#mac-mini
 ```
 
-Fish abbreviations `rebuild` and `update` are also available in the shell (defined in `home/shell/fish.nix`). `rebuild` auto-detects the platform and derives the flake attr from hostname.
-
 ## Critical gotchas
 
-- **catppuccin.nvim workaround active**: `catppuccin.enable = true` works, but `home/dev/neovim.nix` overrides `catppuccin.sources.nvim` to add `catppuccin.lib.detect_integrations` to `nvimSkipModule`. Upstream fix pending in catppuccin/nix. Cleanup condition: after `nix flake update`, if removing the override still builds, delete it. See `TODO.md`.
-- **catppuccin module name**: Uses `catppuccin.homeModules.catppuccin` (not the old `homeManagerModules`). NixOS uses `catppuccin.nixosModules.catppuccin`.
+- **Neovim uses lazyvim-nix**: `programs.lazyvim` in `home/dev/neovim.nix` manages neovim via the `lazyvim-nix` flake input. Catppuccin nvim integration is explicitly disabled (`catppuccin.nvim.enable = false`) because LazyVim manages its own colorscheme. Don't try to use `catppuccin.enable` for nvim or the old `programs.neovim.plugins` approach.
+- **catppuccin module name**: Home-manager uses `catppuccin.homeModules.catppuccin` (imported in `home/default.nix`). NixOS uses `catppuccin.nixosModules.catppuccin` (in `lib/default.nix`). Don't use the old `homeManagerModules` name.
 - **Homebrew tap casks**: Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`), not just the short name.
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
-- **Repo location**: Default `~/nix-config`. Configurable via `nix_config_dir` fish variable in `home/shell/fish.nix`.
 - **First-time bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
+- **mise for version management**: Activated in `home/shell/fish.nix` via `mise activate fish | source`. Config in `home/dev/languages.nix` trusts all config paths.
 
 ## Secrets (sops-nix)
 
 - Encrypted with age, key derived from `~/.ssh/id_ed25519` (see `.sops.yaml`)
 - Secrets file: `secrets/secrets.yaml` — edit with `just secrets` (runs `sops`)
-- Decrypted at runtime via `home/secrets.nix`, exposed as env vars in fish (`AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`)
-- sops-nix integrated via `home-manager` shared module in `lib/default.nix`
+- Decrypted at runtime via `home/secrets.nix`, exposed as env vars in fish: `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `EXA_API_KEY`, `CONTEXT7_API_KEY`
+- sops-nix integrated via `home-manager` sharedModules in `lib/default.nix`
 - Never commit `*.dec.yaml`, `*.dec.json`, `*.plaintext` (in `.gitignore`)
 
 ## Shell
 
 Fish (not zsh). All tool integrations use `enableFishIntegration`. Key files:
-- `home/shell/fish.nix` — abbreviations, interactiveShellInit, dynamic `rebuild` abbr
+- `home/shell/fish.nix` — abbreviations, interactiveShellInit, mise activation
 - `home/shell/tools.nix` — fzf, atuin, zoxide (`--cmd cd`), direnv, bat, eza, yazi, btop, zellij
 - `home/shell/starship.nix` — prompt
 
@@ -92,6 +93,7 @@ These options were renamed in recent home-manager; use the new names:
 - LSP: `nixd` (not `nil`). Provides nixpkgs/option completion.
 - Formatter: `nixfmt`. Run: `nixfmt <file.nix>`
 - Both installed via `home/dev/languages.nix`.
+- VSCode settings for nixd option completion: `just lsp <host>` (generates `.vscode/settings.json` from `.vscode/settings.base.json`)
 
 ## Tool usage
 
