@@ -36,7 +36,9 @@
         nerdFontsVersion = "3";
         showBottomLine = false;
       };
-      git.paging.pager = "delta --paging=never";
+      git.pagers = [
+        { pager = "delta --paging=never"; }
+      ];
       update.method = "never";
       disableStartupPopups = true;
     };
