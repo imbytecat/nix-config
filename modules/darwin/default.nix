@@ -7,12 +7,18 @@
   # ── Shell ──────────────────────────────────────────
   programs.fish.enable = true;
 
+  # ── SSH ───────────────────────────────────────────
+  services.openssh.enable = true;
+
   # ── User ───────────────────────────────────────────
   users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
     shell = pkgs.fish;
     uid = 501;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
+    ];
   };
 
   # ── Fonts ──────────────────────────────────────────
