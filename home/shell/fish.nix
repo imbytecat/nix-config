@@ -24,8 +24,6 @@
       # Network
       http = "xh";
 
-      # Nix
-      update = "nix flake update --flake ~/Developer/nix-config";
     };
 
     interactiveShellInit = ''
@@ -40,14 +38,6 @@
 
       # Sudo: double Escape to prepend sudo
       bind \e\e 'fish_commandline_prepend sudo'
-
-      # Platform-specific rebuild command (derive flake attr from hostname)
-      if test (uname) = Darwin
-        set -l attr (scutil --get LocalHostName | string lower | string replace 'awesome-' "")
-        abbr --add rebuild "sudo darwin-rebuild switch --flake ~/Developer/nix-config#$attr"
-      else
-        abbr --add rebuild "sudo nixos-rebuild switch --flake ~/Developer/nix-config#wsl"
-      end
 
       # WSL clipboard
       if set -q WSL_DISTRO_NAME

@@ -23,8 +23,8 @@ curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 2. 克隆仓库并首次构建：
 
 ```bash
-git clone <repo-url> ~/Developer/nix-config
-cd ~/Developer/nix-config
+git clone <repo-url> ~/nix-config
+cd ~/nix-config
 # 首次（nix-darwin 尚未安装）：
 sudo nix run nix-darwin -- switch --flake .#mac-mini
 # 之后日常重建：
@@ -43,8 +43,8 @@ wsl -d NixOS
 2. 克隆仓库并构建：
 
 ```bash
-git clone <repo-url> ~/Developer/nix-config
-cd ~/Developer/nix-config
+git clone <repo-url> ~/nix-config
+cd ~/nix-config
 sudo nixos-rebuild switch --flake .#wsl
 ```
 

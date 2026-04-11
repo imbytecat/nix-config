@@ -59,7 +59,7 @@ Fish abbreviations `rebuild` and `update` are also available in the shell (defin
 - **catppuccin module name**: Uses `catppuccin.homeModules.catppuccin` (not the old `homeManagerModules`). NixOS uses `catppuccin.nixosModules.catppuccin`.
 - **Homebrew tap casks**: Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`), not just the short name.
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
-- **Repo location**: Must be at `~/Developer/nix-config`. Fish abbreviations and `rebuild` reference this path.
+- **Repo location**: Default `~/nix-config`. Configurable via `nix_config_dir` fish variable in `home/shell/fish.nix`.
 - **First-time bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
 
 ## Secrets (sops-nix)
