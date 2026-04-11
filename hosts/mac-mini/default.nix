@@ -15,13 +15,14 @@
   power.restartAfterPowerFailure = true;
   power.restartAfterFreeze = true;
 
+  # ── Wake on LAN ──────────────────────────────────
+  networking.wakeOnLan.enable = true;
+
   # ── Screen Sharing (VNC) & pmset ─────────────────
   system.activationScripts.postActivation.text = ''
     # VNC
     launchctl enable system/com.apple.screensharing
     launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist 2>/dev/null || true
-    # Wake on LAN
-    pmset -a womp 1
     # Disable Power Nap
     pmset -a powernap 0
   '';
