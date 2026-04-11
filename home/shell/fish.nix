@@ -17,7 +17,7 @@
 
       # Tools
       cat = "bat --paging=never";
-      rm = "trash-put";
+      rm = "gomi";
       lg = "lazygit";
       vi = "nvim";
 

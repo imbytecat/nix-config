@@ -38,7 +38,7 @@
     tealdeer # tldr
 
     # File management
-    trash-cli
+    gomi
 
     # Nix tools
     nix-output-monitor # nom
@@ -55,7 +55,6 @@
     comment-checker
 
     # Misc
-    micro
   ];
 
   # XDG directories

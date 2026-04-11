@@ -1,7 +1,8 @@
-{ lib
-, stdenv
-, fetchurl
-, autoPatchelfHook
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
 }:
 
 let
@@ -17,13 +18,10 @@ let
       url = "https://github.com/code-yeongyu/go-claude-code-comment-checker/releases/download/v${version}/comment-checker_v${version}_linux_amd64.tar.gz";
       hash = "sha256-YLmHQc0bBqyyR9LXRt2k/xWZLpHjna0twNsBbr1lVkY=";
     };
-    "aarch64-linux" = {
-      url = "https://github.com/code-yeongyu/go-claude-code-comment-checker/releases/download/v${version}/comment-checker_v${version}_linux_arm64.tar.gz";
-      hash = "sha256-R3MX5L6t/pllCREVrd54qBFMZEsiaQmeG/0EVu6VwjE=";
-    };
   };
 
-  platformSrc = srcs.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
+  platformSrc =
+    srcs.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
 in
 stdenv.mkDerivation {
   pname = "comment-checker";
@@ -49,7 +47,10 @@ stdenv.mkDerivation {
     description = "Multi-language comment detection hook for Claude Code / OpenCode";
     homepage = "https://github.com/code-yeongyu/go-claude-code-comment-checker";
     license = licenses.mit;
-    platforms = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
+    platforms = [
+      "aarch64-darwin"
+      "x86_64-linux"
+    ];
     mainProgram = "comment-checker";
   };
 }
