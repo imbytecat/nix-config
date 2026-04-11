@@ -53,6 +53,7 @@
   # ── Homebrew ───────────────────────────────────────
   homebrew = {
     enable = true;
+    greedyCasks = true; # always upgrade casks even if they auto-update
 
     taps = [
       "goooler/repo"
@@ -98,6 +99,7 @@
 
     onActivation = {
       autoUpdate = true;
+      upgrade = true;
       cleanup = "zap"; # remove anything not declared above
     };
   };
