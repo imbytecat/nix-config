@@ -2,49 +2,89 @@
 default:
     @just --list
 
-# Rebuild macOS host
+############################################################################
+#
+#  System rebuild
+#
+############################################################################
+
+# Rebuild and switch to new system configuration
 [macos]
-darwin host:
+[group('build')]
+rebuild host:
     sudo darwin-rebuild switch --flake .#{{host}}
 
-# Rebuild WSL host
+# Rebuild and switch to new system configuration
 [linux]
-nixos:
-    sudo nixos-rebuild switch --flake .#wsl
+[group('build')]
+rebuild host="wsl":
+    sudo nixos-rebuild switch --flake .#{{host}}
 
-# Update all flake inputs
-update:
-    nix flake update
-
-# Edit encrypted secrets
-secrets:
-    sops secrets/secrets.yaml
-
-# Garbage-collect old generations
-gc:
-    nix-collect-garbage -d
-
-# Show flake outputs
-show:
-    nix flake show
-
-# Check configs evaluate without errors (platform-aware, avoids cross-platform IFD)
+# Check configs evaluate without errors
 [macos]
+[group('build')]
 check:
     @nix eval .#darwinConfigurations.mac-mini.system > /dev/null && echo "mac-mini: ok"
     @nix eval .#darwinConfigurations.macbook-air.system > /dev/null && echo "macbook-air: ok"
 
+# Check configs evaluate without errors
 [linux]
+[group('build')]
 check:
     @nix eval .#nixosConfigurations.wsl.config.system.build.toplevel > /dev/null && echo "wsl: ok"
 
-# Generate .nixd.json for nixd LSP option completion
+############################################################################
+#
+#  Nix maintenance
+#
+############################################################################
+
+# Update all flake inputs
+[group('nix')]
+update:
+    nix flake update
+
+# Update a single flake input (e.g. just up nixpkgs)
+[group('nix')]
+up input:
+    nix flake update {{input}}
+
+# Show flake outputs
+[group('nix')]
+show:
+    nix flake show
+
+# List all generations of the system profile
+[group('nix')]
+history:
+    nix profile history --profile /nix/var/nix/profiles/system
+
+# Remove old generations and garbage-collect the Nix store
+[group('nix')]
+clean:
+    nix-collect-garbage -d
+
+############################################################################
+#
+#  Secrets & tooling
+#
+############################################################################
+
+# Edit encrypted secrets
+[group('tools')]
+secrets:
+    sops secrets/secrets.yaml
+
+# Generate .nixd.json for LSP option completion
 [macos]
-nixd host:
+[group('tools')]
+lsp host:
     @echo '{"options":{"nix-darwin":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
     @echo "Generated .nixd.json for {{host}}"
 
+# Generate .nixd.json for LSP option completion
 [linux]
-nixd host="wsl":
+[group('tools')]
+lsp host="wsl":
     @echo '{"options":{"nixos":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
     @echo "Generated .nixd.json for {{host}}"
