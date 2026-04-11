@@ -8,9 +8,9 @@
   security.pam.services.sudo_local.touchIdAuth = true;
 
   # ── Never sleep ─────────────────────────────────────
-  power.sleep.computer = 0;
-  power.sleep.display = 0;
-  power.sleep.harddisk = 0;
+  power.sleep.computer = "never";
+  power.sleep.display = "never";
+  power.sleep.harddisk = "never";
   power.sleep.allowSleepByPowerButton = false;
   power.restartAfterPowerFailure = true;
   power.restartAfterFreeze = true;
