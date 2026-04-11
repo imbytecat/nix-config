@@ -75,16 +75,16 @@ clean:
 secrets:
     sops secrets/secrets.yaml
 
-# Generate .nixd.json for LSP option completion
+# Generate .vscode/settings.json with LSP option completion
 [macos]
 [group('tools')]
 lsp host:
-    @echo '{"options":{"nix-darwin":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
-    @echo "Generated .nixd.json for {{host}}"
+    @jq --arg h "{{host}}" '."nix.serverSettings".nixd.options = {"nix-darwin":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.\($h).options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).darwinConfigurations.\($h).options.home-manager.users.type.getSubOptions []"}}' .vscode/settings.base.json > .vscode/settings.json
+    @echo "Generated .vscode/settings.json for {{host}}"
 
-# Generate .nixd.json for LSP option completion
+# Generate .vscode/settings.json with LSP option completion
 [linux]
 [group('tools')]
 lsp host="wsl":
-    @echo '{"options":{"nixos":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.{{host}}.options.home-manager.users.type.getSubOptions []"}}}' | jq . > .nixd.json
-    @echo "Generated .nixd.json for {{host}}"
+    @jq --arg h "{{host}}" '."nix.serverSettings".nixd.options = {"nixos":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.\($h).options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.\($h).options.home-manager.users.type.getSubOptions []"}}' .vscode/settings.base.json > .vscode/settings.json
+    @echo "Generated .vscode/settings.json for {{host}}"
