@@ -15,5 +15,11 @@
   power.restartAfterPowerFailure = true;
   power.restartAfterFreeze = true;
 
+  # ── Screen Sharing (VNC) ─────────────────────────
+  system.activationScripts.postActivation.text = ''
+    launchctl enable system/com.apple.screensharing
+    launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist 2>/dev/null || true
+  '';
+
   system.stateVersion = 5;
 }
