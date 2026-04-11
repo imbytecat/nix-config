@@ -86,6 +86,12 @@
     };
   };
 
+  # ── Zellij (terminal multiplexer) ────────────────────
+  programs.zellij = {
+    enable = true;
+    enableFishIntegration = true;
+  };
+
   # ── Ripgrep / FD ────────────────────────────────────
   home.packages = with pkgs; [
     ripgrep

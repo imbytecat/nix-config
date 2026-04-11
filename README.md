@@ -74,7 +74,6 @@ sudo nixos-rebuild switch --flake .#wsl
 │   │   └── git.nix
 │   └── shell/                 # Shell 配置
 │       ├── fish.nix           # Fish shell
-│       ├── tmux.nix
 │       ├── starship.nix       # Prompt
 │       └── tools.nix          # fzf, atuin, zoxide 等
 ├── lib/default.nix            # 构建辅助函数
