@@ -1,23 +1,35 @@
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  # catppuccin/nix's nvim package is missing nvimSkipModule for detect_integrations
-  # Override with higher priority than mkDefault to fix require check failure
-  catppuccin.sources.nvim =
-    (inputs.catppuccin.packages.${pkgs.stdenv.hostPlatform.system}.nvim).overrideAttrs
-      (old: {
-        nvimSkipModule = (old.nvimSkipModule or [ ]) ++ [
-          "catppuccin.lib.detect_integrations"
-        ];
-      });
+  # Disable catppuccin/nix neovim integration — LazyVim manages its own colorscheme
+  catppuccin.nvim.enable = false;
 
   programs.neovim = {
-    enable = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
-    withNodeJs = true;
-    withPython3 = true;
-    withRuby = false;
+  };
+
+  programs.lazyvim = {
+    enable = true;
+
+    extras = {
+      lang.nix.enable = true;
+      lang.go.enable = true;
+      lang.typescript.enable = true;
+      lang.python.enable = true;
+      lang.yaml.enable = true;
+      lang.docker.enable = true;
+    };
+
+    # Catppuccin Mocha colorscheme (managed by LazyVim, not catppuccin/nix)
+    plugins = {
+      colorscheme = ''
+        return {
+          "catppuccin/nvim",
+          opts = { flavour = "mocha" },
+        }
+      '';
+    };
   };
 }

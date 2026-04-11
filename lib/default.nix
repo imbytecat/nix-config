@@ -11,6 +11,7 @@ let
       backupFileExtension = "bak";
       sharedModules = [
         inputs.sops-nix.homeManagerModules.sops
+        inputs.lazyvim.homeManagerModules.default
       ];
       extraSpecialArgs = {
         inherit inputs username;

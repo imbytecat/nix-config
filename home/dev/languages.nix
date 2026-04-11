@@ -22,6 +22,7 @@
     dockerfile-language-server
     lua-language-server
     nixd # Nix LSP
+    just-lsp # Justfile LSP
 
     # ── Linter / Formatter ──
     biome
