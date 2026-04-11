@@ -13,12 +13,12 @@ flake.nix
 └── nixosConfigurations.wsl          (x86_64-linux)
 ```
 
-- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`, `mkHome`. All hosts get shared modules + home-manager + catppuccin.
+- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + catppuccin.
 - `modules/shared/` — both platforms: nixpkgs config, overlays, nix settings, Lix
 - `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), fonts, fish shell, user
 - `modules/nixos/` — NixOS: base packages, docker, locale, user
 - `home/` — home-manager (shared across all hosts via `useGlobalPkgs`)
-- `hosts/*/` — per-host overrides (minimal; mostly `stateVersion` + Touch ID)
+- `hosts/*/` — per-host overrides (mac-mini: 24/7 server with sleep disabled; macbook-air: portable)
 - `overlays/` + `pkgs/` — custom packages (comment-checker)
 - `secrets/` — sops-encrypted secrets (age key derived from `~/.ssh/id_ed25519`)
 
@@ -92,3 +92,7 @@ These options were renamed in recent home-manager; use the new names:
 - LSP: `nixd` (not `nil`). Provides nixpkgs/option completion.
 - Formatter: `nixfmt`. Run: `nixfmt <file.nix>`
 - Both installed via `home/dev/languages.nix`.
+
+## Tool usage
+
+- **Always use the `nixos_nix` MCP tool** when searching for nix-darwin / NixOS / home-manager options. Query with `source=darwin/nixos/home-manager` and `type=options/packages` to find available options before writing config. Do not guess option names or value types — verify first.
