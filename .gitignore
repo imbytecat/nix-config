@@ -1,6 +1,6 @@
 result
 .direnv
-.nixd.json
+.vscode/settings.json
 
 # Never commit plaintext secrets
 *.dec.yaml
