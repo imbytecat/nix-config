@@ -2,7 +2,6 @@
   inputs,
   username,
   pkgs,
-  lib,
   ...
 }:
 
