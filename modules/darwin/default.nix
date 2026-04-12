@@ -77,6 +77,7 @@
       "keka"
       "logitech-g-hub"
       "mos"
+      "movist-pro"
       "orbstack"
       "qq"
       "raycast"
