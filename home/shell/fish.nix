@@ -61,14 +61,19 @@
       end
 
       # 1Password → env vars (single op call, silent if locked)
-      if type -q op; and test -f ~/.config/op/env.tpl
+      function op-env --description "Load secrets from 1Password"
+        if not type -q op; or not test -f ~/.config/op/env.tpl
+          return 1
+        end
         for line in (op inject < ~/.config/op/env.tpl 2>/dev/null)
+          string match -qr '^\s*(#|$)' -- $line; and continue
           set -l kv (string split -m 1 '=' $line)
           if test (count $kv) -ge 2
             set -gx $kv[1] $kv[2]
           end
         end
       end
+      op-env
     '';
   };
 }
