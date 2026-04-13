@@ -49,9 +49,6 @@
 
       # Secrets management (WSL uses Windows op.exe via interop)
     ]
-    ++ lib.optionals pkgs.stdenv.isDarwin [
-      _1password-cli
-    ]
     ++ (with pkgs; [
       # AI coding agent
       opencode

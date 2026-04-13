@@ -7,6 +7,9 @@
   # ── Shell ──────────────────────────────────────────
   programs.fish.enable = true;
 
+  # ── 1Password CLI ───────────────────────────────────
+  programs._1password.enable = true;
+
   # ── SSH ───────────────────────────────────────────
   services.openssh.enable = true;
 

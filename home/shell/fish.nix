@@ -3,7 +3,7 @@
 {
   # ── 1Password env template ──────────────────────────
   # op:// references only — no real secrets, safe to commit
-  xdg.configFile."op/env.tpl".text = ''
+  xdg.configFile."1password/env.tpl".text = ''
     AI_GATEWAY_BASE_URL={{ op://Private/AI Gateway API/URL }}
     AI_GATEWAY_API_KEY={{ op://Private/AI Gateway API/credential }}
     EXA_API_KEY={{ op://Private/Exa API/credential }}
@@ -62,10 +62,10 @@
 
       # 1Password → env vars (single op call, silent if locked)
       function op-env --description "Load secrets from 1Password"
-        if not type -q op; or not test -f ~/.config/op/env.tpl
+        if not type -q op; or not test -f ~/.config/1password/env.tpl
           return 1
         end
-        for line in (op inject < ~/.config/op/env.tpl 2>/dev/null)
+        for line in (op inject < ~/.config/1password/env.tpl 2>/dev/null)
           string match -qr '^\s*(#|$)' -- $line; and continue
           set -l kv (string split -m 1 '=' $line)
           if test (count $kv) -ge 2
