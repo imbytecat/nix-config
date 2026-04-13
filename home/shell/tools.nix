@@ -89,7 +89,7 @@
   # ── Zellij (terminal multiplexer) ────────────────────
   programs.zellij = {
     enable = true;
-    enableFishIntegration = true;
+    enableFishIntegration = false;
     settings = {
       show_startup_tips = false;
     };
