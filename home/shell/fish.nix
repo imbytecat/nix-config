@@ -5,9 +5,9 @@
   # op:// references only — no real secrets, safe to commit
   xdg.configFile."op/env.tpl".text = ''
     AI_GATEWAY_BASE_URL={{ op://Private/AI Gateway API/URL }}
-    AI_GATEWAY_API_KEY={{ op://Private/AI Gateway API/凭据 }}
-    EXA_API_KEY={{ op://Private/Exa API/凭据 }}
-    CONTEXT7_API_KEY={{ op://Private/Context7 API/凭据 }}
+    AI_GATEWAY_API_KEY={{ op://Private/AI Gateway API/credential }}
+    EXA_API_KEY={{ op://Private/Exa API/credential }}
+    CONTEXT7_API_KEY={{ op://Private/Context7 API/credential }}
   '';
 
   programs.fish = {
