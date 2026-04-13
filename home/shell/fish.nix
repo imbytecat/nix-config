@@ -64,12 +64,14 @@ in
         source ~/.config/fish/local.fish
       end
 
-      # 1Password → env vars (single op call, silent if locked)
+      # 1Password → env vars (single op call, silent on failure)
       function op-env --description "Load secrets from 1Password"
         if not type -q op; or not test -f ${envTpl}
           return 1
         end
-        for line in (op inject < ${envTpl} 2>/dev/null)
+        set -l output (op inject --in-file ${envTpl} 2>/dev/null)
+        or return 1
+        for line in $output
           string match -qr '^\s*(#|$)' -- $line; and continue
           set -l kv (string split -m 1 '=' $line)
           if test (count $kv) -ge 2

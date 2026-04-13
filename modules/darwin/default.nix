@@ -86,6 +86,7 @@
       "raycast"
       "spotify"
       "telegram-desktop"
+      "tencent-meeting"
       "termius"
       "visual-studio-code"
       "wechat"
