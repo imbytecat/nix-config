@@ -4,21 +4,27 @@ let
   inherit (inputs.nixpkgs) lib;
 
   # Shared home-manager configuration block
-  homeManagerConfig = username: {
-    home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      backupFileExtension = "bak";
-      sharedModules = [
-        inputs.sops-nix.homeManagerModules.sops
-        inputs.lazyvim.homeManagerModules.default
-      ];
-      extraSpecialArgs = {
-        inherit inputs username;
+  homeManagerConfig =
+    {
+      username,
+      sharedModules ? [ ],
+    }:
+    {
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        backupFileExtension = "bak";
+        sharedModules = [
+          inputs.sops-nix.homeManagerModules.sops
+          inputs.lazyvim.homeManagerModules.default
+        ]
+        ++ sharedModules;
+        extraSpecialArgs = {
+          inherit inputs username;
+        };
+        users.${username} = import ../home;
       };
-      users.${username} = import ../home;
     };
-  };
 in
 {
   # ── NixOS host builder ──────────────────────────────
@@ -39,7 +45,8 @@ in
         ../modules/nixos
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
-        (homeManagerConfig username)
+        inputs.sops-nix.nixosModules.sops
+        (homeManagerConfig { inherit username; })
         { networking.hostName = hostname; }
       ]
       ++ extraModules;
@@ -62,7 +69,7 @@ in
         ../modules/shared
         ../modules/darwin
         inputs.home-manager.darwinModules.home-manager
-        (homeManagerConfig username)
+        (homeManagerConfig { inherit username; })
         { networking.hostName = hostname; }
       ]
       ++ extraModules;

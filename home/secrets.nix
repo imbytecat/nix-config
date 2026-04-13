@@ -1,7 +1,22 @@
-{ config, pkgs, ... }:
-
 {
-  sops = {
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+let
+  isDarwin = pkgs.stdenv.isDarwin;
+
+  # On Darwin, sops secrets are managed by the home-manager module;
+  # on NixOS, they are managed by the system module → /run/secrets/<name>.
+  secretPath = name: if isDarwin then config.sops.secrets.${name}.path else "/run/secrets/${name}";
+in
+{
+  # sops home-manager config — Darwin only
+  # NixOS uses the system-level module (modules/nixos/secrets.nix)
+  # to avoid systemd user service issues on WSL.
+  sops = lib.mkIf isDarwin {
     age.sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
     defaultSopsFile = ../secrets/secrets.yaml;
     defaultSopsFormat = "yaml";
@@ -29,10 +44,10 @@
   programs.fish.interactiveShellInit = ''
     # sops-nix secrets → env vars
     for pair in \
-      AI_GATEWAY_BASE_URL:${config.sops.secrets.ai_gateway_base_url.path} \
-      AI_GATEWAY_API_KEY:${config.sops.secrets.ai_gateway_api_key.path} \
-      EXA_API_KEY:${config.sops.secrets.exa_api_key.path} \
-      CONTEXT7_API_KEY:${config.sops.secrets.context7_api_key.path}
+      AI_GATEWAY_BASE_URL:${secretPath "ai_gateway_base_url"} \
+      AI_GATEWAY_API_KEY:${secretPath "ai_gateway_api_key"} \
+      EXA_API_KEY:${secretPath "exa_api_key"} \
+      CONTEXT7_API_KEY:${secretPath "context7_api_key"}
       set -l parts (string split : $pair)
       if test -r $parts[2]
         set -gx $parts[1] (cat $parts[2])

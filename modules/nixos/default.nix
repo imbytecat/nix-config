@@ -5,6 +5,7 @@
     ./base.nix
     ./docker.nix
     ./locale.nix
+    ./secrets.nix
   ];
 
   # ── Default shell ──────────────────────────────────
