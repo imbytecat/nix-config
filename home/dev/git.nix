@@ -3,10 +3,10 @@
 {
   programs.git = {
     enable = true;
-    userName = "imbytecat";
-    userEmail = "imbytecat@gmail.com";
     signing.format = null;
     settings = {
+      user.name = "imbytecat";
+      user.email = "imbytecat@gmail.com";
       merge.conflictstyle = "zdiff3";
       pull.rebase = true;
       push.autoSetupRemote = true;
