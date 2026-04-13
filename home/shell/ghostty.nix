@@ -7,6 +7,7 @@
     settings = {
       font-family = "Maple Mono NF CN";
       font-size = 14;
+      shell-integration-features = "cursor,sudo,title,ssh-env,ssh-terminfo";
     };
   };
 }
