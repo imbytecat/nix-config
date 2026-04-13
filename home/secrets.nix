@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
   sops = {
@@ -13,6 +13,18 @@
       context7_api_key = { };
     };
   };
+
+  # Generate age key from ed25519 SSH key for sops CLI
+  home.activation.sopsAgeKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+    KEY_DIR="${config.home.homeDirectory}/.config/sops/age"
+    KEY_FILE="$KEY_DIR/keys.txt"
+    SSH_KEY="${config.home.homeDirectory}/.ssh/id_ed25519"
+    if [ -f "$SSH_KEY" ] && [ ! -f "$KEY_FILE" ]; then
+      mkdir -p "$KEY_DIR"
+      ${pkgs.ssh-to-age}/bin/ssh-to-age -private-key -i "$SSH_KEY" > "$KEY_FILE"
+      chmod 600 "$KEY_FILE"
+    fi
+  '';
 
   programs.fish.interactiveShellInit = ''
     # sops-nix secrets → env vars
