@@ -61,8 +61,8 @@
       end
 
       # 1Password → env vars (single op call, silent if locked)
-      if command -q op
-        for line in (op inject -i ~/.config/op/env.tpl 2>/dev/null)
+      if type -q op; and test -f ~/.config/op/env.tpl
+        for line in (op inject < ~/.config/op/env.tpl 2>/dev/null)
           set -l kv (string split -m 1 '=' $line)
           if test (count $kv) -ge 2
             set -gx $kv[1] $kv[2]
