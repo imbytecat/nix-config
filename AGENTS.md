@@ -2,7 +2,7 @@
 
 ## Overview
 
-Nix flake managing 3 devices: Mac Mini, MacBook Air (both aarch64-darwin via nix-darwin), and a Windows PC via NixOS-WSL (x86_64-linux). Single user `imbytecat` everywhere.
+Nix flake managing 3 devices: Mac Mini, MacBook Air (both aarch64-darwin via nix-darwin), and a Windows PC via NixOS-WSL (x86_64-linux). Single user `imbytecat` everywhere. Uses **Lix** (not stock Nix).
 
 ## Architecture
 
@@ -13,14 +13,13 @@ flake.nix
 └── nixosConfigurations.wsl          (x86_64-linux)
 ```
 
-- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + catppuccin + lazyvim-nix + sops-nix.
+- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + lazyvim-nix (as HM sharedModule). NixOS also gets `catppuccin.nixosModules.catppuccin`; home-manager imports `catppuccin.homeModules.catppuccin` directly in `home/default.nix`.
 - `modules/shared/` — both platforms: nixpkgs config, overlays, nix settings, Lix
 - `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), fonts, fish shell, user
 - `modules/nixos/` — NixOS: base packages, docker, locale, user
 - `home/` — home-manager (shared across all hosts via `useGlobalPkgs`)
 - `hosts/*/` — per-host overrides (mac-mini: 24/7 server with sleep disabled; macbook-air: portable)
 - `overlays/` + `pkgs/` — custom packages (comment-checker)
-- `secrets/` — sops-encrypted secrets (age key derived from `~/.ssh/id_ed25519`)
 
 Config flows: `hosts/*` (host-specific) -> `modules/*` (platform) -> `home/*` (user-level, cross-platform)
 
@@ -63,13 +62,14 @@ sudo nix run nix-darwin -- switch --flake .#mac-mini
 - **First-time bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
 - **mise for version management**: Activated in `home/shell/fish.nix` via `mise activate fish | source`. Config in `home/dev/languages.nix` trusts all config paths.
 
-## Secrets (sops-nix)
+## Secrets (1Password CLI)
 
-- Encrypted with age, key derived from `~/.ssh/id_ed25519` (see `.sops.yaml`)
-- Secrets file: `secrets/secrets.yaml` — edit with `just secrets` (runs `sops`)
-- Decrypted at runtime via `home/secrets.nix`, exposed as env vars in fish: `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `EXA_API_KEY`, `CONTEXT7_API_KEY`
-- sops-nix integrated via `home-manager` sharedModules in `lib/default.nix`
-- Never commit `*.dec.yaml`, `*.dec.json`, `*.plaintext` (in `.gitignore`)
+- **Not sops-nix** — secrets are injected at shell startup via `op inject` (1Password CLI).
+- Template: `home/shell/fish.nix` generates `~/.config/op-env/env.tpl` with `op://` references (safe to commit — contains no real secrets).
+- Fish function `op-env` runs on interactive shell init, calling `op inject --in-file` to set env vars: `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `EXA_API_KEY`, `CONTEXT7_API_KEY`.
+- macOS: `programs._1password.enable = true` in `modules/darwin/default.nix`.
+- WSL: aliases `op` to `op.exe` (Windows interop) in `home/shell/fish.nix`.
+- Never commit `*.dec.yaml`, `*.dec.json`, `*.plaintext` (in `.gitignore`).
 
 ## Shell
 
