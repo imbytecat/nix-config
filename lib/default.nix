@@ -15,7 +15,6 @@ let
         useUserPackages = true;
         backupFileExtension = "bak";
         sharedModules = [
-          inputs.sops-nix.homeManagerModules.sops
           inputs.lazyvim.homeManagerModules.default
         ]
         ++ sharedModules;
@@ -45,7 +44,6 @@ in
         ../modules/nixos
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
-        inputs.sops-nix.nixosModules.sops
         (homeManagerConfig { inherit username; })
         { networking.hostName = hostname; }
       ]

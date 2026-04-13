@@ -1,9 +1,0 @@
-keys:
-  # imbytecat — derived from ~/.ssh/id_ed25519 via ssh-to-age
-  - &imbytecat age1w74wqpmum6xa3mk5p7ya620e8mhn9afdyf30gh3fk44javxsmvssm4hs64
-
-creation_rules:
-  - path_regex: secrets/[^/]+\.(yaml|json|env)$
-    key_groups:
-      - age:
-          - *imbytecat

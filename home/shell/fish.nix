@@ -1,6 +1,15 @@
 { ... }:
 
 {
+  # ── 1Password env template ──────────────────────────
+  # op:// references only — no real secrets, safe to commit
+  xdg.configFile."op/env.tpl".text = ''
+    AI_GATEWAY_BASE_URL={{ op://Private/AI Gateway API/URL }}
+    AI_GATEWAY_API_KEY={{ op://Private/AI Gateway API/凭据 }}
+    EXA_API_KEY={{ op://Private/Exa API/凭据 }}
+    CONTEXT7_API_KEY={{ op://Private/Context7 API/凭据 }}
+  '';
+
   programs.fish = {
     enable = true;
 
@@ -48,6 +57,16 @@
       # User-local overrides
       if test -f ~/.config/fish/local.fish
         source ~/.config/fish/local.fish
+      end
+
+      # 1Password → env vars (single op call, silent if locked)
+      if command -q op
+        for line in (op inject -i ~/.config/op/env.tpl 2>/dev/null)
+          set -l kv (string split -m 1 '=' $line)
+          if test (count $kv) -ge 2
+            set -gx $kv[1] $kv[2]
+          end
+        end
       end
     '';
   };

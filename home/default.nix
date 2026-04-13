@@ -11,7 +11,6 @@
     ./shell
     ./dev
     ./theme.nix
-    ./secrets.nix
   ];
 
   home = {
@@ -46,8 +45,7 @@
     just
 
     # Secrets management
-    sops
-    age
+    _1password-cli
 
     # AI coding agent
     opencode
