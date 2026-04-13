@@ -82,6 +82,12 @@
         detect_extensions = [ ];
       };
 
+      bun = {
+        symbol = "";
+        style = "bg:green";
+        format = "[[ $symbol( $version) ](fg:crust bg:green)]($style)";
+      };
+
       python = {
         symbol = "";
         style = "bg:green";
