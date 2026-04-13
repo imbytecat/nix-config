@@ -24,17 +24,15 @@ in
     };
 
     shellAliases = {
-      # File listing (eza)
-      l = "eza -1 --icons --group-directories-first";
-      ls = "eza --icons --group-directories-first";
-      ll = "eza -la --icons --git --group-directories-first";
+      # File listing (eza) — base aliases (ls/la/lt) from programs.eza
+      ll = "eza -lh";
+      lla = "eza -lah --time-style=long-iso";
 
       # Tools
       cat = "bat --paging=never";
       rm = "gomi";
       lg = "lazygit";
       vi = "nvim";
-
     };
 
     interactiveShellInit = ''

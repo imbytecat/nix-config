@@ -62,11 +62,10 @@
   # ── Eza (ls replacement) ────────────────────────────
   programs.eza = {
     enable = true;
-    enableFishIntegration = false; # we use custom abbrs in fish.nix
+    enableFishIntegration = true;
     git = true;
     icons = "auto";
     extraOptions = [
-      "--color=always"
       "--group-directories-first"
     ];
   };
