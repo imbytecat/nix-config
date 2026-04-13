@@ -28,7 +28,6 @@
       duf # df
       procs # ps
       sd # sed
-      xh # curl/httpie
       jq # JSON
       yq # YAML
       wget

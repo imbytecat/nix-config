@@ -18,10 +18,12 @@ in
     enable = true;
 
     shellAbbrs = {
-      # Navigation
+      # Navigation (one-shot, no need to recall in history)
       ".." = "cd ..";
       "..." = "cd ../..";
+    };
 
+    shellAliases = {
       # File listing (eza)
       ls = "eza --icons --group-directories-first";
       ll = "eza -la --icons --git --group-directories-first";
@@ -33,9 +35,6 @@ in
       rm = "gomi";
       lg = "lazygit";
       vi = "nvim";
-
-      # Network
-      http = "xh";
 
     };
 
