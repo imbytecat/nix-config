@@ -18,10 +18,11 @@
         "$git_branch"
         "$git_status"
         "[](fg:yellow bg:green)"
-        "$nodejs"
-        "$python"
+        "$bun"
         "$golang"
         "$nix_shell"
+        "$nodejs"
+        "$python"
         "[](fg:green bg:sapphire)"
         "$docker_context"
         "[](fg:sapphire bg:lavender)"
@@ -75,23 +76,10 @@
         format = "[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)";
       };
 
-      nodejs = {
-        symbol = "";
-        style = "bg:green";
-        format = "[[ $symbol( $version) ](fg:crust bg:green)]($style)";
-        detect_extensions = [ ];
-      };
-
       bun = {
         symbol = "";
         style = "bg:green";
         format = "[[ $symbol( $version) ](fg:crust bg:green)]($style)";
-      };
-
-      python = {
-        symbol = "";
-        style = "bg:green";
-        format = "[[ $symbol( $version)(\\($virtualenv\\)) ](fg:crust bg:green)]($style)";
       };
 
       golang = {
@@ -104,6 +92,19 @@
         symbol = "";
         style = "bg:green";
         format = "[[ $symbol$state( \\($name\\)) ](fg:crust bg:green)]($style)";
+      };
+
+      nodejs = {
+        symbol = "";
+        style = "bg:green";
+        format = "[[ $symbol( $version) ](fg:crust bg:green)]($style)";
+        detect_extensions = [ ];
+      };
+
+      python = {
+        symbol = "";
+        style = "bg:green";
+        format = "[[ $symbol( $version)(\\($virtualenv\\)) ](fg:crust bg:green)]($style)";
       };
 
       docker_context = {
