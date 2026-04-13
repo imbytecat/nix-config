@@ -34,12 +34,12 @@ All platforms use **Lix** (`nix.package = pkgs.lix` in `modules/shared/nix.nix`)
 just rebuild mac-mini       # rebuild macOS host (on macOS)
 just rebuild macbook-air
 just rebuild                # rebuild WSL (linux only, default: "wsl")
+just rollback               # rollback to previous generation (linux only)
 just check                  # eval configs without building (platform-aware)
 just update                 # nix flake update
 just up nixpkgs             # update a single flake input
 just show                   # nix flake show
-just secrets                # sops secrets/secrets.yaml
-just clean                  # nix-collect-garbage -d
+just clean                  # nix-collect-garbage -d (user-level only; NixOS system-level needs sudo)
 just history                # list system profile generations
 just lsp mac-mini           # generate .vscode/settings.json for nixd option completion
 
@@ -51,6 +51,10 @@ nix build .#darwinConfigurations.mac-mini.system             # validate (full bu
 
 # First-time bootstrap (nix-darwin not yet installed)
 sudo nix run nix-darwin -- switch --flake .#mac-mini
+
+# First-time bootstrap WSL (fresh NixOS-WSL has no git)
+nix-shell -p git --run "git clone <repo-url> ~/nix-config"
+cd ~/nix-config && sudo nixos-rebuild switch --flake .#wsl
 ```
 
 ## Critical gotchas
@@ -59,7 +63,8 @@ sudo nix run nix-darwin -- switch --flake .#mac-mini
 - **catppuccin module name**: Home-manager uses `catppuccin.homeModules.catppuccin` (imported in `home/default.nix`). NixOS uses `catppuccin.nixosModules.catppuccin` (in `lib/default.nix`). Don't use the old `homeManagerModules` name.
 - **Homebrew tap casks**: Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`), not just the short name.
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
-- **First-time bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
+- **First-time macOS bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
+- **First-time WSL bootstrap needs `nix-shell -p git`**: Fresh NixOS-WSL has no `git`. Use `nix-shell -p git --run "git clone ..."` to clone, then `sudo nixos-rebuild switch`.
 - **mise for version management**: Activated in `home/shell/fish.nix` via `mise activate fish | source`. Config in `home/dev/languages.nix` trusts all config paths.
 
 ## Secrets (1Password CLI)

@@ -72,14 +72,9 @@ clean:
 
 ############################################################################
 #
-#  Secrets & tooling
+#  Tooling
 #
 ############################################################################
-
-# Edit encrypted secrets
-[group('tools')]
-secrets:
-    sops secrets/secrets.yaml
 
 # Generate .vscode/settings.json with LSP option completion
 [macos]
