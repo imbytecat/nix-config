@@ -3,27 +3,25 @@
 let
   inherit (inputs.nixpkgs) lib;
 
+  sshKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
+  ];
+
   # Shared home-manager configuration block
-  homeManagerConfig =
-    {
-      username,
-      sharedModules ? [ ],
-    }:
-    {
-      home-manager = {
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        backupFileExtension = "bak";
-        sharedModules = [
-          inputs.lazyvim.homeManagerModules.default
-        ]
-        ++ sharedModules;
-        extraSpecialArgs = {
-          inherit inputs username;
-        };
-        users.${username} = import ../home;
+  homeManagerConfig = username: {
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      backupFileExtension = "bak";
+      sharedModules = [
+        inputs.lazyvim.homeManagerModules.default
+      ];
+      extraSpecialArgs = {
+        inherit inputs username;
       };
+      users.${username} = import ../home;
     };
+  };
 in
 {
   # ── NixOS host builder ──────────────────────────────
@@ -37,14 +35,19 @@ in
     lib.nixosSystem {
       inherit system;
       specialArgs = {
-        inherit inputs hostname username;
+        inherit
+          inputs
+          hostname
+          username
+          sshKeys
+          ;
       };
       modules = [
         ../modules/shared
         ../modules/nixos
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
-        (homeManagerConfig { inherit username; })
+        (homeManagerConfig username)
         { networking.hostName = hostname; }
       ]
       ++ extraModules;
@@ -61,13 +64,18 @@ in
     inputs.nix-darwin.lib.darwinSystem {
       inherit system;
       specialArgs = {
-        inherit inputs hostname username;
+        inherit
+          inputs
+          hostname
+          username
+          sshKeys
+          ;
       };
       modules = [
         ../modules/shared
         ../modules/darwin
         inputs.home-manager.darwinModules.home-manager
-        (homeManagerConfig { inherit username; })
+        (homeManagerConfig username)
         { networking.hostName = hostname; }
       ]
       ++ extraModules;

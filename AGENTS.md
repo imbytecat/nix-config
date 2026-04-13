@@ -13,11 +13,11 @@ flake.nix
 └── nixosConfigurations.wsl          (x86_64-linux)
 ```
 
-- `lib/default.nix` — builders: `mkDarwin`, `mkNixos`. All hosts get shared modules + home-manager + lazyvim-nix (as HM sharedModule). NixOS also gets `catppuccin.nixosModules.catppuccin`; home-manager imports `catppuccin.homeModules.catppuccin` directly in `home/default.nix`.
-- `modules/shared/` — both platforms: nixpkgs config, overlays, nix settings, Lix
-- `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), fonts, fish shell, user
-- `modules/nixos/` — NixOS: base packages, docker, locale, user
-- `home/` — home-manager (shared across all hosts via `useGlobalPkgs`)
+- `lib/default.nix` — builders `mkDarwin`/`mkNixos`, shared `sshKeys` constant (passed via `specialArgs`), `homeManagerConfig` helper. NixOS also gets `catppuccin.nixosModules.catppuccin`.
+- `modules/shared/` — both platforms: nix/nixpkgs settings (Lix, overlays), fonts, `programs.fish.enable`, `services.openssh.enable`
+- `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), 1Password CLI, user
+- `modules/nixos/` — NixOS: system packages, locale/timezone, docker, user
+- `home/` — home-manager (shared across all hosts via `useGlobalPkgs`), catppuccin theme
 - `hosts/*/` — per-host overrides (mac-mini: 24/7 server with sleep disabled; macbook-air: portable)
 - `overlays/` + `pkgs/` — custom packages (comment-checker)
 
@@ -59,7 +59,9 @@ cd ~/nix-config && sudo nixos-rebuild switch --flake .#wsl
 
 ## Critical gotchas
 
-- **Neovim uses lazyvim-nix**: `programs.lazyvim` in `home/dev/neovim.nix` manages neovim via the `lazyvim-nix` flake input. Catppuccin nvim integration is explicitly disabled (`catppuccin.nvim.enable = false`) because LazyVim manages its own colorscheme. Don't try to use `catppuccin.enable` for nvim or the old `programs.neovim.plugins` approach.
+- **Shared settings live in `modules/shared/`**: Fish, openssh, fonts, nix settings are enabled once in shared — don't re-declare in platform modules.
+- **SSH keys are centralized**: Defined as `sshKeys` in `lib/default.nix`, passed via `specialArgs`. Don't hardcode keys in platform modules.
+- **Neovim uses lazyvim-nix**: `programs.lazyvim` in `home/dev/neovim.nix` manages neovim via the `lazyvim-nix` flake input. Catppuccin nvim integration is explicitly disabled (`catppuccin.nvim.enable = false`) because LazyVim manages its own colorscheme. Don't use `catppuccin.enable` for nvim or the old `programs.neovim.plugins` approach.
 - **catppuccin module name**: Home-manager uses `catppuccin.homeModules.catppuccin` (imported in `home/default.nix`). NixOS uses `catppuccin.nixosModules.catppuccin` (in `lib/default.nix`). Don't use the old `homeManagerModules` name.
 - **Homebrew tap casks**: Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`), not just the short name.
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.

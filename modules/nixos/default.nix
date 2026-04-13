@@ -1,26 +1,35 @@
-{ pkgs, username, ... }:
+{
+  pkgs,
+  username,
+  sshKeys,
+  ...
+}:
 
 {
   imports = [
-    ./base.nix
     ./docker.nix
-    ./locale.nix
   ];
 
-  # ── Default shell ──────────────────────────────────
-  programs.fish.enable = true;
+  # ── System-essential packages ──────────────────────
+  environment.systemPackages = with pkgs; [
+    curl
+    git
+    ghostty.terminfo
+  ];
 
-  # ── SSH ──────────────────────────────────────────
-  services.openssh.enable = true;
+  # ── Locale / Timezone ──────────────────────────────
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+  };
+  time.timeZone = "Asia/Shanghai";
 
   # ── Default user ───────────────────────────────────
   users.users.${username} = {
     isNormalUser = true;
     shell = pkgs.fish;
     extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
-    ];
+    openssh.authorizedKeys.keys = sshKeys;
   };
 
   # ── sudo ───────────────────────────────────────────

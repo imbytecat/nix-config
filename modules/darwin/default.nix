@@ -1,17 +1,16 @@
-{ pkgs, username, ... }:
+{
+  pkgs,
+  username,
+  sshKeys,
+  ...
+}:
 
 {
   # ── Primary user (required by nix-darwin) ──────────
   system.primaryUser = username;
 
-  # ── Shell ──────────────────────────────────────────
-  programs.fish.enable = true;
-
   # ── 1Password CLI ───────────────────────────────────
   programs._1password.enable = true;
-
-  # ── SSH ───────────────────────────────────────────
-  services.openssh.enable = true;
 
   # ── User ───────────────────────────────────────────
   users.knownUsers = [ username ];
@@ -19,16 +18,8 @@
     home = "/Users/${username}";
     shell = pkgs.fish;
     uid = 501;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
-    ];
+    openssh.authorizedKeys.keys = sshKeys;
   };
-
-  # ── Fonts ──────────────────────────────────────────
-  fonts.packages = with pkgs; [
-    maple-mono.NF-CN-unhinted
-    nerd-fonts.symbols-only
-  ];
 
   # ── macOS system preferences ───────────────────────
   system.defaults = {
@@ -65,7 +56,7 @@
     ];
 
     brews = [
-      "mole" # broken in nixpkgs
+      "mole"
     ];
 
     # GUI apps
