@@ -8,7 +8,6 @@
     bun
 
     # ── Package management / version management ──
-    mise
     uv
 
     # ── LSP servers ──
@@ -35,9 +34,14 @@
     ast-grep
   ];
 
-  # ── mise config ──────────────────────────────────────
-  xdg.configFile."mise/config.toml".text = ''
-    [settings]
-    trusted_config_paths = ["/"]
-  '';
+  # ── mise ─────────────────────────────────────────────
+  programs.mise = {
+    enable = true;
+    enableFishIntegration = true;
+    globalConfig = {
+      settings = {
+        trusted_config_paths = [ "/" ];
+      };
+    };
+  };
 }
