@@ -40,13 +40,15 @@ wsl --import NixOS C:\wsl\nixos nixos-wsl.tar.gz
 wsl -d NixOS
 ```
 
-2. 克隆仓库并构建：
+2. 首次初始化（全新的 NixOS-WSL 没有 `git`，需要借助 `nix-shell` 临时引入）：
 
 ```bash
-git clone <repo-url> ~/nix-config
+nix-shell -p git --run "git clone <repo-url> ~/nix-config"
 cd ~/nix-config
 sudo nixos-rebuild switch --flake .#wsl
 ```
+
+> 首次 rebuild 完成后 `git`、`just` 等工具会由配置声明安装，此后可直接使用 `just rebuild` 重建。
 
 ## 仓库结构
 
@@ -85,20 +87,27 @@ sudo nixos-rebuild switch --flake .#wsl
 
 ## 日常使用
 
+项目提供 [`justfile`](justfile)，首次 rebuild 后即可使用：
+
 ```bash
-# 重建（abbreviation 自动选择 darwin-rebuild 或 nixos-rebuild）
-rebuild
-
-# 更新所有依赖
-update
-
-# 回滚（NixOS）
-sudo nixos-rebuild switch --rollback
-
-# 清理旧 generation
-sudo nix-collect-garbage -d   # NixOS
-nix-collect-garbage -d        # macOS
+just rebuild <host>   # 重建系统（自动选择 darwin-rebuild / nixos-rebuild）
+just update           # 更新所有 flake 输入
+just up <input>       # 更新单个输入，如 just up nixpkgs
+just check            # 检查配置是否能正常 evaluate
+just clean            # 清理旧 generation 并回收空间
+just rollback         # 回滚到上一个 generation（仅 NixOS）
+just history          # 查看系统 profile 历史
+just show             # 显示 flake 输出
 ```
+
+Fish shell 中也定义了 abbreviation 可直接使用：
+
+```bash
+rebuild               # 自动选择 darwin-rebuild 或 nixos-rebuild
+update                # nix flake update
+```
+
+> **注意**：`just clean` 仅清理用户级 generation。NixOS 上如需清理系统级旧 generation，需要 `sudo nix-collect-garbage -d`。
 
 ## Shell
 

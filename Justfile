@@ -27,6 +27,12 @@ check:
     @nix eval .#darwinConfigurations.mac-mini.system > /dev/null && echo "mac-mini: ok"
     @nix eval .#darwinConfigurations.macbook-air.system > /dev/null && echo "macbook-air: ok"
 
+# Rollback to previous system generation
+[linux]
+[group('build')]
+rollback:
+    sudo nixos-rebuild switch --rollback
+
 # Check configs evaluate without errors
 [linux]
 [group('build')]
