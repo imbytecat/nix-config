@@ -38,6 +38,7 @@
         symbols = {
           Linux = "󰌽";
           Macos = "󰀵";
+          NixOS = "";
           Windows = "";
         };
       };
