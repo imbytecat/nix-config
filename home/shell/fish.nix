@@ -52,6 +52,7 @@
       if set -q WSL_DISTRO_NAME
         alias pbcopy clip.exe
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
+        alias op op.exe
       end
 
       # User-local overrides

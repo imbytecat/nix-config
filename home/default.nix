@@ -1,5 +1,6 @@
 {
   inputs,
+  lib,
   username,
   pkgs,
   ...
@@ -20,41 +21,46 @@
   };
 
   # ── User-level packages ────────────────────────────
-  home.packages = with pkgs; [
-    # Modern CLI replacements
-    dust # du
-    duf # df
-    procs # ps
-    sd # sed
-    xh # curl/httpie
-    jq # JSON
-    yq # YAML
-    wget
+  home.packages =
+    with pkgs;
+    [
+      # Modern CLI replacements
+      dust # du
+      duf # df
+      procs # ps
+      sd # sed
+      xh # curl/httpie
+      jq # JSON
+      yq # YAML
+      wget
 
-    # System info
-    fastfetch
-    tealdeer # tldr
+      # System info
+      fastfetch
+      tealdeer # tldr
 
-    # File management
-    gomi
+      # File management
+      gomi
 
-    # Nix tools
-    nix-output-monitor # nom
-    nvd # nix version diff
-    nh # nix helper
-    just
+      # Nix tools
+      nix-output-monitor # nom
+      nvd # nix version diff
+      nh # nix helper
+      just
 
-    # Secrets management
-    _1password-cli
+      # Secrets management (WSL uses Windows op.exe via interop)
+    ]
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+      _1password-cli
+    ]
+    ++ (with pkgs; [
+      # AI coding agent
+      opencode
+      comment-checker
 
-    # AI coding agent
-    opencode
-    comment-checker
-
-    # Misc
-    ffmpeg
-    pandoc
-  ];
+      # Misc
+      ffmpeg
+      pandoc
+    ]);
 
   # XDG directories
   xdg.enable = true;
