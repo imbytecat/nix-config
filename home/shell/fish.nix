@@ -25,10 +25,9 @@ in
 
     shellAliases = {
       # File listing (eza)
+      l = "eza -1 --icons --group-directories-first";
       ls = "eza --icons --group-directories-first";
       ll = "eza -la --icons --git --group-directories-first";
-      la = "eza -a --icons --group-directories-first";
-      lt = "eza --tree --level=2 --icons";
 
       # Tools
       cat = "bat --paging=never";
