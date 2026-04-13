@@ -3,8 +3,6 @@
 {
   home.packages = with pkgs; [
     # ── Language runtimes ──
-    # Node.js: 默认跟随 nixpkgs，当前 unstable 为 v24.14.0
-    # 如需固定 LTS 版本，改为: nodejs_22 或 nodejs_20
     nodejs
     go
     bun
@@ -21,16 +19,16 @@
     vue-language-server
     dockerfile-language-server
     lua-language-server
-    nixd # Nix LSP
-    just-lsp # Justfile LSP
+    nixd
+    just-lsp
 
     # ── Linter / Formatter ──
     biome
     ruff
     shellcheck
     shfmt
-    nixfmt # nix formatter
-    statix # nix linter
+    nixfmt
+    statix
     stylua
 
     # ── Code intelligence ──
