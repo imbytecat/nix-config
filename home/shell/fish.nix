@@ -42,9 +42,6 @@ in
       # PATH
       fish_add_path $HOME/go/bin $HOME/.bun/bin
 
-      # mise
-      mise activate fish | source
-
       # Sudo: double Escape to prepend sudo
       bind \e\e 'fish_commandline_prepend sudo'
 
