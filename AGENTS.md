@@ -19,33 +19,40 @@ flake.nix
 - `modules/nixos/` — system packages, locale, docker, user
 - `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin
 - `hosts/*/` — per-host overrides
-- `overlays/` + `pkgs/` — custom packages
+- `overlays/` + `pkgs/` — custom packages (`comment-checker`)
 
 Flow: `hosts/*` → `modules/*` → `home/*`
 
 ## Commands
 
 ```bash
-just rebuild mac-mini       # macOS host
+just rebuild mac-mini       # macOS host (darwin-rebuild)
 just rebuild macbook-air
-just rebuild wsl            # NixOS host
-just check                  # eval without building
+just rebuild wsl            # NixOS host (nixos-rebuild)
+just check                  # eval without building (platform-aware)
 just update                 # nix flake update
 just up nixpkgs             # update single input
 just clean                  # nix-collect-garbage -d (user-level only)
+just rollback               # NixOS only — rollback to previous generation
+just history                # list system profile generations
+just show                   # nix flake show
 just lsp mac-mini           # nixd option completion for VSCode
 ```
+
+Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the justfile auto-selects by platform.
 
 ## Gotchas
 
 - **Shared settings in `modules/shared/`** — don't re-declare fish/openssh/1password/fonts in platform modules.
 - **`sshKeys` centralized** in `lib/default.nix` via `specialArgs`. Don't hardcode.
 - **WSL aliases force-cleared** — `hosts/wsl/default.nix` uses `lib.mkForce {}`. All aliases via Home Manager only.
-- **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme).
+- **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme). The `lazyvim.homeManagerModules.default` is loaded as a sharedModule in `lib/default.nix`.
 - **catppuccin modules** — `catppuccin.homeModules.catppuccin` (home), `catppuccin.nixosModules.catppuccin` (NixOS). Not the old `homeManagerModules`.
-- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. Shared → `modules/darwin/`, host-specific → `hosts/*/`. Tap casks need full path (e.g. `"goooler/repo/fl-clash"`).
-- **Ghostty macOS-only** — `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
+- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. Shared → `modules/darwin/`, host-specific → `hosts/*/`. Tap casks need full path (e.g. `"goooler/repo/fl-clash"`).
+- **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
 - **nix-ld on WSL** — `programs.nix-ld.enable = true` for VSCode Remote.
+- **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.
+- **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths = [ "/" ]` trusts all config files.
 
 ## Environment
 
@@ -72,7 +79,7 @@ Use the new names:
 
 - LSP: `nixd`. Formatter: `nixfmt`. Linter: `statix`.
 - All in `home/dev/languages.nix`.
-- `just lsp <host>` generates `.vscode/settings.json` (gitignored).
+- `just lsp <host>` generates `.vscode/settings.json` from `.vscode/settings.base.json` (gitignored output).
 
 ## Tool usage
 
