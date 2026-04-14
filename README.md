@@ -55,7 +55,8 @@ wsl -d NixOS
 3. 首次构建：
 
 ```bash
-nix-shell -p git --run "git clone <repo-url> ~/nix-config"
+nix shell nixpkgs#git
+git clone <repo-url> ~/nix-config
 cd ~/nix-config
 sudo nixos-rebuild switch --flake .#wsl
 ```
