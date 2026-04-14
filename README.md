@@ -31,10 +31,10 @@ curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```bash
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
-sudo nix run nix-darwin -- switch --flake .#mac-mini
+sudo nix run nix-darwin -- switch --flake .#macbook-air
 ```
 
-之后日常重建：`just rebuild mac-mini`
+之后日常重建：`just rebuild macbook-air`
 
 ### WSL
 
