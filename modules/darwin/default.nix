@@ -36,6 +36,10 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
     };
+    CustomUserPreferences."ch.sudo.cyberduck" = {
+      # Suppress donation prompt permanently (date far in the future)
+      "donate.reminder.date" = 253402300799000;
+    };
   };
 
   # ── Homebrew ───────────────────────────────────────
