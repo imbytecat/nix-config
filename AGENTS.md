@@ -28,7 +28,7 @@ Flow: `hosts/*` → `modules/*` → `home/*`
 ```bash
 just rebuild mac-mini       # macOS host
 just rebuild macbook-air
-just rebuild                # WSL (linux default)
+just rebuild wsl            # NixOS host
 just check                  # eval without building
 just update                 # nix flake update
 just up nixpkgs             # update single input

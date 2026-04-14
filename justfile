@@ -17,7 +17,7 @@ rebuild host:
 # Rebuild and switch to new system configuration
 [linux]
 [group('build')]
-rebuild host="wsl":
+rebuild host:
     sudo nixos-rebuild switch --flake .#{{host}}
 
 # Check configs evaluate without errors
@@ -86,6 +86,6 @@ lsp host:
 # Generate .vscode/settings.json with LSP option completion
 [linux]
 [group('tools')]
-lsp host="wsl":
+lsp host:
     @jq --arg h "{{host}}" '."nix.serverSettings".nixd.options = {"nixos":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.\($h).options"},"home-manager":{"expr":"(builtins.getFlake (toString ./.)).nixosConfigurations.\($h).options.home-manager.users.type.getSubOptions []"}}' .vscode/settings.base.json > .vscode/settings.json
     @echo "Generated .vscode/settings.json for {{host}}"

@@ -38,14 +38,21 @@ sudo nix run nix-darwin -- switch --flake .#mac-mini
 
 ### WSL
 
-1. 安装 [NixOS-WSL](https://github.com/nix-community/NixOS-WSL/releases)：
+1. 启用 WSL 并更新内核：
+
+```powershell
+wsl --install --no-distribution
+wsl --update
+```
+
+2. 安装 [NixOS-WSL](https://github.com/nix-community/NixOS-WSL/releases)：
 
 ```powershell
 wsl --import NixOS C:\wsl\nixos nixos-wsl.tar.gz
 wsl -d NixOS
 ```
 
-2. 首次构建：
+3. 首次构建：
 
 ```bash
 nix-shell -p git --run "git clone <repo-url> ~/nix-config"
@@ -53,7 +60,7 @@ cd ~/nix-config
 sudo nixos-rebuild switch --flake .#wsl
 ```
 
-之后日常重建：`just rebuild`
+之后日常重建：`just rebuild wsl`
 
 ## 仓库结构
 
