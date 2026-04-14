@@ -47,6 +47,13 @@ in
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
       end
 
+      # Windows Terminal: emit OSC 9;9 so new tab/pane opens in same directory
+      function __wt_osc9_9 --on-variable PWD
+        if test -n "$WT_SESSION"
+          printf "\e]9;9;%s\e\\" (wslpath -w "$PWD")
+        end
+      end
+
       # 1Password → env vars (cached locally, no network on shell start)
       # Startup only sources the cache; run op-env-refresh manually to fetch/update.
       # Auth via OP_SERVICE_ACCOUNT_TOKEN (set it in ~/.config/fish/local.fish)
