@@ -1,10 +1,4 @@
-{
-  lib,
-  pkgs,
-  options,
-  username,
-  ...
-}:
+{ lib, username, ... }:
 
 {
   # ── Shell ─────────────────────────────────────────────
@@ -18,16 +12,8 @@
     interop.register = true;
   };
 
-  # ── nix-ld (VSCode Remote, mise, npm, etc.) ─────────
-  programs.nix-ld = {
-    enable = true;
-    libraries =
-      options.programs.nix-ld.libraries.default
-      ++ (with pkgs; [
-        icu
-        libcrypt
-      ]);
-  };
+  # ── nix-ld (VSCode Remote, etc.) ────────────────────
+  programs.nix-ld.enable = true;
 
   system.stateVersion = "24.11";
 }

@@ -6,7 +6,6 @@
     nodejs
     go
     bun
-    python3
 
     # ── Package management / version management ──
     uv
