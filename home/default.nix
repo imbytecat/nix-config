@@ -23,7 +23,6 @@
     stateVersion = "24.11";
   };
 
-  # ── User-level packages ────────────────────────────
   home.packages = with pkgs; [
     # Modern CLI replacements
     dust # du
@@ -56,6 +55,5 @@
     pandoc
   ];
 
-  # XDG directories
   xdg.enable = true;
 }

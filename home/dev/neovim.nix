@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Disable catppuccin/nix neovim integration — LazyVim manages its own colorscheme

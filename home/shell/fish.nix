@@ -28,18 +28,13 @@ in
       ll = "eza -lh";
       lla = "eza -lah --time-style=long-iso";
 
-      # Tools
       cat = "bat --paging=never";
       rm = "gomi";
       lg = "lazygit";
-      vi = "nvim";
     };
 
     interactiveShellInit = ''
-      # No greeting
       set -g fish_greeting
-
-      # PATH
       fish_add_path $HOME/go/bin $HOME/.bun/bin
 
       # Sudo: double Escape to prepend sudo

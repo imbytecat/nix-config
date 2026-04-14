@@ -6,10 +6,8 @@
 }:
 
 {
-  # ── Primary user (required by nix-darwin) ──────────
   system.primaryUser = username;
 
-  # ── User ───────────────────────────────────────────
   users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
@@ -32,10 +30,7 @@
       wvous-bl-corner = 1;
       wvous-br-corner = 1;
     };
-    finder = {
-      AppleShowAllExtensions = true;
-      FXPreferredViewStyle = "clmv";
-    };
+    finder.FXPreferredViewStyle = "clmv";
     NSGlobalDomain = {
       AppleShowAllExtensions = true;
       InitialKeyRepeat = 15;
