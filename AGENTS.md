@@ -15,7 +15,7 @@ flake.nix
 
 - `lib/default.nix` — builders `mkDarwin`/`mkNixos`, shared `sshKeys` constant (passed via `specialArgs`), `homeManagerConfig` helper. NixOS also gets `catppuccin.nixosModules.catppuccin`.
 - `modules/shared/` — both platforms: nix/nixpkgs settings (Lix, overlays), fonts, `programs.fish.enable`, `services.openssh.enable`
-- `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), 1Password CLI, user
+- `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), user
 - `modules/nixos/` — NixOS: system packages, locale/timezone, docker, user
 - `home/` — home-manager (shared across all hosts via `useGlobalPkgs`), catppuccin theme
 - `hosts/*/` — per-host overrides (mac-mini: 24/7 server with sleep disabled; macbook-air: portable)
@@ -67,23 +67,24 @@ cd ~/nix-config && sudo nixos-rebuild switch --flake .#wsl
 - **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
 - **First-time macOS bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
 - **First-time WSL bootstrap needs `nix-shell -p git`**: Fresh NixOS-WSL has no `git`. Use `nix-shell -p git --run "git clone ..."` to clone, then `sudo nixos-rebuild switch`.
-- **mise for version management**: Activated in `home/shell/fish.nix` via `mise activate fish | source`. Config in `home/dev/languages.nix` trusts all config paths.
+- **mise for version management**: Configured via `programs.mise` in `home/dev/languages.nix` with `enableFishIntegration = true`. Config trusts all config paths.
 
 ## Secrets (1Password CLI)
 
 - **Not sops-nix** — secrets are injected at shell startup via `op inject` (1Password CLI).
 - Template: `home/shell/fish.nix` generates `~/.config/op-env/env.tpl` with `op://` references (safe to commit — contains no real secrets).
 - Fish function `op-env` runs on interactive shell init, calling `op inject --in-file` to set env vars: `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `EXA_API_KEY`, `CONTEXT7_API_KEY`.
-- macOS: `programs._1password.enable = true` in `modules/darwin/default.nix`.
-- WSL: aliases `op` to `op.exe` (Windows interop) in `home/shell/fish.nix`.
+- Auth via `OP_SERVICE_ACCOUNT_TOKEN` env var (set it in `~/.config/fish/local.fish`, which is sourced before `op-env` runs).
+- `programs._1password.enable = true` in `modules/shared/default.nix` (shared across all platforms).
 - Never commit `*.dec.yaml`, `*.dec.json`, `*.plaintext` (in `.gitignore`).
 
 ## Shell
 
 Fish (not zsh). All tool integrations use `enableFishIntegration`. Key files:
-- `home/shell/fish.nix` — abbreviations, interactiveShellInit, mise activation
+- `home/shell/fish.nix` — abbreviations, aliases, interactiveShellInit, 1Password `op-env`
 - `home/shell/tools.nix` — fzf, atuin, zoxide (`--cmd cd`), direnv, bat, eza, yazi, btop, zellij
 - `home/shell/starship.nix` — prompt
+- `home/shell/ghostty.nix` — Ghostty terminal config (macOS only, `package = null` since installed via Homebrew cask)
 
 ## Home Manager option API
 

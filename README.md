@@ -62,20 +62,18 @@ sudo nixos-rebuild switch --flake .#wsl
 ├── modules/
 │   ├── darwin/default.nix     # macOS 模块（Homebrew、系统偏好等）
 │   ├── nixos/                 # NixOS 模块
-│   │   ├── base.nix           # 基础包
-│   │   ├── docker.nix         # Docker 配置
-│   │   ├── locale.nix         # 区域 / 语言
-│   │   └── default.nix        # 入口（用户、shell）
+│   │   ├── default.nix        # 系统包、区域、用户
+│   │   └── docker.nix         # Docker 配置
 │   └── shared/                # 共享模块（Nix 设置）
 ├── home/                      # Home Manager 配置
-│   ├── default.nix            # 入口 + 用户级包
-│   ├── theme.nix              # Catppuccin 主题
+│   ├── default.nix            # 入口 + 用户级包 + Catppuccin 主题
 │   ├── dev/                   # 开发工具
 │   │   ├── neovim.nix
 │   │   ├── languages.nix      # 语言运行时、LSP
 │   │   └── git.nix
 │   └── shell/                 # Shell 配置
 │       ├── fish.nix           # Fish shell
+│       ├── ghostty.nix        # Ghostty 终端（仅 macOS）
 │       ├── starship.nix       # Prompt
 │       └── tools.nix          # fzf, atuin, zoxide 等
 ├── lib/default.nix            # 构建辅助函数
@@ -100,13 +98,6 @@ just history          # 查看系统 profile 历史
 just show             # 显示 flake 输出
 ```
 
-Fish shell 中也定义了 abbreviation 可直接使用：
-
-```bash
-rebuild               # 自动选择 darwin-rebuild 或 nixos-rebuild
-update                # nix flake update
-```
-
 > **注意**：`just clean` 仅清理用户级 generation。NixOS 上如需清理系统级旧 generation，需要 `sudo nix-collect-garbage -d`。
 
 ## Shell
@@ -126,3 +117,18 @@ update                # nix flake update
 - 添加包: 编辑 `home/default.nix` 或 `home/dev/languages.nix`
 - 添加 Homebrew cask: 编辑 `modules/darwin/default.nix` 中的 `homebrew.casks`
 - 查包名: `nix search nixpkgs <关键词>` 或 [search.nixos.org](https://search.nixos.org/packages)
+
+## Secrets（1Password CLI）
+
+项目使用 [1Password CLI](https://developer.1password.com/docs/cli/) 的 `op inject` 在 Fish shell 启动时注入环境变量（如 API Key），而非 sops-nix。
+
+**工作原理**：`home/shell/fish.nix` 生成模板文件 `~/.config/op-env/env.tpl`（仅包含 `op://` 引用，无真实密钥，可安全提交），每次打开交互式 shell 时自动调用 `op inject` 解析模板并 `source` 到环境中。
+
+**前置条件**：需要设置 `OP_SERVICE_ACCOUNT_TOKEN` 环境变量来认证 1Password CLI。建议将其写入 `~/.config/fish/local.fish`（该文件被 gitignore，不会提交）：
+
+```bash
+# ~/.config/fish/local.fish
+set -gx OP_SERVICE_ACCOUNT_TOKEN "your-service-account-token"
+```
+
+> Service Account Token 可在 [1Password 开发者工具](https://my.1password.com/developer-tools/active/service-accounts) 中创建管理。若未设置该 token，`op-env` 会静默跳过，不影响 shell 正常使用。
