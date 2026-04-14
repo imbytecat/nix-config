@@ -49,7 +49,14 @@ just lsp mac-mini           # nixd option completion for VSCode
 
 ## Environment
 
-1Password CLI `op inject` at shell startup. Template in `home/shell/fish.nix` → `~/.config/op-env/env.tpl` (`op://` refs, safe to commit). Auth via `OP_SERVICE_ACCOUNT_TOKEN` in `~/.config/fish/local.fish` (gitignored).
+1Password CLI secrets are **cached locally** — shell startup reads `~/.cache/op-env/env.fish` (no network).
+
+- Template: `home/shell/fish.nix` → `~/.config/op-env/env.tpl` (`op://` refs, safe to commit)
+- Cache: `~/.cache/op-env/env.fish` (plaintext, `chmod 600`, outside git/nix store)
+- Auth: `OP_SERVICE_ACCOUNT_TOKEN` in `~/.config/fish/local.fish` (gitignored)
+- Refresh: user runs `op-env-refresh` manually (needs network). Atomic write (mktemp + mv), failure keeps old cache.
+- Clear: `op-env-clear` removes cache file.
+- `local.fish` is sourced **after** the cache, so it can override env vars per-machine.
 
 ## Home Manager option API
 
