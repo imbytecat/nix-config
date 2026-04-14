@@ -39,6 +39,7 @@
 
     # File management
     gomi
+    ouch # compression/decompression
 
     # Nix tools
     nix-output-monitor # nom
