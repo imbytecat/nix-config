@@ -56,6 +56,7 @@
       "1password"
       "brave-browser"
       "cherry-studio"
+      "cyberduck"
       "dbeaver-community"
       "discord"
       "feishu"
