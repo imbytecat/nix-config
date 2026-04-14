@@ -8,6 +8,11 @@
 {
   system.primaryUser = username;
 
+  # ── Passwordless sudo ───────────────────────────────
+  security.sudo.extraConfig = ''
+    ${username} ALL=(ALL) NOPASSWD:ALL
+  '';
+
   users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
