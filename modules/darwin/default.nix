@@ -9,9 +9,6 @@
   # ── Primary user (required by nix-darwin) ──────────
   system.primaryUser = username;
 
-  # ── 1Password CLI ───────────────────────────────────
-  programs._1password.enable = true;
-
   # ── User ───────────────────────────────────────────
   users.knownUsers = [ username ];
   users.users.${username} = {

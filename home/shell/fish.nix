@@ -8,10 +8,10 @@ in
   # op:// references only — no real secrets, safe to commit
   # Kept outside ~/.config/op — that dir must be 700 and owned by op CLI
   xdg.configFile."op-env/env.tpl".text = ''
-    AI_GATEWAY_BASE_URL={{ op://Private/AI Gateway API/URL }}
-    AI_GATEWAY_API_KEY={{ op://Private/AI Gateway API/credential }}
-    EXA_API_KEY={{ op://Private/Exa API/credential }}
-    CONTEXT7_API_KEY={{ op://Private/Context7 API/credential }}
+    set -gx AI_GATEWAY_BASE_URL "{{ op://Developer/AI Gateway API/URL }}"
+    set -gx AI_GATEWAY_API_KEY "{{ op://Developer/AI Gateway API/credential }}"
+    set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
+    set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
   '';
 
   programs.fish = {
@@ -49,7 +49,6 @@ in
       if set -q WSL_DISTRO_NAME
         alias pbcopy clip.exe
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
-        alias op op.exe
       end
 
       # User-local overrides
@@ -58,19 +57,12 @@ in
       end
 
       # 1Password → env vars (single op call, silent on failure)
+      # Auth via OP_SERVICE_ACCOUNT_TOKEN (set it in ~/.config/fish/local.fish)
       function op-env --description "Load secrets from 1Password"
-        if not type -q op; or not test -f ${envTpl}
+        if not type -q op; or not set -q OP_SERVICE_ACCOUNT_TOKEN; or not test -f ${envTpl}
           return 1
         end
-        set -l output (op inject --in-file ${envTpl} 2>/dev/null)
-        or return 1
-        for line in $output
-          string match -qr '^\s*(#|$)' -- $line; and continue
-          set -l kv (string split -m 1 '=' $line)
-          if test (count $kv) -ge 2
-            set -gx $kv[1] $kv[2]
-          end
-        end
+        op inject --in-file ${envTpl} 2>/dev/null | source
       end
       op-env
     '';
