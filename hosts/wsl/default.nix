@@ -1,6 +1,10 @@
-{ username, ... }:
+{ lib, username, ... }:
 
 {
+  # ── Shell ─────────────────────────────────────────────
+  # Remove NixOS default aliases (ls/ll/l) — managed by Home Manager eza
+  environment.shellAliases = lib.mkForce { };
+
   # ── WSL ──────────────────────────────────────────────
   wsl = {
     enable = true;
