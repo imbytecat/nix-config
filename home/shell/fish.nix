@@ -2,6 +2,7 @@
 
 let
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
+  envCache = "${config.xdg.cacheHome}/op-env/env.fish";
 in
 {
   # ── 1Password env template ──────────────────────────
@@ -46,20 +47,49 @@ in
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
       end
 
-      # User-local overrides
+      # 1Password → env vars (cached locally, no network on shell start)
+      # Startup only sources the cache; run op-env-refresh manually to fetch/update.
+      # Auth via OP_SERVICE_ACCOUNT_TOKEN (set it in ~/.config/fish/local.fish)
+      function op-env-refresh --description "Fetch secrets from 1Password and cache locally"
+        if not type -q op; or not set -q OP_SERVICE_ACCOUNT_TOKEN; or not test -f "${envTpl}"
+          echo "op-env: need op CLI + OP_SERVICE_ACCOUNT_TOKEN" >&2
+          return 1
+        end
+        set -l cache_dir (path dirname "${envCache}")
+        if not mkdir -p "$cache_dir"; or not chmod 700 "$cache_dir"
+          echo "op-env: cannot create cache dir" >&2
+          return 1
+        end
+        set -l tmp (mktemp "$cache_dir/.tmp.XXXXXX")
+        or begin
+          echo "op-env: mktemp failed" >&2
+          return 1
+        end
+        if op inject --in-file "${envTpl}" > "$tmp" 2>/dev/null
+          chmod 600 "$tmp"
+          mv "$tmp" "${envCache}"
+          source "${envCache}"
+          echo "op-env: refreshed"
+        else
+          rm -f "$tmp"
+          echo "op-env: failed (old cache kept)" >&2
+          return 1
+        end
+      end
+
+      function op-env-clear --description "Clear cached secrets"
+        rm -f "${envCache}"
+      end
+
+      # Source cached secrets (instant, no network)
+      if test -f "${envCache}"
+        source "${envCache}"
+      end
+
+      # User-local config (OP_SERVICE_ACCOUNT_TOKEN, per-machine overrides)
       if test -f ~/.config/fish/local.fish
         source ~/.config/fish/local.fish
       end
-
-      # 1Password → env vars (single op call, silent on failure)
-      # Auth via OP_SERVICE_ACCOUNT_TOKEN (set it in ~/.config/fish/local.fish)
-      function op-env --description "Load secrets from 1Password"
-        if not type -q op; or not set -q OP_SERVICE_ACCOUNT_TOKEN; or not test -f ${envTpl}
-          return 1
-        end
-        op inject --in-file ${envTpl} 2>/dev/null | source
-      end
-      op-env
     '';
   };
 }

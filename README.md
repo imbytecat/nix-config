@@ -104,9 +104,16 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 
 ## Environment
 
-1Password CLI `op inject` 在 Fish 启动时注入环境变量。
+1Password CLI `op inject` 获取环境变量，本地缓存后离线可用。
 
 模板文件 `~/.config/op-env/env.tpl` 由 `home/shell/fish.nix` 生成，仅包含 `op://` 引用，可安全提交。
+
+Shell 启动时只读取本地缓存（`~/.cache/op-env/env.fish`），不联网。首次使用或密钥变更后需手动刷新：
+
+```bash
+op-env-refresh   # 从 1Password 获取并缓存（需联网）
+op-env-clear     # 清除本地缓存
+```
 
 认证需要在 `~/.config/fish/local.fish`（gitignored）中设置：
 
@@ -114,4 +121,4 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 set -gx OP_SERVICE_ACCOUNT_TOKEN "your-service-account-token"
 ```
 
-未设置 token 时 `op-env` 静默跳过，不影响使用。
+未设置 token 时 `op-env-refresh` 会提示错误，不影响已有缓存的正常使用。
