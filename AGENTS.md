@@ -13,78 +13,67 @@ flake.nix
 └── nixosConfigurations.wsl          (x86_64-linux)
 ```
 
-- `lib/default.nix` — builders `mkDarwin`/`mkNixos`, shared `sshKeys` constant (passed via `specialArgs`), `homeManagerConfig` helper. NixOS also gets `catppuccin.nixosModules.catppuccin`.
-- `modules/shared/` — both platforms: nix/nixpkgs settings (Lix, overlays), fonts, `programs.fish.enable`, `services.openssh.enable`
+- `lib/default.nix` — builders `mkDarwin`/`mkNixos`, shared `sshKeys` constant (passed via `specialArgs`), `homeManagerConfig` helper
+- `modules/shared/` — both platforms: nix/nixpkgs settings (Lix, overlays), fonts, `programs.fish.enable`, `services.openssh.enable`, `programs._1password.enable`
 - `modules/darwin/` — macOS: system preferences, homebrew (casks/brews/masApps), user
 - `modules/nixos/` — NixOS: system packages, locale/timezone, docker, user
 - `home/` — home-manager (shared across all hosts via `useGlobalPkgs`), catppuccin theme
-- `hosts/*/` — per-host overrides (mac-mini: 24/7 server with sleep disabled; macbook-air: portable)
+- `hosts/*/` — per-host overrides (mac-mini: 24/7 server; macbook-air: portable; wsl: NixOS-WSL)
 - `overlays/` + `pkgs/` — custom packages (comment-checker)
 
-Config flows: `hosts/*` (host-specific) -> `modules/*` (platform) -> `home/*` (user-level, cross-platform)
-
-## Nix implementation
-
-All platforms use **Lix** (`nix.package = pkgs.lix` in `modules/shared/nix.nix`). Channels are disabled (`nix.channel.enable = false`) — flakes only.
+Config flows: `hosts/*` (host-specific) → `modules/*` (platform) → `home/*` (user-level, cross-platform)
 
 ## Commands
 
 ```bash
 # Justfile shortcuts (preferred)
-just rebuild mac-mini       # rebuild macOS host (on macOS)
+just rebuild mac-mini       # rebuild macOS host
 just rebuild macbook-air
-just rebuild                # rebuild WSL (linux only, default: "wsl")
+just rebuild                # rebuild WSL (linux default)
 just rollback               # rollback to previous generation (linux only)
 just check                  # eval configs without building (platform-aware)
 just update                 # nix flake update
 just up nixpkgs             # update a single flake input
-just show                   # nix flake show
-just clean                  # nix-collect-garbage -d (user-level only; NixOS system-level needs sudo)
-just history                # list system profile generations
+just clean                  # nix-collect-garbage -d (user-level only)
 just lsp mac-mini           # generate .vscode/settings.json for nixd option completion
 
-# Direct (when just isn't available)
+# Direct
 sudo darwin-rebuild switch --flake .#mac-mini
 sudo nixos-rebuild switch --flake .#wsl
-nix build .#darwinConfigurations.mac-mini.system --dry-run   # validate (eval only)
-nix build .#darwinConfigurations.mac-mini.system             # validate (full build)
 
-# First-time bootstrap (nix-darwin not yet installed)
+# First-time macOS bootstrap (nix-darwin not yet installed)
 sudo nix run nix-darwin -- switch --flake .#mac-mini
 
-# First-time bootstrap WSL (fresh NixOS-WSL has no git)
+# First-time WSL bootstrap (fresh NixOS-WSL has no git)
 nix-shell -p git --run "git clone <repo-url> ~/nix-config"
 cd ~/nix-config && sudo nixos-rebuild switch --flake .#wsl
 ```
 
 ## Critical gotchas
 
-- **Shared settings live in `modules/shared/`**: Fish, openssh, fonts, nix settings are enabled once in shared — don't re-declare in platform modules.
+- **Shared settings live in `modules/shared/`**: Fish, openssh, 1password, fonts, nix settings are enabled once in shared — don't re-declare in platform modules.
 - **SSH keys are centralized**: Defined as `sshKeys` in `lib/default.nix`, passed via `specialArgs`. Don't hardcode keys in platform modules.
-- **Neovim uses lazyvim-nix**: `programs.lazyvim` in `home/dev/neovim.nix` manages neovim via the `lazyvim-nix` flake input. Catppuccin nvim integration is explicitly disabled (`catppuccin.nvim.enable = false`) because LazyVim manages its own colorscheme. Don't use `catppuccin.enable` for nvim or the old `programs.neovim.plugins` approach.
-- **catppuccin module name**: Home-manager uses `catppuccin.homeModules.catppuccin` (imported in `home/default.nix`). NixOS uses `catppuccin.nixosModules.catppuccin` (in `lib/default.nix`). Don't use the old `homeManagerModules` name.
-- **Homebrew tap casks**: Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`), not just the short name.
-- **`onActivation.cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive.
-- **First-time macOS bootstrap requires sudo**: `sudo nix run nix-darwin -- switch --flake .#mac-mini` (not `darwin-rebuild` which doesn't exist yet).
-- **First-time WSL bootstrap needs `nix-shell -p git`**: Fresh NixOS-WSL has no `git`. Use `nix-shell -p git --run "git clone ..."` to clone, then `sudo nixos-rebuild switch`.
-- **mise for version management**: Configured via `programs.mise` in `home/dev/languages.nix` with `enableFishIntegration = true`. Config trusts all config paths.
+- **NixOS default shell aliases are force-cleared**: `hosts/wsl/default.nix` sets `environment.shellAliases = lib.mkForce {}` to remove NixOS defaults (`l`, `ll`, `ls`). All shell aliases are managed exclusively by Home Manager (eza integration + `fish.nix`). Don't set `environment.shellAliases` in NixOS modules — it would be ignored anyway.
+- **Neovim uses lazyvim-nix**: `programs.lazyvim` in `home/dev/neovim.nix` manages neovim via the `lazyvim-nix` flake input (loaded as `sharedModules` in `lib/default.nix`). Catppuccin nvim integration is explicitly disabled (`catppuccin.nvim.enable = false`) because LazyVim manages its own colorscheme.
+- **catppuccin module names**: Home-manager uses `catppuccin.homeModules.catppuccin` (in `home/default.nix`). NixOS uses `catppuccin.nixosModules.catppuccin` (in `lib/default.nix`). Don't use the old `homeManagerModules` name.
+- **Homebrew `cleanup = "zap"`**: Any brew formula/cask NOT declared in `modules/darwin/default.nix` WILL be removed on rebuild. Be comprehensive. Casks from taps need full path (e.g. `"goooler/repo/fl-clash"`).
+- **mise for version management**: Configured via `programs.mise` in `home/dev/languages.nix`. Config trusts all config paths (`trusted_config_paths = [ "/" ]`).
+- **Ghostty is macOS-only**: `programs.ghostty.enable = pkgs.stdenv.isDarwin` with `package = null` (installed via Homebrew cask). Terminfo is propagated to NixOS via `ghostty.terminfo` in `modules/nixos/default.nix`.
 
 ## Secrets (1Password CLI)
 
 - **Not sops-nix** — secrets are injected at shell startup via `op inject` (1Password CLI).
-- Template: `home/shell/fish.nix` generates `~/.config/op-env/env.tpl` with `op://` references (safe to commit — contains no real secrets).
-- Fish function `op-env` runs on interactive shell init, calling `op inject --in-file` to set env vars: `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `EXA_API_KEY`, `CONTEXT7_API_KEY`.
-- Auth via `OP_SERVICE_ACCOUNT_TOKEN` env var (set it in `~/.config/fish/local.fish`, which is sourced before `op-env` runs).
-- `programs._1password.enable = true` in `modules/shared/default.nix` (shared across all platforms).
-- Never commit `*.dec.yaml`, `*.dec.json`, `*.plaintext` (in `.gitignore`).
+- Template: `home/shell/fish.nix` generates `~/.config/op-env/env.tpl` with `op://` references (safe to commit).
+- Fish function `op-env` runs on interactive shell init, calling `op inject --in-file` to set env vars.
+- Auth via `OP_SERVICE_ACCOUNT_TOKEN` env var (set in `~/.config/fish/local.fish`, which is gitignored via `local.fish` in `conf.d`).
 
 ## Shell
 
 Fish (not zsh). All tool integrations use `enableFishIntegration`. Key files:
 - `home/shell/fish.nix` — abbreviations, aliases, interactiveShellInit, 1Password `op-env`
-- `home/shell/tools.nix` — fzf, atuin, zoxide (`--cmd cd`), direnv, bat, eza, yazi, btop, zellij
+- `home/shell/tools.nix` — fzf, atuin, zoxide (`--cmd cd`), direnv, bat, eza (`enableFishIntegration = true` provides `ls`/`ll`/`la`/`lt`/`lla` aliases; `fish.nix` overrides `ll`/`lla`), yazi, btop, zellij
 - `home/shell/starship.nix` — prompt
-- `home/shell/ghostty.nix` — Ghostty terminal config (macOS only, `package = null` since installed via Homebrew cask)
+- `home/shell/ghostty.nix` — Ghostty terminal config (macOS only)
 
 ## Home Manager option API
 
@@ -101,7 +90,7 @@ These options were renamed in recent home-manager; use the new names:
 - LSP: `nixd` (not `nil`). Provides nixpkgs/option completion.
 - Formatter: `nixfmt`. Run: `nixfmt <file.nix>`
 - Both installed via `home/dev/languages.nix`.
-- VSCode settings for nixd option completion: `just lsp <host>` (generates `.vscode/settings.json` from `.vscode/settings.base.json`)
+- VSCode settings for nixd option completion: `just lsp <host>` (generates `.vscode/settings.json` from `.vscode/settings.base.json`; the generated file is gitignored).
 
 ## Tool usage
 
