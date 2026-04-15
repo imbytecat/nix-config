@@ -1,15 +1,15 @@
 { ... }:
 
 {
-  # ── MacBook Air specific ──────────────────────────────
-  # Portable — battery-conscious settings
+  # ── MacBook Air 专属配置 ─────────────────────────────
+  # 便携设备 — 注意电池续航
 
-  # Touch ID for sudo
+  # Touch ID 验证 sudo
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  # ── Notch-specific ─────────────────────────────────
+  # ── 刘海屏适配 ──────────────────────────────────────
   homebrew.casks = [
-    "thaw" # menu bar manager for notched display
+    "thaw" # 刘海屏菜单栏管理工具
   ];
 
   system.stateVersion = 5;

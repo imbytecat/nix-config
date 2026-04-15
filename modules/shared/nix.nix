@@ -11,7 +11,7 @@
     warn-dirty = false;
   };
 
-  # Disable channels — we use flakes exclusively
+  # 禁用 channels — 仅使用 flakes
   nix.channel.enable = false;
 
   nixpkgs = {

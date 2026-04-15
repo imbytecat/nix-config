@@ -2,7 +2,7 @@
 
 {
   # ── Shell ─────────────────────────────────────────────
-  # Remove NixOS default aliases (ls/ll/l) — managed by Home Manager eza
+  # 移除 NixOS 默认别名（ls/ll/l）— 由 Home Manager eza 管理
   environment.shellAliases = lib.mkForce { };
 
   # ── WSL ──────────────────────────────────────────────

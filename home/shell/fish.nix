@@ -5,9 +5,9 @@ let
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
 in
 {
-  # ── 1Password env template ──────────────────────────
-  # op:// references only — no real secrets, safe to commit
-  # Kept outside ~/.config/op — that dir must be 700 and owned by op CLI
+  # ── 1Password 环境变量模板 ─────────────────────────────
+  # 仅包含 op:// 引用 — 无真实密钥，可安全提交
+  # 放在 ~/.config/op 之外 — 该目录必须是 700 权限且属于 op CLI
   xdg.configFile."op-env/env.tpl".text = ''
     set -gx AI_GATEWAY_BASE_URL "{{ op://Developer/AI Gateway API/URL }}"
     set -gx AI_GATEWAY_API_KEY "{{ op://Developer/AI Gateway API/credential }}"
@@ -19,13 +19,13 @@ in
     enable = true;
 
     shellAbbrs = {
-      # Navigation (one-shot, no need to recall in history)
+      # 导航（一次性命令，无需记录历史）
       ".." = "cd ..";
       "..." = "cd ../..";
     };
 
     shellAliases = {
-      # File listing (eza) — base aliases (ls/la/lt) from programs.eza
+      # 文件列表（eza）— 基础别名（ls/la/lt）来自 programs.eza
       ll = "eza -lh";
       lla = "eza -lah --time-style=long-iso";
 
@@ -38,25 +38,25 @@ in
       set -g fish_greeting
       fish_add_path $HOME/go/bin $HOME/.bun/bin
 
-      # Sudo: double Escape to prepend sudo
+      # 双击 Escape 在命令前插入 sudo
       bind \e\e 'fish_commandline_prepend sudo'
 
-      # WSL clipboard
+      # WSL 剪贴板
       if set -q WSL_DISTRO_NAME
         alias pbcopy clip.exe
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
       end
 
-      # Windows Terminal: emit OSC 9;9 so new tab/pane opens in same directory
+      # Windows Terminal：发送 OSC 9;9 使新标签页/窗格在同一目录打开
       function __wt_osc9_9 --on-variable PWD
         if test -n "$WT_SESSION"
           printf "\e]9;9;%s\e\\" (wslpath -w "$PWD")
         end
       end
 
-      # 1Password → env vars (cached locally, no network on shell start)
-      # Startup only sources the cache; run op-env-refresh manually to fetch/update.
-      # Auth via OP_SERVICE_ACCOUNT_TOKEN (set it in ~/.config/fish/local.fish)
+      # 1Password → 环境变量（本地缓存，启动时不联网）
+      # 启动时仅加载缓存；手动执行 op-env-refresh 拉取/更新
+      # 通过 OP_SERVICE_ACCOUNT_TOKEN 认证（在 ~/.config/fish/local.fish 中设置）
       function op-env-refresh --description "Fetch secrets from 1Password and cache locally"
         if not type -q op
           echo "op-env: op CLI not found in PATH" >&2
@@ -85,7 +85,7 @@ in
           echo "op-env: inject failed; old cache kept" >&2
           return 1
         end
-        # Capture old var names before replacing cache
+        # 替换缓存前记录旧变量名
         set -l old_vars
         if test -f "${envCache}"
           set old_vars (string match -rg 'set -gx (\S+)' < "${envCache}")
@@ -115,12 +115,12 @@ in
         echo "op-env: cleared"
       end
 
-      # Source cached secrets (instant, no network)
+      # 加载缓存的密钥（即时，不联网）
       if test -f "${envCache}"
         source "${envCache}"
       end
 
-      # User-local config (OP_SERVICE_ACCOUNT_TOKEN, per-machine overrides)
+      # 用户本地配置（OP_SERVICE_ACCOUNT_TOKEN、机器特定覆盖）
       if test -f ~/.config/fish/local.fish
         source ~/.config/fish/local.fish
       end

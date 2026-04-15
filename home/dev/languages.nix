@@ -2,16 +2,16 @@
 
 {
   home.packages = with pkgs; [
-    # ── Language runtimes ──
+    # ── 语言运行时 ──
     nodejs
     go
     bun
     python3
 
-    # ── Package management / version management ──
+    # ── 包管理 / 版本管理 ──
     uv
 
-    # ── LSP servers ──
+    # ── LSP 服务器 ──
     bash-language-server
     gopls
     typescript-language-server
@@ -22,7 +22,7 @@
     nixd
     just-lsp
 
-    # ── Linter / Formatter ──
+    # ── 代码检查 / 格式化 ──
     biome
     ruff
     shellcheck
@@ -31,7 +31,7 @@
     statix
     stylua
 
-    # ── Code intelligence ──
+    # ── 代码智能 ──
     ast-grep
   ];
 

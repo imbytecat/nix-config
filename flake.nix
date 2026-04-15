@@ -37,7 +37,7 @@
       mylib = import ./lib { inherit inputs; };
     in
     {
-      # ── macOS hosts ─────────────────────────────────────
+      # ── macOS 主机 ──────────────────────────────────────
       darwinConfigurations = {
         mac-mini = mylib.mkDarwin {
           hostname = "awesome-mac-mini";
@@ -54,7 +54,7 @@
         };
       };
 
-      # ── NixOS hosts (WSL on Windows PC) ─────────────────
+      # ── NixOS 主机（Windows PC 上的 WSL）──────────────
       nixosConfigurations = {
         wsl = mylib.mkNixos {
           hostname = "awesome-wsl";
@@ -67,7 +67,7 @@
         };
       };
 
-      # ── Packages ────────────────────────────────────────
+      # ── 自定义包 ─────────────────────────────────────────
       packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (
         system:
         let

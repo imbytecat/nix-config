@@ -19,7 +19,7 @@
     ];
   };
 
-  # ── Atuin (shell history) ────────────────────────────
+  # ── Atuin（Shell 历史记录）─────────────────────────────
   programs.atuin = {
     enable = true;
     enableFishIntegration = true;
@@ -33,11 +33,11 @@
     };
   };
 
-  # ── Zoxide (smart cd) ───────────────────────────────
+  # ── Zoxide（智能 cd）──────────────────────────────────
   programs.zoxide = {
     enable = true;
     enableFishIntegration = true;
-    options = [ "--cmd cd" ]; # cd/cdi instead of z/zi
+    options = [ "--cmd cd" ]; # 用 cd/cdi 替代 z/zi
   };
 
   # ── Direnv + nix-direnv ─────────────────────────────
@@ -50,7 +50,7 @@
     };
   };
 
-  # ── Bat (cat replacement) ───────────────────────────
+  # ── Bat（cat 替代）────────────────────────────────────
   programs.bat = {
     enable = true;
     extraPackages = with pkgs.bat-extras; [
@@ -59,7 +59,7 @@
     ];
   };
 
-  # ── Eza (ls replacement) ────────────────────────────
+  # ── Eza（ls 替代）─────────────────────────────────────
   programs.eza = {
     enable = true;
     enableFishIntegration = true;
@@ -70,14 +70,14 @@
     ];
   };
 
-  # ── Yazi (file manager) ─────────────────────────────
+  # ── Yazi（文件管理器）────────────────────────────────
   programs.yazi = {
     enable = true;
     enableFishIntegration = true;
     shellWrapperName = "y";
   };
 
-  # ── Btop (system monitor) ───────────────────────────
+  # ── Btop（系统监控）──────────────────────────────────
   programs.btop = {
     enable = true;
     settings = {
@@ -85,7 +85,7 @@
     };
   };
 
-  # ── Zellij (terminal multiplexer) ────────────────────
+  # ── Zellij（终端复用器）──────────────────────────────
   programs.zellij = {
     enable = true;
     enableFishIntegration = false;

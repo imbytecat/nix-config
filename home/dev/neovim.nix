@@ -1,7 +1,7 @@
 _:
 
 {
-  # Disable catppuccin/nix neovim integration — LazyVim manages its own colorscheme
+  # 禁用 catppuccin/nix 的 Neovim 集成 — LazyVim 自行管理配色方案
   catppuccin.nvim.enable = false;
 
   programs.neovim = {
@@ -22,7 +22,7 @@ _:
       lang.docker.enable = true;
     };
 
-    # Catppuccin Mocha colorscheme (managed by LazyVim, not catppuccin/nix)
+    # Catppuccin Mocha 配色方案（由 LazyVim 管理，非 catppuccin/nix）
     plugins = {
       colorscheme = ''
         return {

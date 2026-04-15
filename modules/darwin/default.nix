@@ -8,7 +8,7 @@
 {
   system.primaryUser = username;
 
-  # ── Passwordless sudo ───────────────────────────────
+  # ── 免密 sudo ────────────────────────────────────────
   security.sudo.extraConfig = ''
     ${username} ALL=(ALL) NOPASSWD:ALL
   '';
@@ -21,7 +21,7 @@
     openssh.authorizedKeys.keys = sshKeys;
   };
 
-  # ── macOS system preferences ───────────────────────
+  # ── macOS 系统偏好设置 ────────────────────────────────
   system.defaults = {
     LaunchServices.LSQuarantine = false;
     dock = {
@@ -42,7 +42,7 @@
       KeyRepeat = 2;
     };
     CustomUserPreferences."ch.sudo.cyberduck" = {
-      # Suppress donation prompt permanently (date far in the future)
+      # 永久禁用捐赠提示（日期设为遥远的未来）
       "donate.reminder.date" = 253402300799000;
     };
   };
@@ -50,7 +50,10 @@
   # ── Homebrew ───────────────────────────────────────
   homebrew = {
     enable = true;
-    greedyCasks = true; # always upgrade casks even if they auto-update
+    greedyCasks = true; # 即使 cask 自动更新也始终升级
+    # 已废弃：Homebrew 将于 2026-09 后移除 --no-quarantine
+    # 待所有 cask 通过 Gatekeeper（签名且公证）后移除此项
+    caskArgs.no_quarantine = true;
 
     taps = [
       "goooler/repo"
@@ -60,7 +63,7 @@
       "mole"
     ];
 
-    # GUI apps
+    # GUI 应用
     casks = [
       "1password"
       "brave-browser"
@@ -101,7 +104,7 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap"; # remove anything not declared above
+      cleanup = "zap"; # 移除所有未声明的内容
     };
   };
 }
