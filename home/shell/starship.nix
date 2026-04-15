@@ -56,13 +56,6 @@
         format = "[ $path ]($style)";
         truncation_length = 3;
         truncation_symbol = "…/";
-        substitutions = {
-          Developer = "󰲋";
-          Documents = "󰈙";
-          Downloads = "";
-          Music = "󰝚";
-          Pictures = "";
-        };
       };
 
       git_branch = {
@@ -91,11 +84,11 @@
       nix_shell = {
         symbol = "";
         style = "bg:green";
-        format = "[[ $symbol$state( \\($name\\)) ](fg:crust bg:green)]($style)";
+        format = "[[ $symbol $state( \\($name\\)) ](fg:crust bg:green)]($style)";
       };
 
       nodejs = {
-        symbol = "";
+        symbol = "󰎙";
         style = "bg:green";
         format = "[[ $symbol( $version) ](fg:crust bg:green)]($style)";
         detect_extensions = [ ];
