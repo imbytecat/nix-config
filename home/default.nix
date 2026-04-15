@@ -50,6 +50,7 @@
     # AI 编程代理
     opencode
     comment-checker
+    skills
 
     # 其他
     ffmpeg
