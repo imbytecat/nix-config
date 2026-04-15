@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
@@ -37,6 +42,7 @@ in
     interactiveShellInit = ''
       set -g fish_greeting
       fish_add_path $HOME/go/bin $HOME/.bun/bin
+      ${lib.optionalString pkgs.stdenv.isDarwin ''fish_add_path "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"''}
 
       # 双击 Escape 在命令前插入 sudo
       bind \e\e 'fish_commandline_prepend sudo'
