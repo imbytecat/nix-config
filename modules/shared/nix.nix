@@ -4,6 +4,9 @@
   nix.package = pkgs.lix;
 
   nix.settings = {
+    substituters = [
+      "https://mirror.sjtu.edu.cn/nix-channels/store"
+    ];
     experimental-features = [
       "nix-command"
       "flakes"
