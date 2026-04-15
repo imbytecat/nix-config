@@ -42,6 +42,7 @@
     globalConfig = {
       settings = {
         trusted_config_paths = [ "/" ];
+        node_compile = false;
       };
     };
   };
