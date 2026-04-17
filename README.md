@@ -58,7 +58,15 @@ wsl -d NixOS
 nix shell nixpkgs#git
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
-sudo nixos-rebuild switch --flake .#wsl
+sudo nixos-rebuild boot --flake .#wsl
+```
+
+4. 清理旧的 `nixos` 用户（可选）：
+
+```bash
+getent passwd nixos
+sudo userdel --remove nixos
+sudo rm -rf /home/nixos
 ```
 
 之后日常重建：`just rebuild wsl`
