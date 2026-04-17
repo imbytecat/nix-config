@@ -32,4 +32,12 @@
   virtualisation.docker.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
+
+  # 清理 pre-flake 遗留的 root channel symlink
+  system.activationScripts.cleanupLegacyChannels.text = ''
+    rm -rf /root/.nix-defexpr/channels \
+           /root/.nix-defexpr/channels_root \
+           /nix/var/nix/profiles/per-user/root/channels \
+           /nix/var/nix/profiles/per-user/root/channels-*-link
+  '';
 }

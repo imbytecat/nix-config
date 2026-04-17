@@ -27,8 +27,11 @@
     ];
   };
 
-  # 禁用 channels — 仅使用 flakes
   nix.channel.enable = false;
+
+  # 让 legacy nixPath/CLI 跟随 flake 锁定的 nixpkgs
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 
   nixpkgs = {
     config.allowUnfree = true;
