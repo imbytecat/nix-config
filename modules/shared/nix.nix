@@ -5,7 +5,7 @@
 
   nix.settings = {
     substituters = [
-      "https://mirror.sjtu.edu.cn/nix-channels/store"
+      "https://cache.nixos.org"
       "https://imbytecat.cachix.org"
       "https://nix-community.cachix.org"
     ];
