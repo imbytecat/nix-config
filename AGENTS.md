@@ -19,7 +19,7 @@ flake.nix
 - `modules/nixos/` — system packages, locale, docker, user
 - `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin
 - `hosts/*/` — per-host overrides
-- `overlays/` + `pkgs/` — custom packages (`comment-checker`)
+- `overlays/` + `pkgs/` — custom packages (`comment-checker`) and `nixpkgs-master` channel-borrow overlay (see Gotchas)
 
 Flow: `hosts/*` → `modules/*` → `home/*`
 
@@ -48,12 +48,13 @@ Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the 
 - **WSL aliases force-cleared** — `hosts/wsl/default.nix` uses `lib.mkForce {}`. All aliases via Home Manager only.
 - **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme). The `lazyvim.homeManagerModules.default` is loaded as a sharedModule in `lib/default.nix`.
 - **catppuccin modules** — `catppuccin.homeModules.catppuccin` (home), `catppuccin.nixosModules.catppuccin` (NixOS). Not the old `homeManagerModules`.
-- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. Shared → `modules/darwin/`, host-specific → `hosts/*/`. Tap casks need full path (e.g. `"goooler/repo/fl-clash"`).
+- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. Shared → `modules/darwin/default.nix`, host-specific → `hosts/*/default.nix` (e.g. `thaw` on macbook-air). Tap casks need full path (e.g. `"goooler/repo/fl-clash"`).
 - **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
 - **nix-ld on WSL** — `programs.nix-ld.enable = true` for VSCode Remote.
 - **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.
 - **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths = [ "/" ]` trusts all config files.
 - **stateVersion** — never bump `system.stateVersion` (per-host) or `home.stateVersion` (`home/default.nix`). These are migration markers, not version targets.
+- **Channel-borrow overlay in `overlays/default.nix`** — pulls select pkgs from `nixpkgs-master` input when unstable lags (currently `opencode`, `nushell`). Delete the `inherit (master) ...` line once unstable catches up; don't add packages here unless unstable is actually broken/stale.
 - **Channels disabled** — `nix.channel.enable = false` in `modules/shared/nix.nix`. Flakes only; don't use `nix-channel` or `<nixpkgs>`.
 - **Binary caches** — `cache.nixos.org` and `cache.garnix.io`. Configured in `modules/shared/nix.nix`.
 - **Homebrew `caskArgs.no_quarantine`** — still enabled but deprecated by Homebrew (removal 2026-09). Will need removal once all casks pass Gatekeeper.
@@ -91,5 +92,5 @@ Use the new names:
 
 ## Tool usage
 
-- `opencode.jsonc` configures `just-lsp` (LSP) and `mcp-nixos` (MCP).
+- `opencode.jsonc` configures `just-lsp` (LSP) and `mcp-nixos` (MCP via `uvx mcp-nixos`).
 - **Always use `nixos_nix` MCP** to look up nix-darwin/NixOS/home-manager options before writing config. Don't guess option names.
