@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 
 {
   nix.package = pkgs.lix;
@@ -18,6 +18,10 @@
       "flakes"
     ];
     warn-dirty = false;
+    trusted-users = [
+      "root"
+      username
+    ];
   };
 
   # 禁用 channels — 仅使用 flakes
