@@ -6,6 +6,12 @@
   nix.settings = {
     substituters = [
       "https://mirror.sjtu.edu.cn/nix-channels/store"
+      "https://imbytecat.cachix.org"
+      "https://nix-community.cachix.org"
+    ];
+    trusted-public-keys = [
+      "imbytecat.cachix.org-1:/IA3jdMfg4A2N9sp6AA/INx0OpyF/qvXG0JnBYkX3rY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
     experimental-features = [
       "nix-command"

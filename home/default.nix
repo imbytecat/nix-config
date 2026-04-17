@@ -48,7 +48,7 @@
     just
 
     # AI 编程代理
-    opencode
+    inputs.opencode.packages.${pkgs.system}.default
     comment-checker
     skills
 

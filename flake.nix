@@ -25,6 +25,11 @@
     };
 
     lazyvim.url = "github:pfassina/lazyvim-nix";
+
+    opencode = {
+      url = "github:anomalyco/opencode";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
