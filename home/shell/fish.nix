@@ -18,6 +18,7 @@ in
     set -gx AI_GATEWAY_API_KEY "{{ op://Developer/AI Gateway API/credential }}"
     set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
     set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
+    set -gx CACHIX_AUTH_TOKEN "{{ op://Developer/Cachix Auth Token/credential }}"
   '';
 
   programs.fish = {
