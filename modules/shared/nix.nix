@@ -1,4 +1,9 @@
-{ pkgs, username, ... }:
+{
+  pkgs,
+  username,
+  inputs,
+  ...
+}:
 
 {
   nix.package = pkgs.lix;
@@ -29,6 +34,6 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = [ (import ../../overlays) ];
+    overlays = [ (import ../../overlays { inherit inputs; }) ];
   };
 }
