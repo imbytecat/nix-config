@@ -55,13 +55,12 @@ Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the 
 - **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths = [ "/" ]` trusts all config files.
 - **stateVersion** — never bump `system.stateVersion` (per-host) or `home.stateVersion` (`home/default.nix`). These are migration markers, not version targets.
 - **Channels disabled** — `nix.channel.enable = false` in `modules/shared/nix.nix`. Flakes only; don't use `nix-channel` or `<nixpkgs>`.
-- **Binary caches** — SJTU mirror is the first substituter, then `imbytecat.cachix.org` and `nix-community.cachix.org`. Configured in `modules/shared/nix.nix`.
+- **Binary caches** — SJTU mirror is the first substituter, then `cache.garnix.io` and `nix-community.cachix.org`. Configured in `modules/shared/nix.nix`.
 - **Homebrew `caskArgs.no_quarantine`** — still enabled but deprecated by Homebrew (removal 2026-09). Will need removal once all casks pass Gatekeeper.
 
 ## CI
 
-- GitHub Actions: `.github/workflows/cachix.yml` builds `nixosConfigurations.wsl` on push to `main` and pushes to Cachix.
-- Darwin builds are commented out (no macOS runner).
+- Garnix: auto-builds all flake outputs (darwinConfigurations, nixosConfigurations, packages) on push. Zero-config — just the GitHub App. Cache served from `cache.garnix.io`.
 
 ## Environment
 

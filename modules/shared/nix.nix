@@ -6,11 +6,11 @@
   nix.settings = {
     substituters = [
       "https://cache.nixos.org"
-      "https://imbytecat.cachix.org"
+      "https://cache.garnix.io"
       "https://nix-community.cachix.org"
     ];
     trusted-public-keys = [
-      "imbytecat.cachix.org-1:/IA3jdMfg4A2N9sp6AA/INx0OpyF/qvXG0JnBYkX3rY="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
     experimental-features = [
