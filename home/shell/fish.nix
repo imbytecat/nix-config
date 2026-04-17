@@ -10,7 +10,6 @@ let
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
 in
 {
-  # ── 1Password 环境变量模板 ─────────────────────────────
   # 仅包含 op:// 引用 — 无真实密钥，可安全提交
   # 放在 ~/.config/op 之外 — 该目录必须是 700 权限且属于 op CLI
   xdg.configFile."op-env/env.tpl".text = ''
@@ -24,13 +23,12 @@ in
     enable = true;
 
     shellAbbrs = {
-      # 导航（一次性命令，无需记录历史）
       ".." = "cd ..";
       "..." = "cd ../..";
     };
 
     shellAliases = {
-      # 文件列表（eza）— 基础别名（ls/la/lt）来自 programs.eza
+      # eza — ls/la/lt 来自 programs.eza
       ll = "eza -lh";
       lla = "eza -lah --time-style=long-iso";
 
@@ -44,10 +42,8 @@ in
       fish_add_path $HOME/go/bin $HOME/.bun/bin
       ${lib.optionalString pkgs.stdenv.isDarwin ''fish_add_path "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"''}
 
-      # 双击 Escape 在命令前插入 sudo
       bind \e\e 'fish_commandline_prepend sudo'
 
-      # WSL 剪贴板
       if set -q WSL_DISTRO_NAME
         alias pbcopy clip.exe
         alias pbpaste "powershell.exe -noprofile -c Get-Clipboard"
@@ -91,7 +87,7 @@ in
           echo "op-env: inject failed; old cache kept" >&2
           return 1
         end
-        # 替换缓存前记录旧变量名
+        # 替换缓存前记录旧变量名，确保被删除的密钥也从环境中移除
         set -l old_vars
         if test -f "${envCache}"
           set old_vars (string match -rg 'set -gx (\S+)' < "${envCache}")
@@ -121,12 +117,10 @@ in
         echo "op-env: cleared"
       end
 
-      # 加载缓存的密钥（即时，不联网）
       if test -f "${envCache}"
         source "${envCache}"
       end
 
-      # 用户本地配置（OP_SERVICE_ACCOUNT_TOKEN、机器特定覆盖）
       if test -f ~/.config/fish/local.fish
         source ~/.config/fish/local.fish
       end

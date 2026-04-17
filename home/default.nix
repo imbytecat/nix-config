@@ -24,35 +24,29 @@
   };
 
   home.packages = with pkgs; [
-    # 现代 CLI 替代工具
-    dust # du
-    duf # df
-    procs # ps
-    sd # sed
-    jq # JSON
-    yq # YAML
+    dust
+    duf
+    procs
+    sd
+    jq
+    yq
     wget
 
-    # 系统信息
     fastfetch
-    tealdeer # tldr
+    tealdeer
 
-    # 文件管理
     gomi
-    ouch # 压缩/解压
+    ouch
 
-    # Nix 工具
-    nix-output-monitor # nom
-    nvd # Nix 版本对比
-    nh # Nix 辅助工具
+    nix-output-monitor
+    nvd
+    nh
     just
 
-    # AI 编程代理
     opencode
     comment-checker
     skills
 
-    # 其他
     ffmpeg
     pandoc
   ];

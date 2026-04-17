@@ -7,9 +7,6 @@
     # 紧急修复 / 追 PR 用（master 比 unstable channel 更新得快）
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
 
-    # 回退兜底用（unstable 某包坏了，可以临时借 stable 的版本）
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11";
-
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -46,7 +43,6 @@
       mylib = import ./lib { inherit inputs; };
     in
     {
-      # ── macOS 主机 ──────────────────────────────────────
       darwinConfigurations = {
         mac-mini = mylib.mkDarwin {
           hostname = "awesome-mac-mini";
@@ -63,7 +59,6 @@
         };
       };
 
-      # ── NixOS 主机（Windows PC 上的 WSL）──────────────
       nixosConfigurations = {
         wsl = mylib.mkNixos {
           hostname = "awesome-wsl";
@@ -76,8 +71,6 @@
         };
       };
 
-      # ── 自定义包 ─────────────────────────────────────────
-      # ── 自定义包 ─────────────────────────────────────────
       packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (
         system:
         let
@@ -91,7 +84,6 @@
         }
       );
 
-      # ── Overlays ───────────────────────────────────────
       overlays.default = import ./overlays { inherit inputs; };
     };
 }

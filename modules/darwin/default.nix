@@ -8,10 +8,11 @@
 {
   system.primaryUser = username;
 
-  # ── 免密 sudo ────────────────────────────────────────
   security.sudo.extraConfig = ''
     ${username} ALL=(ALL) NOPASSWD:ALL
   '';
+
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   users.knownUsers = [ username ];
   users.users.${username} = {
@@ -21,7 +22,6 @@
     openssh.authorizedKeys.keys = sshKeys;
   };
 
-  # ── macOS 系统偏好设置 ────────────────────────────────
   system.defaults = {
     LaunchServices.LSQuarantine = false;
     dock = {
@@ -47,10 +47,9 @@
     };
   };
 
-  # ── Homebrew ───────────────────────────────────────
   homebrew = {
     enable = true;
-    greedyCasks = true; # 即使 cask 自动更新也始终升级
+    greedyCasks = true;
     # 已废弃：Homebrew 将于 2026-09 后移除 --no-quarantine
     # 待所有 cask 通过 Gatekeeper（签名且公证）后移除此项
     caskArgs.no_quarantine = true;
@@ -63,7 +62,6 @@
       "mole"
     ];
 
-    # GUI 应用
     casks = [
       "1password"
       "brave-browser"
@@ -91,7 +89,6 @@
       "winbox"
     ];
 
-    # Mac App Store
     masApps = {
       "iPreview" = 1519213509;
       "Microsoft Word" = 462054704;

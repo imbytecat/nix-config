@@ -6,14 +6,11 @@
 }:
 
 {
-  imports = [
-    ./docker.nix
-  ];
-
   environment.systemPackages = with pkgs; [
     curl
     git
     ghostty.terminfo
+    docker-compose
   ];
 
   i18n = {
@@ -25,9 +22,14 @@
   users.users.${username} = {
     isNormalUser = true;
     shell = pkgs.fish;
-    extraGroups = [ "wheel" ];
+    extraGroups = [
+      "wheel"
+      "docker"
+    ];
     openssh.authorizedKeys.keys = sshKeys;
   };
+
+  virtualisation.docker.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
 }

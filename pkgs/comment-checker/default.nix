@@ -43,10 +43,10 @@ stdenv.mkDerivation {
     install -Dm755 comment-checker $out/bin/comment-checker
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Multi-language comment detection hook for Claude Code / OpenCode";
     homepage = "https://github.com/code-yeongyu/go-claude-code-comment-checker";
-    license = licenses.mit;
+    license = lib.licenses.mit;
     platforms = [
       "aarch64-darwin"
       "x86_64-linux"

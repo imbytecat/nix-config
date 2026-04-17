@@ -1,7 +1,6 @@
 { pkgs, ... }:
 
 {
-  # ── FZF ──────────────────────────────────────────────
   programs.fzf = {
     enable = true;
     enableFishIntegration = true;
@@ -19,7 +18,6 @@
     ];
   };
 
-  # ── Atuin（Shell 历史记录）─────────────────────────────
   programs.atuin = {
     enable = true;
     enableFishIntegration = true;
@@ -33,14 +31,12 @@
     };
   };
 
-  # ── Zoxide（智能 cd）──────────────────────────────────
   programs.zoxide = {
     enable = true;
     enableFishIntegration = true;
     options = [ "--cmd cd" ]; # 用 cd/cdi 替代 z/zi
   };
 
-  # ── Direnv + nix-direnv ─────────────────────────────
   programs.direnv = {
     enable = true;
     enableFishIntegration = true;
@@ -50,7 +46,6 @@
     };
   };
 
-  # ── Bat（cat 替代）────────────────────────────────────
   programs.bat = {
     enable = true;
     extraPackages = with pkgs.bat-extras; [
@@ -59,7 +54,6 @@
     ];
   };
 
-  # ── Eza（ls 替代）─────────────────────────────────────
   programs.eza = {
     enable = true;
     enableFishIntegration = true;
@@ -70,14 +64,12 @@
     ];
   };
 
-  # ── Yazi（文件管理器）────────────────────────────────
   programs.yazi = {
     enable = true;
     enableFishIntegration = true;
     shellWrapperName = "y";
   };
 
-  # ── Btop（系统监控）──────────────────────────────────
   programs.btop = {
     enable = true;
     settings = {
@@ -85,7 +77,6 @@
     };
   };
 
-  # ── Zellij（终端复用器）──────────────────────────────
   programs.zellij = {
     enable = true;
     enableFishIntegration = false;
@@ -94,7 +85,6 @@
     };
   };
 
-  # ── Ripgrep / FD ────────────────────────────────────
   home.packages = with pkgs; [
     ripgrep
     fd

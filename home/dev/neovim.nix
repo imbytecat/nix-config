@@ -22,7 +22,6 @@ _:
       lang.docker.enable = true;
     };
 
-    # Catppuccin Mocha 配色方案（由 LazyVim 管理，非 catppuccin/nix）
     plugins = {
       colorscheme = ''
         return {

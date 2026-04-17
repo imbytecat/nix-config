@@ -7,7 +7,6 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
   ];
 
-  # 共享的 Home Manager 配置块
   homeManagerConfig = username: {
     home-manager = {
       useGlobalPkgs = true;
@@ -24,7 +23,6 @@ let
   };
 in
 {
-  # ── NixOS 主机构建器 ─────────────────────────────────
   mkNixos =
     {
       hostname,
@@ -37,7 +35,6 @@ in
       specialArgs = {
         inherit
           inputs
-          hostname
           username
           sshKeys
           ;
@@ -53,7 +50,6 @@ in
       ++ extraModules;
     };
 
-  # ── nix-darwin 主机构建器 ────────────────────────────
   mkDarwin =
     {
       hostname,
@@ -66,7 +62,6 @@ in
       specialArgs = {
         inherit
           inputs
-          hostname
           username
           sshKeys
           ;
@@ -80,5 +75,4 @@ in
       ]
       ++ extraModules;
     };
-
 }
