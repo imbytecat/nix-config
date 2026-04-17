@@ -72,6 +72,24 @@ clean:
 
 ############################################################################
 #
+#  Cachix
+#
+############################################################################
+
+# Rebuild, push to Cachix, and switch (requires CACHIX_AUTH_TOKEN from op-env)
+[macos]
+[group('cachix')]
+rebuild-push host:
+    cachix watch-exec imbytecat -- sudo darwin-rebuild switch --flake .#{{host}}
+
+# Rebuild, push to Cachix, and switch (requires CACHIX_AUTH_TOKEN from op-env)
+[linux]
+[group('cachix')]
+rebuild-push host:
+    cachix watch-exec imbytecat -- sudo nixos-rebuild switch --flake .#{{host}}
+
+############################################################################
+#
 #  Tooling
 #
 ############################################################################
