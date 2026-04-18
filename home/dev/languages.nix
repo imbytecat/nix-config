@@ -2,28 +2,28 @@
 
 {
   home.packages = with pkgs; [
-    nodejs
-    go
     bun
+    go
+    nodejs
     python3
 
     uv
 
     bash-language-server
-    gopls
-    typescript-language-server
-    yaml-language-server
-    vue-language-server
     dockerfile-language-server
+    gopls
+    just-lsp
     lua-language-server
     nixd
-    just-lsp
+    typescript-language-server
+    vue-language-server
+    yaml-language-server
 
     biome
+    nixfmt
     ruff
     shellcheck
     shfmt
-    nixfmt
     statix
     stylua
 

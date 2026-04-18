@@ -24,13 +24,13 @@
   };
 
   home.packages = with pkgs; [
-    dust
     duf
+    dust
+    jq
     procs
     sd
-    jq
-    yq
     wget
+    yq
 
     fastfetch
     tealdeer
@@ -38,13 +38,13 @@
     gomi
     ouch
 
+    just
+    nh
     nix-output-monitor
     nvd
-    nh
-    just
 
-    opencode
     comment-checker
+    opencode
     skills
 
     ffmpeg
