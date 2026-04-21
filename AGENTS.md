@@ -54,8 +54,8 @@ Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the 
 - **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.
 - **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths = [ "/" ]` trusts all config files.
 - **stateVersion** — never bump `system.stateVersion` (per-host) or `home.stateVersion` (`home/default.nix`). These are migration markers, not version targets.
-- **Channel-borrow overlay in `overlays/default.nix`** — pulls select pkgs from `nixpkgs-master` input when unstable lags (currently `opencode`, `nushell`). Delete the `inherit (master) ...` line once unstable catches up; don't add packages here unless unstable is actually broken/stale.
-- **Channels disabled** — `nix.channel.enable = false` in `modules/shared/nix.nix`. Flakes only; don't use `nix-channel` or `<nixpkgs>`.
+- **Channel-borrow overlay in `overlays/default.nix`** — pulls select pkgs from `nixpkgs-master` input when unstable lags (currently just `opencode`). Delete the `inherit (master) ...` line once unstable catches up; don't add packages here unless unstable is actually broken/stale.
+- **Channels disabled, legacy `<nixpkgs>` shimmed** — `nix.channel.enable = false`; `nix.registry.nixpkgs.flake` and `nix.nixPath` are pinned to `inputs.nixpkgs` in `modules/shared/nix.nix`, so `nix-shell -p` / `<nixpkgs>` resolve to the flake-locked channel. Flakes remain the source of truth — don't `nix-channel`, don't introduce new `<…>` paths.
 - **Binary caches** — `cache.nixos.org` and `cache.garnix.io`. Configured in `modules/shared/nix.nix`.
 - **Homebrew `caskArgs.no_quarantine`** — still enabled but deprecated by Homebrew (removal 2026-09). Will need removal once all casks pass Gatekeeper.
 
