@@ -94,3 +94,7 @@ Use the new names:
 
 - `opencode.jsonc` configures `just-lsp` (LSP) and `mcp-nixos` (MCP via `uvx mcp-nixos`).
 - **Always use `nixos_nix` MCP** to look up nix-darwin/NixOS/home-manager options before writing config. Don't guess option names.
+
+## Conventions
+
+- Commit messages and in-file comments are written in Chinese (zh-CN). Follow conventional commits: `<type>(<scope>): <desc>` — e.g. `feat(home): 新增 yt-dlp 视频下载工具`, `docs(agents): 同步 overlay 与 nixPath shim 现状`. Match this style when adding new commits/comments.
