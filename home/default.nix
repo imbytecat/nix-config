@@ -49,6 +49,7 @@
 
     ffmpeg
     pandoc
+    yt-dlp
   ];
 
   xdg.enable = true;
