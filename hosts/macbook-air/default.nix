@@ -5,16 +5,16 @@
     "thaw" # 刘海屏菜单栏管理工具
   ];
 
-  # 显示器常亮，不自动熄屏（nix-darwin 的 power.sleep.* 只作用于 AC）
-  power.sleep.display = "never";
-  power.sleep.computer = "never";
-
+  # 屏幕/系统常亮，但盒盖仍需能睡
+  # 不用 nix-darwin 的 power.sleep.*：它走 systemsetup，会把 SleepDisabled 置 1，
+  # 连盒盖（clamshell）睡眠都屏蔽。改用纯 pmset 精确控制。
   system.activationScripts.postActivation.text = ''
-    # 电池模式下显示器也永不熄屏
-    pmset -b displaysleep 0
-    # 电池模式下系统也不因空闲而睡眠（盒盖仍会睡，由 clamshell 独立控制）
-    pmset -b sleep 0
-    # 禁用电池模式下自动降低亮度（Slightly dim the display on battery）
+    # 空闲永不熄屏、永不系统睡眠（电池 + 插电）
+    pmset -a displaysleep 0
+    pmset -a sleep 0
+    # 清除 SleepDisabled 标记，保留盒盖睡眠（clamshell）
+    pmset -a disablesleep 0
+    # 禁用电池模式下自动降低亮度
     pmset -a lessbright 0
     # 禁用显示器睡眠前的半亮度过渡
     pmset -a halfdim 0
