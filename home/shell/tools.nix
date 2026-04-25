@@ -3,7 +3,6 @@
 {
   programs.fzf = {
     enable = true;
-    enableFishIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
     defaultOptions = [
       "--height=40%"
@@ -20,7 +19,6 @@
 
   programs.atuin = {
     enable = true;
-    enableFishIntegration = true;
     settings = {
       enter_accept = true;
       filter_mode = "host";
@@ -33,13 +31,11 @@
 
   programs.zoxide = {
     enable = true;
-    enableFishIntegration = true;
     options = [ "--cmd cd" ]; # 用 cd/cdi 替代 z/zi
   };
 
   programs.direnv = {
     enable = true;
-    enableFishIntegration = true;
     nix-direnv.enable = true;
     config.global = {
       warn_timeout = "120s";
@@ -56,7 +52,6 @@
 
   programs.eza = {
     enable = true;
-    enableFishIntegration = true;
     git = true;
     icons = "auto";
     extraOptions = [
@@ -66,7 +61,6 @@
 
   programs.yazi = {
     enable = true;
-    enableFishIntegration = true;
     shellWrapperName = "y";
   };
 

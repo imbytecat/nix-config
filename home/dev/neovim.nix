@@ -1,4 +1,4 @@
-_:
+{ ... }:
 
 {
   # 禁用 catppuccin/nix 的 Neovim 集成 — LazyVim 自行管理配色方案

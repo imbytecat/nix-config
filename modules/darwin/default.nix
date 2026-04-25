@@ -55,6 +55,7 @@
 
   homebrew = {
     enable = true;
+    enableFishIntegration = true;
     greedyCasks = true;
     # 已废弃：Homebrew 将于 2026-09 后移除 --no-quarantine
     # 待所有 cask 通过 Gatekeeper（签名且公证）后移除此项

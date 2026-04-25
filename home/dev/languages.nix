@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
@@ -32,10 +32,12 @@
 
   programs.mise = {
     enable = true;
-    enableFishIntegration = true;
     globalConfig = {
       settings = {
-        trusted_config_paths = [ "/" ];
+        trusted_config_paths = [
+          "${config.home.homeDirectory}/Developer"
+          "${config.home.homeDirectory}/nix-config"
+        ];
         all_compile = false;
       };
     };

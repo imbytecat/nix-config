@@ -2,6 +2,7 @@
   inputs,
   username,
   pkgs,
+  config,
   ...
 }:
 
@@ -32,14 +33,10 @@
     wget
     yq
 
-    fastfetch
-    tealdeer
-
     gomi
     ouch
 
     just
-    nh
     nix-output-monitor
     nvd
 
@@ -51,6 +48,14 @@
     pandoc
     yt-dlp
   ];
+
+  programs.nh = {
+    enable = true;
+    flake = "${config.home.homeDirectory}/nix-config";
+  };
+
+  programs.fastfetch.enable = true;
+  programs.tealdeer.enable = true;
 
   xdg.enable = true;
 }
