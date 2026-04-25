@@ -102,14 +102,17 @@ just history          # 查看 profile 历史
 just show             # 显示 flake 输出
 ```
 
+`programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
+
 ## Shell
 
 Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
-- 添加包 → `home/default.nix` 或 `home/dev/languages.nix`
-- Homebrew cask → `modules/darwin/default.nix`
+- 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
+- Homebrew cask → `modules/darwin/default.nix`（共享）或 `hosts/<host>/default.nix`（单机）
+- PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment
 

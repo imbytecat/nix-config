@@ -52,12 +52,17 @@ Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the 
 - **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
 - **nix-ld on WSL** — `programs.nix-ld.enable = true` for VSCode Remote.
 - **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.
-- **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths = [ "/" ]` trusts all config files.
+- **mise** — runtime version management (`home/dev/languages.nix`). `trusted_config_paths` 收束到 `~/Developer` 与 `~/nix-config`；新增项目根目录时在此扩展，不要回退到 `[ "/" ]`。
 - **stateVersion** — never bump `system.stateVersion` (per-host) or `home.stateVersion` (`home/default.nix`). These are migration markers, not version targets.
 - **Channel-borrow overlay in `overlays/default.nix`** — pulls select pkgs from `nixpkgs-master` input when unstable lags (currently just `opencode`). Delete the `inherit (master) ...` line once unstable catches up; don't add packages here unless unstable is actually broken/stale.
 - **Channels disabled, legacy `<nixpkgs>` shimmed** — `nix.channel.enable = false`; `nix.registry.nixpkgs.flake` and `nix.nixPath` are pinned to `inputs.nixpkgs` in `modules/shared/nix.nix`, so `nix-shell -p` / `<nixpkgs>` resolve to the flake-locked channel. Flakes remain the source of truth — don't `nix-channel`, don't introduce new `<…>` paths.
 - **Binary caches** — `cache.nixos.org` and `cache.garnix.io`. Configured in `modules/shared/nix.nix`.
 - **Homebrew `caskArgs.no_quarantine`** — still enabled but deprecated by Homebrew (removal 2026-09). Will need removal once all casks pass Gatekeeper.
+- **Homebrew fish 集成已声明式** — `homebrew.enableFishIntegration = true` 在 `modules/darwin/default.nix`。它会跑 `brew shellenv fish` 并注册 brew 补全到 `fish_complete_path`。**不要**在 fish 配置里手写 `eval (brew shellenv)`。
+- **PATH 加目录用 `home.sessionPath`** — 写在 `home/shell/fish.nix`（已有 `$HOME/go/bin`、`$HOME/.bun/bin`、Darwin 下 VSCode bin）。它进 `hm-session-vars.sh`，所有 shell 与 GUI app 都生效。**不要**用 `fish_add_path` 在 `interactiveShellInit` 里加静态路径。平台特化用 `++ lib.optional pkgs.stdenv.isDarwin ...`。
+- **Fish 函数走 `programs.fish.functions.<name>`** — 已有的 `op-env-refresh` / `op-env-clear` / `__wt_osc9_9` 都用 submodule（`body`、`description`、`onVariable`）。**不要**把函数定义塞回 `interactiveShellInit` 字符串里。
+- **平台分支在构建时，不在 shell 里** — WSL 的 `pbcopy`/`pbpaste` 用 `lib.optionalAttrs pkgs.stdenv.isLinux`，OSC 9;9 函数用 `lib.mkIf pkgs.stdenv.isLinux`。**不要**写 `if set -q WSL_DISTRO_NAME ... end` 这种运行时探测。
+- **`nh.flake` 已指向 `~/nix-config`** — 所以 `nh os switch` / `nh home switch` / `nh clean all` 不需要 `--flake` 参数。`programs.nh` 在 `home/default.nix`。
 
 ## CI
 
@@ -80,9 +85,11 @@ Use the new names:
 - `programs.git.settings.user.{name,email}` (not `userName`/`userEmail`)
 - `programs.git.settings.*` (not `extraConfig`)
 - `programs.delta.{enable,options}` (not `programs.git.delta.*`)
-- `programs.delta.enableGitIntegration = true` (must be explicit)
+- `programs.delta.enableGitIntegration = true` (must be explicit — defaults to `false`)
 - `programs.ssh.matchBlocks."*".addKeysToAgent` (not top-level)
 - `programs.ssh.enableDefaultConfig = false`
+- **不要写 `enableFishIntegration = true;`** — HM 自 2025-02-07 起继承 `home.shell.enableShellIntegration`（默认 `true`），显式 `true` 是噪声。仅在主动关闭时写 `false`（如 `programs.zellij.enableFishIntegration = false`）。
+- 装 CLI 工具时，先看是否有 `programs.<name>` 模块（如 `nh` / `fastfetch` / `tealdeer`），优先用模块而不是 `home.packages`。
 
 ## Nix tooling
 
