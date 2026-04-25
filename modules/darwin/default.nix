@@ -91,6 +91,7 @@
       "telegram-desktop"
       "tencent-meeting"
       "termius"
+      "uuremote"
       "visual-studio-code"
       "wechat"
       "winbox"
