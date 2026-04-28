@@ -163,6 +163,7 @@ overlays/ + pkgs/              # 自定义包
 ```bash
 # 本机
 just rebuild <host>          # 重建本机系统（mac-mini / macbook-air / wsl / gateway 在网关本机时）
+just rebuild-boot <host>     # 仅注册下次启动 generation（kernel/initrd/init 更新，需手动 reboot；仅 NixOS）
 just rollback                # 回滚（仅 NixOS）
 just history                 # 查看 profile 历史
 

@@ -13,6 +13,13 @@ rebuild host:
 rebuild host:
     sudo nixos-rebuild switch --flake .#{{host}}
 
+# 用于 kernel / dbus 实现 / initrd 等运行时切换不安全的更新；注册下次启动的 generation，需手动 reboot
+[doc('NixOS 本机重建（仅注册下次启动 generation，不切换运行时）')]
+[linux]
+[group('build')]
+rebuild-boot host:
+    sudo nixos-rebuild boot --flake .#{{host}}
+
 [doc('eval 全部 darwinConfigurations，仅检查能否 build')]
 [macos]
 [group('build')]
