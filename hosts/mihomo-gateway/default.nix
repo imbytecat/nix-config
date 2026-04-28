@@ -9,9 +9,9 @@
     ./disko.nix
   ];
 
-  # 国内网络走 SJTU 镜像
+  # 国内网络走 USTC 镜像
   nix.settings.substituters = lib.mkBefore [
-    "https://mirror.sjtu.edu.cn/nix-channels/store"
+    "https://mirrors.ustc.edu.cn/nix-channels/store"
   ];
 
   system.stateVersion = "25.11";
