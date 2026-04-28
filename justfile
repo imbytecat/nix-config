@@ -53,12 +53,34 @@ deploy host target:
       --sudo \
       --use-substitutes
 
+# 用于 kernel / dbus 实现 / initrd 等运行时切换不安全的更新；注册下次启动的 generation，需手动 reboot
+[doc('远程更新（仅注册下次启动 generation，不切换运行时）')]
+[linux]
+[group('remote')]
+deploy-boot host target:
+    nixos-rebuild boot \
+      --flake ".#{{host}}" \
+      --target-host "root@{{target}}" \
+      --sudo \
+      --use-substitutes
+
 # --build-host == --target-host：让目标机自己 build，避开 Mac 跨架构编译 Linux
 [doc('远程更新 NixOS 主机（目标机自己 build）')]
 [macos]
 [group('remote')]
 deploy host target:
     nix run nixpkgs#nixos-rebuild -- switch \
+      --flake ".#{{host}}" \
+      --target-host "root@{{target}}" \
+      --build-host "root@{{target}}" \
+      --sudo \
+      --use-substitutes
+
+[doc('远程更新（仅注册下次启动 generation，不切换运行时）')]
+[macos]
+[group('remote')]
+deploy-boot host target:
+    nix run nixpkgs#nixos-rebuild -- boot \
       --flake ".#{{host}}" \
       --target-host "root@{{target}}" \
       --build-host "root@{{target}}" \
