@@ -1,14 +1,15 @@
 # Nix Config
 
-nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台设备的系统配置。
+nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备 + 一台单臂透明代理网关。
 
 ## 设备
 
-| 设备 | 平台 | Flake 目标 | 主机名 |
-|------|------|-----------|--------|
-| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini |
-| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air |
-| Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl |
+| 设备 | 平台 | Flake 目标 | 主机名 | 备注 |
+|------|------|-----------|--------|------|
+| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 日用 |
+| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 日用 |
+| Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
+| Mihomo Gateway | x86_64-linux | `mihomo-gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
 
@@ -71,28 +72,73 @@ sudo rm -rf /home/nixos
 
 之后日常重建：`just rebuild wsl`
 
+### Mihomo Gateway
+
+单臂透明代理网关，**只做代理一件事**，不是日用 NixOS。模块隔离：
+
+- 只共享 `modules/shared/nix.nix`（Lix + nix.settings + flake registry/nixPath）
+- 不导入 `modules/shared/default.nix`（fish/1password/openssh）、`modules/nixos/`、home-manager、catppuccin
+- 单用户 root，硬化 SSH（`PermitRootLogin = "prohibit-password"` + `PasswordAuthentication = false`），授权钥匙复用 `lib/default.nix` 的 `sshKeys`
+
+**首次部署**用 [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)：
+
+```bash
+# 在工作机上，目标机用 NixOS installer 启动并暴露 SSH
+nix run github:nix-community/nixos-anywhere -- \
+  --flake .#mihomo-gateway \
+  root@<gateway-ip>
+```
+
+磁盘布局在 `hosts/mihomo-gateway/disko.nix`（GPT + 512M ESP + 100% ext4 root），默认 `diskDevice = "/dev/sda"`，目标机不一致时在 host 里 `lib.mkForce` 覆盖。
+
+**之后远程 rebuild**：
+
+```bash
+nixos-rebuild switch --flake .#mihomo-gateway --target-host root@<gateway-ip> --use-remote-sudo
+```
+
+或登上去本机 rebuild：`just rebuild mihomo-gateway`。
+
+**部署完后**写订阅：
+
+```bash
+ssh root@<gateway-ip> "cat > /etc/mihomo/env << 'EOF'
+CONFIG_URL=https://your-subscription-url
+SECRET=your-api-password
+EOF"
+```
+
+`mihomo-subscribe.path` 监听文件变化自动触发拉订阅 → 净化 → 合并 → 验证 → 重启 mihomo。详见 `AGENTS.md` 的「Mihomo Gateway」段与 `.agents/skills/mihomo/SKILL.md`。
+
 ## 仓库结构
 
 ```
 flake.nix                      # 入口
 hosts/                         # 主机特定配置
+  ├── mac-mini/ macbook-air/   # 日用 Darwin
+  ├── wsl/                     # 日用 NixOS-WSL
+  └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
 modules/
   ├── darwin/                  # macOS 模块
-  ├── nixos/                   # NixOS 模块
-  └── shared/                  # 共享模块
-home/                          # Home Manager 配置
+  ├── nixos/                   # NixOS 日用模块
+  ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
+  └── shared/                  # 跨平台共享 (fonts/nix/fish/openssh/1password)
+home/                          # Home Manager 配置（只用于日用机）
   ├── dev/                     # 开发工具
   └── shell/                   # Shell 配置
-lib/default.nix                # 构建辅助函数
+lib/default.nix                # mkDarwin / mkNixos / mkGateway 构建器
 overlays/ + pkgs/              # 自定义包
+.agents/skills/                # Agent skills (Mihomo TPROXY 排查手册等)
 ```
 
-配置层级：`hosts/*` → `modules/*` → `home/*`
+配置层级：
+- 日用机：`hosts/*` → `modules/{shared,darwin|nixos}` → `home/*`
+- 网关：`hosts/mihomo-gateway` → `modules/gateway` + `modules/shared/nix.nix`
 
 ## 日常使用
 
 ```bash
-just rebuild <host>   # 重建系统
+just rebuild <host>   # 重建系统（mac-mini / macbook-air / wsl / mihomo-gateway）
 just update           # 更新所有 flake 输入
 just up <input>       # 更新单个输入
 just check            # 检查配置

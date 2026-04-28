@@ -2,7 +2,7 @@
 
 ## Overview
 
-Nix flake — 3 devices (Mac Mini, MacBook Air: aarch64-darwin; WSL: x86_64-linux). Single user `imbytecat`. Uses **Lix**.
+Nix flake — 3 日用设备 (Mac Mini, MacBook Air: aarch64-darwin; WSL: x86_64-linux) + 1 单臂透明代理网关 (mihomo-gateway: x86_64-linux)。日用机单用户 `imbytecat`，网关单用户 `root`。Uses **Lix**.
 
 ## Architecture
 
@@ -10,18 +10,23 @@ Nix flake — 3 devices (Mac Mini, MacBook Air: aarch64-darwin; WSL: x86_64-linu
 flake.nix
 ├── darwinConfigurations.mac-mini    (aarch64-darwin)
 ├── darwinConfigurations.macbook-air (aarch64-darwin)
-└── nixosConfigurations.wsl          (x86_64-linux)
+├── nixosConfigurations.wsl          (x86_64-linux, 日用)
+└── nixosConfigurations.mihomo-gateway (x86_64-linux, 网关，root-only，模块隔离)
 ```
 
-- `lib/default.nix` — `mkDarwin`/`mkNixos` builders, `sshKeys` (via `specialArgs`), `homeManagerConfig`
+- `lib/default.nix` — `mkDarwin`/`mkNixos`/`mkGateway` builders, `sshKeys` (via `specialArgs`), `homeManagerConfig`
 - `modules/shared/` — cross-platform: Lix, overlays, fonts, fish, openssh, 1password
 - `modules/darwin/` — system preferences, homebrew, user
-- `modules/nixos/` — system packages, locale, docker, user
-- `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin
-- `hosts/*/` — per-host overrides
+- `modules/nixos/` — system packages, locale, docker, user（**仅日用**，网关不导入）
+- `modules/gateway/` — mihomo + nftables TPROXY + 单臂 networking + resolved（**仅网关**）
+- `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin（**仅日用**，网关不导入）
+- `hosts/*/` — per-host overrides；`hosts/mihomo-gateway/{default,disko}.nix` 提供网关 host-level 配置（boot/disko/openssh/timezone/stateVersion/SJTU 镜像）
 - `overlays/` + `pkgs/` — custom packages (`comment-checker`) and `nixpkgs-master` channel-borrow overlay (see Gotchas)
+- `.agents/skills/` — Agent skills（如 `mihomo/SKILL.md`：Mihomo CLI 速查 + TPROXY 深度排查手册）
 
-Flow: `hosts/*` → `modules/*` → `home/*`
+Flow:
+- 日用机：`hosts/*` → `modules/{shared,darwin|nixos}` → `home/*`
+- 网关：`hosts/mihomo-gateway` → `modules/gateway` + `modules/shared/nix.nix`（**只**复用 nix.nix，不走 default.nix / fonts / fish / 1password）
 
 ## Commands
 
@@ -29,6 +34,7 @@ Flow: `hosts/*` → `modules/*` → `home/*`
 just rebuild mac-mini       # macOS host (darwin-rebuild)
 just rebuild macbook-air
 just rebuild wsl            # NixOS host (nixos-rebuild)
+just rebuild mihomo-gateway # 在网关本机跑；远程 rebuild 用 nixos-rebuild --target-host
 just check                  # eval without building (platform-aware)
 just update                 # nix flake update
 just up nixpkgs             # update single input
@@ -40,6 +46,14 @@ just lsp mac-mini           # nixd option completion for VSCode
 ```
 
 Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the justfile auto-selects by platform.
+
+**网关首次部署** 用 nixos-anywhere：
+
+```bash
+nix run github:nix-community/nixos-anywhere -- --flake .#mihomo-gateway root@<gateway-ip>
+```
+
+**网关远程 rebuild**：`nixos-rebuild switch --flake .#mihomo-gateway --target-host root@<gateway-ip> --use-remote-sudo`
 
 ## Gotchas
 
@@ -67,6 +81,62 @@ Note: `just check` and `just rebuild` have `[macos]`/`[linux]` variants — the 
 ## CI
 
 - Garnix: auto-builds all flake outputs (darwinConfigurations, nixosConfigurations, packages) on push. Zero-config — just the GitHub App. Cache served from `cache.garnix.io`.
+
+## Mihomo Gateway
+
+单臂透明代理网关（Mihomo + nftables TPROXY），**不是日用 NixOS**。从原 `imbytecat/mihomo-gateway` 仓库吸收进来后保持隔离。
+
+### 模块边界
+
+- **共享**：仅 `modules/shared/nix.nix`（Lix + nix.settings + flake registry/nixPath + nixpkgs.config）。**不**导入 `modules/shared/default.nix`（不要 fonts/fish/1password）、`modules/nixos/`（不要 docker/locale/user 这些日用包）、home-manager、catppuccin。
+- **网关本身**：`modules/gateway/{default,constants,mihomo,tproxy}.nix` —— mihomo subscribe pipeline + nftables TPROXY + 单臂 networking (`useNetworkd`/`useDHCP=false`/`firewall.enable=false` + 50-lan 匹配 `en* eth*` + `IPv4ReversePathFilter=no`) + resolved（`DNSStubListener=no` 让 53）。
+- **Host**：`hosts/mihomo-gateway/{default,disko}.nix` —— hostName/boot/disko/i18n/timezone/openssh（root-only 硬化）/stateVersion/SJTU 镜像。
+- **Builder**：`mylib.mkGateway`（`lib/default.nix`），`username = "root"`，调用方仅传 `hostname` + `extraModules`，自动拉 `inputs.disko.nixosModules.disko`。
+
+### 必守约束（改代码前必看）
+
+详细排查见 `.agents/skills/mihomo/SKILL.md`。下面只列硬约束：
+
+- **不要设 `routing-mark`**：nftables 只有 PREROUTING 无 OUTPUT，mihomo 出站不会被拦截；设了 ip rule 会把出站路由回本机形成黑洞。
+- **使用 `tproxy-port` 而非 `listeners`**：效果相同，更简单。
+- **rp_filter 必须通过 networkd 逐接口禁用**（`en* eth*` + `lo` 都要）。sysctl `all`/`default` 不足以覆盖 NixOS 默认值 2。
+- **必须放开 `AF_NETLINK`**：上游 `services.mihomo` 默认只允许 `AF_INET{,6}`，会让所有 UDP DIRECT 静默失败（日志 `netlinkrib: address family not supported by protocol`）。TCP DIRECT 不受影响，所以容易漏诊。
+- **不引入 BBRv3**：未进主线内核；BBR+fq 就是当前最优组合。
+- IPv6 转发被 sysctl + `ip6 mihomo` forward drop 双重阻断，不要在别处"放回"。
+- `modules/gateway/tproxy.nix` 的 sysctl 是最小完整集，不要再加调优项。
+- `firewall.enable = false` 是有意的，nftables 规则由 `modules/gateway/tproxy.nix` 直接管理。
+- `external-controller = "0.0.0.0:9090"` 是有意的，安全靠 `SECRET` 强制认证。
+- **不加 hardening**（`ProtectSystem`/`PrivateTmp` 等）：单用户网关不需要，加了会和 mihomo 进程能力冲突。
+
+### 常量
+
+集中在 `modules/gateway/constants.nix`，被 `tproxy.nix` 和 `mihomo.nix` 直接 `import`（不是 NixOS module options）。改端口/标记只需改这一个文件。
+
+| 常量 | 值 | 用途 |
+|------|-----|------|
+| `tproxyPort` | 7894 | TPROXY 监听 |
+| `mixedPort` | 7890 | HTTP+SOCKS5 混合代理 |
+| `dnsPort` | 1053 | Mihomo DNS |
+| `routingMark` | 6666 | fwmark |
+| `routingTable` | 100 | 策略路由表 |
+
+### 订阅机制
+
+环境变量文件：`/etc/mihomo/env`（`CONFIG_URL` + `SECRET`），首次部署时手动创建。三个 systemd 单元协作：
+
+| 单元 | 触发 | 职责 |
+|------|------|------|
+| `mihomo-subscribe.path` | 监听 `/etc/mihomo/env` 变化 | 文件创建/修改即触发 |
+| `mihomo-subscribe.timer` | `OnUnitActiveSec=6h` | 周期性更新 |
+| `mihomo-subscribe.service` | path/timer 触发 | 下载 → 黑名单净化 → `yq load()` 合并 baseConfig → SECRET 注入 → `mihomo -t` 验证 → 备份旧配置 → 替换 → 重启 mihomo |
+
+Fallback 配置通过 `systemd.tmpfiles.rules` 的 `C`（copy-if-absent）部署到 `config.yaml`，不走 preStart / activationScripts。
+
+关键规则：
+- 环境变量通过 systemd `EnvironmentFile=` 注入，**不要用 `source`**。
+- `SECRET` 必需（缺失 `exit 1`）；`CONFIG_URL` 缺失时 `exit 0`（首次部署尚未配置）。
+- 黑名单删除的键（`routing-mark`/`tun`/`listeners`/各种 port/`allow-lan`/`bind-address`/`external-controller`/`secret`）**不可由订阅覆盖**。新增黑名单项加到 subscribe 脚本的 `del()` 链。
+- `fallbackConfig` 通过 `removeAttrs` 去掉 `external-controller`，保证无 SECRET 时不暴露 API。
 
 ## Environment
 
@@ -101,6 +171,7 @@ Use the new names:
 
 - `opencode.jsonc` configures `just-lsp` (LSP) and `mcp-nixos` (MCP via `uvx mcp-nixos`).
 - **Always use `nixos_nix` MCP** to look up nix-darwin/NixOS/home-manager options before writing config. Don't guess option names.
+- **Skills** at `.agents/skills/` (open-format Agent Skills, see https://agentskills.io)。当前只有 `mihomo/`：Mihomo CLI 速查 + TPROXY 排查手册（rp_filter / AF_NETLINK / `skb:kfree_skb` tracepoint 流程）。改 `modules/gateway/*` 前先读。
 
 ## Conventions
 
