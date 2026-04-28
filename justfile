@@ -50,7 +50,7 @@ deploy host target:
     nixos-rebuild switch \
       --flake ".#{{host}}" \
       --target-host "root@{{target}}" \
-      --use-remote-sudo \
+      --sudo \
       --use-substitutes
 
 # --build-host == --target-host：让目标机自己 build，避开 Mac 跨架构编译 Linux
@@ -62,7 +62,7 @@ deploy host target:
       --flake ".#{{host}}" \
       --target-host "root@{{target}}" \
       --build-host "root@{{target}}" \
-      --use-remote-sudo \
+      --sudo \
       --use-substitutes
 
 [doc('更新所有 flake 输入')]
