@@ -50,6 +50,30 @@ in
       ++ extraModules;
     };
 
+  # 网关专用 builder：单用户 root，不走 home-manager / fish / 1password / catppuccin / fonts，
+  # 只共享 modules/shared/nix.nix（Lix + nix.settings + flake registry/nixPath）。
+  # 用 username = "root" 复用 nix.nix 中的 trusted-users 写法（重复项 Nix 自动 dedupe）。
+  mkGateway =
+    {
+      hostname,
+      system ? "x86_64-linux",
+      extraModules ? [ ],
+    }:
+    lib.nixosSystem {
+      inherit system;
+      specialArgs = {
+        inherit inputs sshKeys;
+        username = "root";
+      };
+      modules = [
+        ../modules/shared/nix.nix
+        ../modules/gateway
+        inputs.disko.nixosModules.disko
+        { networking.hostName = hostname; }
+      ]
+      ++ extraModules;
+    };
+
   mkDarwin =
     {
       hostname,

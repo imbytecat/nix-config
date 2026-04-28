@@ -22,6 +22,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # 仅 mihomo-gateway 主机使用：声明式磁盘布局 + nixos-anywhere 部署
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -68,6 +74,12 @@
             inputs.nixos-wsl.nixosModules.default
             ./hosts/wsl
           ];
+        };
+
+        # 单臂透明代理网关 (Mihomo + nftables TPROXY)；不与日用机共享 home-manager / shared default
+        mihomo-gateway = mylib.mkGateway {
+          hostname = "mihomo-gateway";
+          extraModules = [ ./hosts/mihomo-gateway ];
         };
       };
 
