@@ -41,7 +41,7 @@
   environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/resolv.conf";
 
   environment.systemPackages = with pkgs; [
-    curlMinimal
+    curl
     yq-go
     mihomo
   ];

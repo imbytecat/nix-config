@@ -136,7 +136,7 @@ in
     wants = [ "network-online.target" ];
     unitConfig.ConditionPathExists = envFile;
     path = with pkgs; [
-      curlMinimal
+      curl
       yq-go
       mihomo
     ];
