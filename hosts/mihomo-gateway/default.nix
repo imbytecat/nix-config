@@ -30,6 +30,9 @@
     "virtio_net"
   ];
 
+  # PVE VM：qemu guest agent，让 host 能拿到 IP / 优雅关机
+  services.qemuGuest.enable = true;
+
   # root-only 硬化 SSH
   services.openssh = {
     enable = true;
