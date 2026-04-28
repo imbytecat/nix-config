@@ -80,26 +80,29 @@ sudo rm -rf /home/nixos
 - 不导入 `modules/shared/default.nix`（fish/1password/openssh）、`modules/nixos/`、home-manager、catppuccin
 - 单用户 root，硬化 SSH（`PermitRootLogin = "prohibit-password"` + `PasswordAuthentication = false`），授权钥匙复用 `lib/default.nix` 的 `sshKeys`
 
-**首次部署**用 [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)：
+**首次部署**（在工作机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
 
 ```bash
-# 在工作机上，目标机用 NixOS installer 启动并暴露 SSH
-nix run github:nix-community/nixos-anywhere -- \
-  --flake .#mihomo-gateway \
-  root@<gateway-ip>
+just install mihomo-gateway <gateway-ip>
 ```
 
-磁盘布局在 `hosts/mihomo-gateway/disko.nix`（GPT + 512M ESP + 100% ext4 root），默认 `diskDevice = "/dev/sda"`，目标机不一致时在 host 里 `lib.mkForce` 覆盖。
+底下走 [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)：kexec → disko 全盘格式化 → install → reboot。`--build-on remote` 让目标机自己构建 closure，回避本机跨架构编译。磁盘布局在 `hosts/mihomo-gateway/disko.nix`（GPT + 512M ESP + 100% ext4 root），默认 `/dev/sda`，目标机不一致时 `lib.mkForce` 覆盖。
 
-**之后远程 rebuild**：
+**装完后清一下本地 known_hosts**（host key 变了）：
 
 ```bash
-nixos-rebuild switch --flake .#mihomo-gateway --target-host root@<gateway-ip> --use-remote-sudo
+ssh-keygen -R <gateway-ip>
+```
+
+**之后远程更新**：
+
+```bash
+just deploy mihomo-gateway <gateway-ip>
 ```
 
 或登上去本机 rebuild：`just rebuild mihomo-gateway`。
 
-**部署完后**写订阅：
+**部署完写订阅**：
 
 ```bash
 ssh root@<gateway-ip> "cat > /etc/mihomo/env << 'EOF'
@@ -109,6 +112,26 @@ EOF"
 ```
 
 `mihomo-subscribe.path` 监听文件变化自动触发拉订阅 → 净化 → 合并 → 验证 → 重启 mihomo。详见 `AGENTS.md` 的「Mihomo Gateway」段与 `.agents/skills/mihomo/SKILL.md`。
+
+### 加新远程 NixOS 服务器
+
+`mkServer` builder 通用，加新机器三步走：
+
+1. 写 `modules/<purpose>/`（服务相关 NixOS 配置，如 mihomo + tproxy）
+2. 写 `hosts/<host>/{default,disko}.nix`（boot/openssh/timezone/disko 等 host-level 配置）
+3. 在 `flake.nix` 添加：
+
+```nix
+<host> = mylib.mkServer {
+  hostname = "<host>";
+  extraModules = [
+    ./modules/<purpose>
+    ./hosts/<host>
+  ];
+};
+```
+
+部署：`just install <host> <ip>`（首装），之后 `just deploy <host> <ip>`（更新）。
 
 ## 仓库结构
 
@@ -126,26 +149,33 @@ modules/
 home/                          # Home Manager 配置（只用于日用机）
   ├── dev/                     # 开发工具
   └── shell/                   # Shell 配置
-lib/default.nix                # mkDarwin / mkNixos / mkGateway 构建器
+lib/default.nix                # mkDarwin / mkNixos / mkServer 构建器
 overlays/ + pkgs/              # 自定义包
 .agents/skills/                # Agent skills (Mihomo TPROXY 排查手册等)
 ```
 
 配置层级：
 - 日用机：`hosts/*` → `modules/{shared,darwin|nixos}` → `home/*`
-- 网关：`hosts/mihomo-gateway` → `modules/gateway` + `modules/shared/nix.nix`
+- 服务器（如网关）：`hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`
 
 ## 日常使用
 
 ```bash
-just rebuild <host>   # 重建系统（mac-mini / macbook-air / wsl / mihomo-gateway）
-just update           # 更新所有 flake 输入
-just up <input>       # 更新单个输入
-just check            # 检查配置
-just clean            # 清理旧 generation
-just rollback         # 回滚（仅 NixOS）
-just history          # 查看 profile 历史
-just show             # 显示 flake 输出
+# 本机
+just rebuild <host>          # 重建本机系统（mac-mini / macbook-air / wsl / mihomo-gateway 在网关本机时）
+just rollback                # 回滚（仅 NixOS）
+just history                 # 查看 profile 历史
+
+# 远程 NixOS 主机
+just install <host> <ip>     # 首次装机（nixos-anywhere）
+just deploy <host> <ip>      # 远程更新（nixos-rebuild --target-host）
+
+# flake / 维护
+just check                   # eval 全部主机配置
+just update                  # 更新所有 flake 输入
+just up <input>              # 更新单个输入
+just show                    # 列出 flake 输出
+just clean                   # 清理旧 generation
 ```
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
