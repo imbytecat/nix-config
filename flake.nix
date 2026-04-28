@@ -76,10 +76,14 @@
           ];
         };
 
-        # 单臂透明代理网关 (Mihomo + nftables TPROXY)；不与日用机共享 home-manager / shared default
-        mihomo-gateway = mylib.mkGateway {
+        # 单臂透明代理网关 (Mihomo + nftables TPROXY)；走 mkServer，不与日用机共享 home-manager / shared default
+        # 加新服务器：照抄这条，把 ./modules/gateway 换成新服务的模块即可
+        mihomo-gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
-          extraModules = [ ./hosts/mihomo-gateway ];
+          extraModules = [
+            ./modules/gateway
+            ./hosts/mihomo-gateway
+          ];
         };
       };
 
