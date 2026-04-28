@@ -9,7 +9,7 @@ nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备
 | Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 日用 |
 | MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 日用 |
 | Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
-| Mihomo Gateway | x86_64-linux | `mihomo-gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
+| Mihomo Gateway | x86_64-linux | `gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
 
@@ -83,7 +83,7 @@ sudo rm -rf /home/nixos
 **首次部署**（在工作机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
 
 ```bash
-just install mihomo-gateway <gateway-ip>
+just install gateway <gateway-ip>
 ```
 
 底下走 [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)：kexec → disko 全盘格式化 → install → reboot。`--build-on remote` 让目标机自己构建 closure，回避本机跨架构编译。磁盘布局在 `hosts/mihomo-gateway/disko.nix`（GPT + 512M ESP + 100% ext4 root），默认 `/dev/sda`，目标机不一致时 `lib.mkForce` 覆盖。
@@ -97,10 +97,10 @@ ssh-keygen -R <gateway-ip>
 **之后远程更新**：
 
 ```bash
-just deploy mihomo-gateway <gateway-ip>
+just deploy gateway <gateway-ip>
 ```
 
-或登上去本机 rebuild：`just rebuild mihomo-gateway`。
+或登上去本机 rebuild：`just rebuild gateway`。
 
 **部署完写订阅**：
 
@@ -162,7 +162,7 @@ overlays/ + pkgs/              # 自定义包
 
 ```bash
 # 本机
-just rebuild <host>          # 重建本机系统（mac-mini / macbook-air / wsl / mihomo-gateway 在网关本机时）
+just rebuild <host>          # 重建本机系统（mac-mini / macbook-air / wsl / gateway 在网关本机时）
 just rollback                # 回滚（仅 NixOS）
 just history                 # 查看 profile 历史
 

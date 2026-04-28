@@ -11,7 +11,7 @@ flake.nix
 ├── darwinConfigurations.mac-mini    (aarch64-darwin)
 ├── darwinConfigurations.macbook-air (aarch64-darwin)
 ├── nixosConfigurations.wsl          (x86_64-linux, 日用)
-└── nixosConfigurations.mihomo-gateway (x86_64-linux, 网关，root-only，模块隔离)
+└── nixosConfigurations.gateway      (x86_64-linux, 网关，root-only，模块隔离)
 ```
 
 - `lib/default.nix` — `mkDarwin`/`mkNixos`/`mkServer` builders, `sshKeys` (via `specialArgs`), `homeManagerConfig`
@@ -35,7 +35,7 @@ Flow:
 just rebuild mac-mini       # macOS host (darwin-rebuild)
 just rebuild macbook-air
 just rebuild wsl            # NixOS host (nixos-rebuild)
-just rebuild mihomo-gateway # 在网关本机跑（不是远程 push）
+just rebuild gateway        # 在网关本机跑（不是远程 push）
 
 # 远程 NixOS 主机（任意 nixosConfigurations.<host> 都可，不限网关）
 just install <host> <ip>    # 首装：nixos-anywhere（kexec → disko 全盘 → install → reboot）

@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # 紧急修复 / 追 PR 用，master 更新比 unstable channel 快
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
 
     nixos-wsl = {
@@ -22,7 +21,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # mihomo-gateway 用：声明式磁盘布局 + nixos-anywhere 部署
     disko = {
       url = "github:nix-community/disko/latest";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -76,8 +74,7 @@
           ];
         };
 
-        # 单臂透明代理网关：mkServer，不与日用机共享 home-manager / shared default
-        mihomo-gateway = mylib.mkServer {
+        gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
           extraModules = [
             ./modules/gateway

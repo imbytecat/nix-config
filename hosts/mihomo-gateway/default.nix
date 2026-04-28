@@ -9,13 +9,11 @@
     ./disko.nix
   ];
 
-  # 国内网络走 USTC 镜像
   nix.settings.substituters = lib.mkBefore [
     "https://mirrors.ustc.edu.cn/nix-channels/store"
   ];
 
   system.stateVersion = "25.11";
-  # 不安装本地化数据，省空间
   i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" ];
   fonts.fontconfig.enable = false;
   time.timeZone = "Asia/Shanghai";
@@ -30,7 +28,6 @@
     "virtio_net"
   ];
 
-  # PVE VM：qemu guest agent，让 host 能拿到 IP / 优雅关机
   services.qemuGuest.enable = true;
 
   # root-only 硬化 SSH

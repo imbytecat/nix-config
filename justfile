@@ -25,7 +25,7 @@ check:
 [group('build')]
 check:
     @nix eval .#nixosConfigurations.wsl.config.system.build.toplevel > /dev/null && echo "wsl: ok"
-    @nix eval .#nixosConfigurations.mihomo-gateway.config.system.build.toplevel > /dev/null && echo "mihomo-gateway: ok"
+    @nix eval .#nixosConfigurations.gateway.config.system.build.toplevel > /dev/null && echo "gateway: ok"
 
 [doc('回滚到上一个 generation（仅 NixOS 本机）')]
 [linux]
