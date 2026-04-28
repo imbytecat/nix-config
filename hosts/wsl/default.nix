@@ -1,7 +1,7 @@
 { lib, username, ... }:
 
 {
-  # 移除 NixOS 默认别名（ls/ll/l）— 由 Home Manager eza 管理
+  # NixOS 默认 ls/ll/l 别名清掉，由 Home Manager eza 管理
   environment.shellAliases = lib.mkForce { };
 
   wsl = {

@@ -43,11 +43,10 @@
     };
     CustomUserPreferences = {
       "ch.sudo.cyberduck" = {
-        # 永久禁用捐赠提示（日期设为遥远的未来）
+        # 禁用捐赠提示（日期设为遥远的未来）
         "donate.reminder.date" = 253402300799000;
       };
       "com.apple.finder" = {
-        # 清空废纸篓不再二次确认
         WarnOnEmptyTrash = false;
       };
     };
@@ -106,7 +105,7 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap"; # 移除所有未声明的内容
+      cleanup = "zap"; # 移除未声明的 cask/brew
     };
   };
 }

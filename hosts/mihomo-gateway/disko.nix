@@ -1,7 +1,7 @@
 { lib, ... }:
 
 let
-  # nixos-anywhere 前按目标机实际硬件改这里，或在引用处 mkForce 覆盖
+  # nixos-anywhere 前按目标硬件改这里，或在引用处 mkForce 覆盖
   diskDevice = "/dev/sda";
 in
 {

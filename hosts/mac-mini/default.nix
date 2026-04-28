@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  # 常驻供电 — 全天候服务器角色，永不睡眠
+  # 全天候服务器角色，永不睡眠
   power.sleep.computer = "never";
   power.sleep.display = "never";
   power.sleep.harddisk = "never";
@@ -14,7 +14,6 @@
   system.activationScripts.postActivation.text = ''
     launchctl enable system/com.apple.screensharing
     launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist 2>/dev/null || true
-    # 禁用 Power Nap
     pmset -a powernap 0
   '';
 

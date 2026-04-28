@@ -182,7 +182,7 @@ in
       CapabilityBoundingSet = lib.mkForce [ "CAP_NET_ADMIN" ];
       PrivateUsers = lib.mkForce false;
 
-      # 上游默认只允许 AF_INET{,6}；Go net/route.FetchRIB (UDP DIRECT dialer) 需要
+      # 上游默认只允许 AF_INET{,6}；Go net/route.FetchRIB（UDP DIRECT dialer）需要
       # AF_NETLINK 枚举路由，否则所有 UDP DIRECT 静默失败。TCP DIRECT 不受影响。
       RestrictAddressFamilies = lib.mkForce [
         "AF_INET"

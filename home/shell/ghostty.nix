@@ -3,7 +3,7 @@
 {
   programs.ghostty = {
     enable = pkgs.stdenv.isDarwin;
-    package = null; # 通过 Homebrew cask 安装
+    package = null; # 用 Homebrew cask
     settings = {
       font-family = "Maple Mono NF CN";
       font-size = 14;

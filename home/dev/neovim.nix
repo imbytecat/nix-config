@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  # 禁用 catppuccin/nix 的 Neovim 集成 — LazyVim 自行管理配色方案
+  # LazyVim 自管配色方案，关掉 catppuccin/nix 的 nvim 集成
   catppuccin.nvim.enable = false;
 
   programs.neovim = {

@@ -6,7 +6,7 @@ inputs.nixpkgs.lib.composeManyExtensions [
     comment-checker = final.callPackage ../pkgs/comment-checker { };
   })
 
-  # 跟随 master 的包（unstable channel 太慢时用）
+  # unstable 滞后时从 master 借包
   (
     final: prev:
     let
@@ -19,7 +19,7 @@ inputs.nixpkgs.lib.composeManyExtensions [
       master = pkgsFrom inputs.nixpkgs-master;
     in
     {
-      # opencode 发版频繁，跟 master 更新更快
+      # opencode 发版频繁
       inherit (master) opencode;
     }
   )

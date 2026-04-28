@@ -8,7 +8,7 @@
 let
   version = "0.7.0";
 
-  # 预编译二进制来自 GitHub Releases（goreleaser 构建，tree-sitter 已静态链接）
+  # GitHub Releases 预编译二进制（goreleaser 构建，tree-sitter 静态链接）
   srcs = {
     "aarch64-darwin" = {
       url = "https://github.com/code-yeongyu/go-claude-code-comment-checker/releases/download/v${version}/comment-checker_v${version}_darwin_arm64.tar.gz";

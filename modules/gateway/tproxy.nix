@@ -13,13 +13,13 @@ in
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
 
-    # rp_filter 有效值 = max(all, interface)；必须逐接口禁用，见 networkd 配置
+    # rp_filter 取 max(all, interface)；逐接口禁用见 networkd 配置
     "net.ipv4.conf.all.rp_filter" = 0;
     "net.ipv4.conf.default.rp_filter" = 0;
     "net.ipv4.conf.all.send_redirects" = 0;
     "net.ipv4.conf.default.send_redirects" = 0;
 
-    # 阻断 IPv6 转发，防止绕过代理
+    # 阻断 IPv6 转发，防绕过代理
     "net.ipv6.conf.all.forwarding" = 0;
     "net.ipv6.conf.default.forwarding" = 0;
 
