@@ -80,6 +80,7 @@
       "logitech-g-hub"
       "mos"
       "movist-pro"
+      "openscad@snapshot"
       "orbstack"
       "qq"
       "raycast"
