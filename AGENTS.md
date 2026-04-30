@@ -32,27 +32,36 @@ Flow:
 
 ```bash
 # 本机重建
-just rebuild mac-mini       # macOS host (darwin-rebuild)
-just rebuild macbook-air
-just rebuild wsl            # NixOS host (nixos-rebuild)
-just rebuild gateway        # 在网关本机跑（不是远程 push）
+just switch mac-mini        # macOS host (darwin-rebuild switch)
+just switch macbook-air
+just switch wsl             # NixOS host (nixos-rebuild switch)
+just switch gateway         # 在网关本机跑（不是远程 push）
+just build <host>           # 仅构建不激活，配合 just diff 看包差异
+just boot <host>            # 仅注册下次启动 generation（NixOS only）
 
 # 远程 NixOS 主机（任意 nixosConfigurations.<host> 都可，不限网关）
-just install <host> <ip>    # 首装：nixos-anywhere（kexec → disko 全盘 → install → reboot）
-just deploy <host> <ip>     # 更新：nixos-rebuild switch --target-host
+just install <host> <remote>  # 首装：nixos-anywhere（kexec → disko 全盘 → install → reboot）
+just deploy <host> <remote>   # 更新：nixos-rebuild switch --target-host
 
-# eval / flake
-just check                  # eval all hosts (platform-aware)
+# 检查 / 诊断
+just eval                   # eval all hosts (platform-aware)
+just check                  # nix flake check
+just dry <host>             # dry-run，列出 build/fetch 列表，定位 cache miss
+just diff                   # nvd diff /run/current-system result/
+
+# flake / 维护
 just update                 # nix flake update
 just up nixpkgs             # update single input
-just clean                  # nix-collect-garbage -d (user-level only)
+just gc                     # nix-collect-garbage --delete-older-than 7d
 just rollback               # NixOS only — rollback to previous generation
 just history                # list system profile generations
 just show                   # nix flake show
+just fmt                    # nixfmt **/*.nix
+just repl                   # nix repl -f flake:nixpkgs
 just lsp mac-mini           # nixd option completion for VSCode
 ```
 
-Note: `just check`、`just rebuild`、`just deploy` 都有 `[macos]`/`[linux]` 变体 —— justfile 按本机平台自动选。`install` 跨平台单一实现，因为 `--build-on remote` 让目标机自己 build。
+Note: `just eval`、`just switch`、`just build`、`just deploy` 都有 `[macos]`/`[linux]` 变体 —— justfile 按本机平台自动选。`install` 跨平台单一实现，因为 `--build-on remote` 让目标机自己 build。
 
 **Mac → Linux server 注意**：`just deploy` 的 macOS 变体加 `--build-host root@<target>` 让目标机自己 build（避开 Mac 跨架构编译）；Linux 变体本机构建后 SCP 推送，同架构最快。
 
@@ -94,13 +103,13 @@ Note: `just check`、`just rebuild`、`just deploy` 都有 `[macos]`/`[linux]` �
 ### 部署套路
 
 ```bash
-just install <host> <ip>   # 首装；走 nixos-anywhere --build-on remote
-just deploy  <host> <ip>   # 更新；走 nixos-rebuild --target-host
+just install <host> <remote>   # 首装；走 nixos-anywhere --build-on remote
+just deploy  <host> <remote>   # 更新；走 nixos-rebuild --target-host
 ```
 
 `install` 默认 `--build-on remote`（目标机自己 build），所以本机架构无所谓。`deploy` 有 [linux]/[macos] 变体，linux 本机构建后 SCP 推送（同架构最快），macos 加 `--build-host` 让目标机自己 build（避开 Mac 跨架构编译）。
 
-首装完后 SSH host key 会变，用 `ssh-keygen -R <ip>` 清一下本地 known_hosts。
+首装完后 SSH host key 会变，用 `ssh-keygen -R <remote>` 清一下本地 known_hosts。
 
 ### 必守约束（改代码前必看）
 

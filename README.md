@@ -35,7 +35,7 @@ cd ~/nix-config
 sudo nix run nix-darwin -- switch --flake .#macbook-air
 ```
 
-之后日常重建：`just rebuild macbook-air`
+之后日常重建：`just switch macbook-air`
 
 ### WSL
 
@@ -70,7 +70,7 @@ sudo userdel --remove nixos
 sudo rm -rf /home/nixos
 ```
 
-之后日常重建：`just rebuild wsl`
+之后日常重建：`just switch wsl`
 
 ### Mihomo Gateway
 
@@ -100,7 +100,7 @@ ssh-keygen -R <gateway-ip>
 just deploy gateway <gateway-ip>
 ```
 
-或登上去本机 rebuild：`just rebuild gateway`。
+或登上去本机 rebuild：`just switch gateway`。
 
 **部署完写订阅**：
 
@@ -131,7 +131,7 @@ EOF"
 };
 ```
 
-部署：`just install <host> <ip>`（首装），之后 `just deploy <host> <ip>`（更新）。
+部署：`just install <host> <remote>`（首装），之后 `just deploy <host> <remote>`（更新）。
 
 ## 仓库结构
 
@@ -162,21 +162,29 @@ overlays/ + pkgs/              # 自定义包
 
 ```bash
 # 本机
-just rebuild <host>          # 重建本机系统（mac-mini / macbook-air / wsl / gateway 在网关本机时）
-just rebuild-boot <host>     # 仅注册下次启动 generation（kernel/initrd/init 更新，需手动 reboot；仅 NixOS）
+just switch <host>           # 重建并激活本机系统（mac-mini / macbook-air / wsl / gateway 在网关本机时）
+just build <host>            # 仅构建不激活（产 result/，配合 just diff 看差异）
+just boot <host>             # 仅注册下次启动 generation（kernel/initrd 更新需手动 reboot；仅 NixOS）
 just rollback                # 回滚（仅 NixOS）
-just history                 # 查看 profile 历史
 
 # 远程 NixOS 主机
-just install <host> <ip>     # 首次装机（nixos-anywhere）
-just deploy <host> <ip>      # 远程更新（nixos-rebuild --target-host）
+just install <host> <remote> # 首次装机（nixos-anywhere）
+just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
+
+# 检查 / 诊断
+just eval                    # eval 全部主机配置
+just check                   # nix flake check
+just dry <host>              # dry-run 看会编译/下载什么
+just diff                    # 对比 /run/current-system 与 result/
 
 # flake / 维护
-just check                   # eval 全部主机配置
 just update                  # 更新所有 flake 输入
 just up <input>              # 更新单个输入
 just show                    # 列出 flake 输出
-just clean                   # 清理旧 generation
+just history                 # profile 历史
+just gc                      # GC（删 7 天前 generation）
+just fmt                     # 格式化 .nix
+just repl                    # 带 nixpkgs 的 nix repl
 ```
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
