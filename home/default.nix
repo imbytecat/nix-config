@@ -46,7 +46,6 @@
 
     ffmpeg
     pandoc
-    yt-dlp
   ];
 
   programs.nh = {
