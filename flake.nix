@@ -2,7 +2,7 @@
   description = "Multi-platform Nix configuration — nix-darwin / NixOS-WSL";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
 
