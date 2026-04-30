@@ -41,8 +41,8 @@
     nvd
 
     comment-checker
-    opencode
-    skills
+    llm-agents.opencode
+    llm-agents.skills
 
     ffmpeg
     pandoc

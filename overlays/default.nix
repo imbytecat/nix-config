@@ -6,20 +6,7 @@ inputs.nixpkgs.lib.composeManyExtensions [
     comment-checker = final.callPackage ../pkgs/comment-checker { };
   })
 
-  (
-    final: prev:
-    let
-      pkgsFrom =
-        flake:
-        import flake {
-          inherit (prev.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        };
-      master = pkgsFrom inputs.nixpkgs-master;
-    in
-    {
-      inherit (master) opencode;
-    }
-  )
+  # 通过 pkgs.llm-agents.<name> 访问，cache 命中靠 llm-agents 自锁的 nixpkgs revision
+  inputs.llm-agents.overlays.default
 
 ]

@@ -1,4 +1,5 @@
 {
+  inputs,
   pkgs,
   username,
   sshKeys,
@@ -6,6 +7,12 @@
 }:
 
 {
+  # NixOS 用 mkNixos builder（无显式 nixpkgs.pkgs），由模块系统按下面的 config/overlays 实例化
+  # darwin 走 mkDarwin builder（lib/default.nix 里显式 import nixpkgs-darwin），不来这里
+  # gateway 走 mkServer，不导入这个文件
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.overlays = [ inputs.self.overlays.default ];
+
   environment.systemPackages = with pkgs; [
     curl
     git

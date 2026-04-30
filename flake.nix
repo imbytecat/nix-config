@@ -2,9 +2,15 @@
   description = "Multi-platform Nix configuration — nix-darwin / NixOS-WSL";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # 主 nixpkgs 给 NixOS（WSL/gateway）用，跟 NixOS 集成测试推进
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+    # darwin 单独 follow nixpkgs-unstable：推进条件更宽松，aarch64-darwin 命中率高于 nixos-unstable
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+    # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
+    # 故意不 follows nixpkgs，否则 binary cache 就 miss 了
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL";
