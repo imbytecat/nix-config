@@ -75,6 +75,7 @@
       "feishu"
       "goooler/repo/fl-clash"
       "ghostty"
+      "chromium"
       "tailscale-app"
       "keka"
       "logitech-g-hub"
