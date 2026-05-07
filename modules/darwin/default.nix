@@ -35,7 +35,10 @@
       wvous-bl-corner = 1;
       wvous-br-corner = 1;
     };
-    finder.FXPreferredViewStyle = "clmv";
+    finder = {
+      FXPreferredViewStyle = "clmv";
+      NewWindowTarget = "Home";
+    };
     NSGlobalDomain = {
       AppleShowAllExtensions = true;
       InitialKeyRepeat = 15;
