@@ -114,6 +114,18 @@ in
             echo "op-env: cleared"
           '';
         };
+
+        omo = {
+          description = "Launch OpenCode with the manual OMO config profile";
+          body = ''
+            set -l omo_config "$HOME/.config/opencode-profiles/omo"
+            if not test -d "$omo_config"
+              echo "omo: config directory not found: $omo_config" >&2
+              return 1
+            end
+            env OPENCODE_CONFIG_DIR="$omo_config" opencode $argv
+          '';
+        };
       }
       (lib.mkIf pkgs.stdenv.isLinux {
         # Windows Terminal OSC 9;9：新标签页/窗格在同一目录打开
