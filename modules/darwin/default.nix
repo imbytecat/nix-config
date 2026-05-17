@@ -44,6 +44,11 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
     };
+    screensaver = {
+      # 屏保结束/解锁不要密码（即便意外进了屏保也不锁）
+      askForPassword = false;
+      askForPasswordDelay = 0;
+    };
     CustomUserPreferences = {
       "ch.sudo.cyberduck" = {
         # 禁用捐赠提示（日期设为遥远的未来）
@@ -54,6 +59,16 @@
       };
     };
   };
+
+  # nix-darwin 的 system.defaults.screensaver.* 写的是用户全局 domain
+  # (~/Library/Preferences/com.apple.screensaver.plist)，但 idleTime 在多数 macOS
+  # 版本下实际读的是 per-host domain (ByHost/...)，所以这里用 -currentHost 兜底。
+  # 写法对齐 nix-darwin 自己 system-defaults-write 的实现：launchctl asuser + sudo
+  # --user=，确保 cfprefsd 在用户 launchd session 里看到改动。
+  system.activationScripts.postActivation.text = ''
+    launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
+      defaults -currentHost write com.apple.screensaver idleTime -int 0
+  '';
 
   homebrew = {
     enable = true;
