@@ -25,6 +25,7 @@
   system.defaults = {
     LaunchServices.LSQuarantine = false;
     dock = {
+      autohide = false;
       show-recents = false;
       mru-spaces = false;
       wvous-tl-corner = 1;
