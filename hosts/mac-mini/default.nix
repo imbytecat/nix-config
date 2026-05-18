@@ -1,21 +1,6 @@
 { username, ... }:
 
 {
-  homebrew.casks = [
-    "tailscale-app"
-    "uuremote"
-    "1password"
-    "ghostty"
-    "visual-studio-code"
-    "orbstack"
-    # 暂留观察
-    "chromium"
-    "cyberduck"
-    "keka"
-    "mos"
-    "raycast"
-  ];
-
   power.sleep.computer = "never";
   power.sleep.display = "never";
   power.sleep.harddisk = "never";

@@ -69,6 +69,21 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
+    # 每台 Mac 都要的共同基线；仅日用机用的放 daily.nix，单机用的放 hosts/<host>。
+    casks = [
+      "1password"
+      "ghostty"
+      "visual-studio-code"
+      "tailscale-app"
+      "orbstack"
+      "uuremote"
+      "chromium"
+      "cyberduck"
+      "keka"
+      "mos"
+      "raycast"
+    ];
+
     onActivation = {
       autoUpdate = true;
       upgrade = true;
