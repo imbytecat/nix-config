@@ -80,7 +80,7 @@
       "tailscale-app"
       "orbstack"
       "uuremote"
-      "chromium"
+      "ungoogled-chromium"
       "cyberduck"
       "keka"
       "mos"
