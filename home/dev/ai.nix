@@ -25,6 +25,9 @@ let
   };
 
   codexConfig = {
+    approval_policy = "never"; # 彻底关闭所有审批
+    sandbox_mode = "danger-full-access"; # 完全关闭沙箱（文件、网络、命令全放开）
+
     model_provider = "furtherverse";
     model = "gpt-5.5";
     model_reasoning_effort = "high";
@@ -35,8 +38,8 @@ let
     model_providers.furtherverse = {
       name = "Furtherverse";
       base_url = "https://ai-gateway.furtherverse.com/v1";
-      wire_api = "responses";
       env_key = "AI_GATEWAY_API_KEY";
+      wire_api = "responses";
     };
   };
 in
