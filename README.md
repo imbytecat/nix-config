@@ -6,8 +6,8 @@ nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备
 
 | 设备 | 平台 | Flake 目标 | 主机名 | 备注 |
 |------|------|-----------|--------|------|
-| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 日用 |
-| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 日用 |
+| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 服务器 / 写代码机器，不导入 `modules/darwin/daily.nix` |
+| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 日用，导入 `modules/darwin/daily.nix` |
 | Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
 | Mihomo Gateway | x86_64-linux | `gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
@@ -196,7 +196,7 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
 - 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
-- Homebrew cask → `modules/darwin/default.nix`（共享）或 `hosts/<host>/default.nix`（单机）
+- Homebrew cask → 日用 GUI 应用进 `modules/darwin/daily.nix`（macbook-air 导入）；服务器/单机 cask 进 `hosts/<host>/default.nix`；框架开关在 `modules/darwin/default.nix`
 - PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment

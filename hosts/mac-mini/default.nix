@@ -1,6 +1,19 @@
 { username, ... }:
 
 {
+  # mac-mini 当服务器/写代码机器，不导入 modules/darwin/daily.nix
+  # （那 26 个日用 GUI cask 在这里都不需要）。下面只声明 server 实用 +
+  # 远程控制兜底 + 本地写代码必须的工具。
+  # onActivation.cleanup = "zap" 会把未声明的 cask 自动卸载。
+  homebrew.casks = [
+    "tailscale-app" # 服务器入口（被连端）
+    "uuremote" # 主用远程桌面
+    "1password" # 写代码要用密码/SSH key
+    "ghostty" # 终端
+    "visual-studio-code" # 本地写代码
+    "orbstack" # 容器（轻量服务大概率涉及 Docker）
+  ];
+
   # 全天候服务器角色，永不睡眠
   power.sleep.computer = "never";
   power.sleep.display = "never";

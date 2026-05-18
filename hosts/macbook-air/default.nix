@@ -1,8 +1,10 @@
 { ... }:
 
 {
+  imports = [ ../../modules/darwin/daily.nix ];
+
   homebrew.casks = [
-    "thaw" # 刘海屏菜单栏管理
+    "thaw" # 刘海屏菜单栏管理（mini 没刘海，不共享）
   ];
 
   # 不用 nix-darwin 的 power.sleep.*：它走 systemsetup 会把 SleepDisabled 置 1，

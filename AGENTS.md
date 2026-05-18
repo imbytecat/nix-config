@@ -16,7 +16,7 @@ flake.nix
 
 - `lib/default.nix` — `mkDarwin`/`mkNixos`/`mkServer` builders, `sshKeys` (via `specialArgs`), `homeManagerConfig`
 - `modules/shared/` — cross-platform: Lix, overlays, fonts, fish, openssh, 1password
-- `modules/darwin/` — system preferences, homebrew, user
+- `modules/darwin/` — `default.nix` 是 darwin 共享底座（user / sudo / Touch ID / system.defaults / homebrew 框架），`daily.nix` 是日用 GUI cask + masApps + 单机 brews/taps，仅 macbook-air 导入；mac-mini 当服务器不导入
 - `modules/nixos/` — system packages, locale, docker, user（**仅日用**，网关不导入）
 - `modules/gateway/` — mihomo + nftables TPROXY + 单臂 networking + resolved（**仅网关**）
 - `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin（**仅日用**，网关不导入）
@@ -72,7 +72,7 @@ Note: `just eval`、`just switch`、`just build`、`just deploy` 都有 `[macos]
 - **WSL aliases force-cleared** — `hosts/wsl/default.nix` uses `lib.mkForce {}`. All aliases via Home Manager only.
 - **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme). The `lazyvim.homeManagerModules.default` is loaded as a sharedModule in `lib/default.nix`.
 - **catppuccin modules** — `catppuccin.homeModules.catppuccin` (home), `catppuccin.nixosModules.catppuccin` (NixOS). Not the old `homeManagerModules`.
-- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. Shared → `modules/darwin/default.nix`, host-specific → `hosts/*/default.nix` (e.g. `thaw` on macbook-air). Tap casks need full path (e.g. `"goooler/repo/fl-clash"`).
+- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. **Casks 分三层**：(1) 框架 (`enable` / `enableFishIntegration` / `onActivation`) 在 `modules/darwin/default.nix`；(2) 日用 GUI 应用 + masApps 在 `modules/darwin/daily.nix`，仅 `hosts/macbook-air/default.nix` 显式 `imports = [ ../../modules/darwin/daily.nix ];`；(3) 单机 cask 直接写在 `hosts/<host>/default.nix`（如 `thaw` 在 macbook-air、`tailscale-app/uuremote/...` 在 mac-mini）。Tap casks 需要完整路径（`"goooler/repo/fl-clash"`）。**mac-mini 是服务器/写代码机器**，不导入 `daily.nix`，cask 走自己 host 文件单独声明，`cleanup = "zap"` 会把日用应用自动卸载。
 - **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
 - **nix-ld on WSL** — `programs.nix-ld.enable = true` for VSCode Remote.
 - **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.

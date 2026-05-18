@@ -68,62 +68,19 @@
       defaults -currentHost write com.apple.screensaver idleTime -int 0
   '';
 
+  # Homebrew 框架层：所有 darwin 主机都启用 brew，并统一更新/清理策略。
+  # 实际的 casks / masApps / brews 拆到：
+  #   - modules/darwin/daily.nix     （日用 GUI 应用，由 hosts/macbook-air 导入）
+  #   - hosts/mac-mini/default.nix    （服务器需要的少量 cask）
   homebrew = {
     enable = true;
     enableFishIntegration = true;
     greedyCasks = true;
 
-    taps = [
-      "goooler/repo"
-    ];
-
-    brews = [
-      "mole"
-    ];
-
-    casks = [
-      "1password"
-      "brave-browser"
-      "cherry-studio"
-      "cyberduck"
-      "dbeaver-community"
-      "discord"
-      "feishu"
-      "goooler/repo/fl-clash"
-      "ghostty"
-      "chromium"
-      "tailscale-app"
-      "keka"
-      "logitech-g-hub"
-      "mos"
-      "movist-pro"
-      "openscad@snapshot"
-      "orbstack"
-      "qq"
-      "raycast"
-      "spotify"
-      "telegram-desktop"
-      "tencent-meeting"
-      "termius"
-      "uuremote"
-      "visual-studio-code"
-      "wechat"
-      "winbox"
-    ];
-
-    masApps = {
-      "iPreview" = 1519213509;
-      "Microsoft Word" = 462054704;
-      "Microsoft Excel" = 462058435;
-      "Microsoft PowerPoint" = 462062816;
-      "Windows App" = 1295203466;
-      "Xnip" = 1221250572;
-    };
-
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap"; # 移除未声明的 cask/brew
+      cleanup = "zap"; # 移除未声明的 cask/brew，所以分层声明必须精确
     };
   };
 }
