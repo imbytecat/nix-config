@@ -5,7 +5,7 @@ let
   jsonFormat = pkgs.formats.json { };
 
   claudeCodeSettings = {
-    effortLevel = "high";
+    effortLevel = "max";
 
     permissions.defaultMode = "bypassPermissions";
     skipDangerousModePermissionPrompt = true;
