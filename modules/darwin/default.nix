@@ -43,13 +43,12 @@
       KeyRepeat = 2;
     };
     screensaver = {
-      # 屏保结束/解锁不要密码（即便意外进了屏保也不锁）
       askForPassword = false;
       askForPasswordDelay = 0;
     };
     CustomUserPreferences = {
       "ch.sudo.cyberduck" = {
-        # 禁用捐赠提示（日期设为遥远的未来）
+        # 把捐赠提示日期设到极远的未来
         "donate.reminder.date" = 253402300799000;
       };
       "com.apple.finder" = {
@@ -58,20 +57,13 @@
     };
   };
 
-  # nix-darwin 的 system.defaults.screensaver.* 写的是用户全局 domain
-  # (~/Library/Preferences/com.apple.screensaver.plist)，但 idleTime 在多数 macOS
-  # 版本下实际读的是 per-host domain (ByHost/...)，所以这里用 -currentHost 兜底。
-  # 写法对齐 nix-darwin 自己 system-defaults-write 的实现：launchctl asuser + sudo
-  # --user=，确保 cfprefsd 在用户 launchd session 里看到改动。
+  # screensaver.idleTime 在多数 macOS 上只读 per-host domain，nix-darwin 写
+  # 全局 domain 不生效，用 -currentHost 兜底。
   system.activationScripts.postActivation.text = ''
     launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
       defaults -currentHost write com.apple.screensaver idleTime -int 0
   '';
 
-  # Homebrew 框架层：所有 darwin 主机都启用 brew，并统一更新/清理策略。
-  # 实际的 casks / masApps / brews 拆到：
-  #   - modules/darwin/daily.nix     （日用 GUI 应用，由 hosts/macbook-air 导入）
-  #   - hosts/mac-mini/default.nix    （服务器需要的少量 cask）
   homebrew = {
     enable = true;
     enableFishIntegration = true;
@@ -80,7 +72,7 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap"; # 移除未声明的 cask/brew，所以分层声明必须精确
+      cleanup = "zap";
     };
   };
 }

@@ -4,11 +4,11 @@
   imports = [ ../../modules/darwin/daily.nix ];
 
   homebrew.casks = [
-    "thaw" # 刘海屏菜单栏管理（mini 没刘海，不共享）
+    "thaw" # 刘海屏菜单栏管理
   ];
 
-  # 不用 nix-darwin 的 power.sleep.*：它走 systemsetup 会把 SleepDisabled 置 1，
-  # 连盒盖（clamshell）睡眠都屏蔽。改用纯 pmset：屏幕/系统常亮，盒盖仍能睡。
+  # 用纯 pmset 而不是 power.sleep.*：后者走 systemsetup 会把 SleepDisabled 置 1
+  # 连合盖睡眠都屏蔽，笔记本不能要。
   system.activationScripts.postActivation.text = ''
     pmset -a displaysleep 0
     pmset -a sleep 0
