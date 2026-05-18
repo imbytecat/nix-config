@@ -12,6 +12,12 @@
     "ghostty" # 终端
     "visual-studio-code" # 本地写代码
     "orbstack" # 容器（轻量服务大概率涉及 Docker）
+    # 暂留观察，确定不用再删
+    "chromium"
+    "cyberduck"
+    "keka"
+    "mos"
+    "raycast"
   ];
 
   # 全天候服务器角色，永不睡眠
