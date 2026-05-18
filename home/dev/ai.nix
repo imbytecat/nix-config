@@ -5,7 +5,7 @@ let
   jsonFormat = pkgs.formats.json { };
 
   claudeCodeSettings = {
-    model = "opus[1m]";
+    effortLevel = "high";
 
     permissions.defaultMode = "bypassPermissions";
     skipDangerousModePermissionPrompt = true;
@@ -20,10 +20,9 @@ let
       ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-7";
       ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-4-6";
       ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5";
-      ANTHROPIC_SMALL_FAST_MODEL = "claude-haiku-4-5";
       CLAUDE_CODE_SUBAGENT_MODEL = "claude-sonnet-4-6";
-      CLAUDE_CODE_EFFORT_LEVEL = "high";
 
+      CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
       CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS = "1";
       ENABLE_TOOL_SEARCH = "false";
 
@@ -39,7 +38,7 @@ let
   codexConfig = {
     model_provider = "furtherverse";
     model = "gpt-5.5";
-    preferred_auth_method = "apikey";
+    forced_login_method = "api";
 
     model_reasoning_effort = "high";
     model_reasoning_summary = "auto";
@@ -50,7 +49,7 @@ let
     model_context_window = 1000000;
     model_auto_compact_token_limit = 400000;
 
-    disable_response_storage = true;
+    history.persistence = "none";
 
     model_providers.furtherverse = {
       name = "Furtherverse";
@@ -71,6 +70,5 @@ in
   home.file.".claude/settings.json".source =
     jsonFormat.generate "claude-settings.json" claudeCodeSettings;
 
-  home.file.".codex/config.toml".source =
-    tomlFormat.generate "codex-config.toml" codexConfig;
+  home.file.".codex/config.toml".source = tomlFormat.generate "codex-config.toml" codexConfig;
 }
