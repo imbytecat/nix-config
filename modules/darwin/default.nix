@@ -67,6 +67,10 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
+    brews = [
+      "mole" # macOS 清理工具
+    ];
+
     casks = [
       "1password"
       "ghostty"

@@ -6,10 +6,6 @@
       "goooler/repo"
     ];
 
-    brews = [
-      "mole" # macOS 清理工具
-    ];
-
     casks = [
       "brave-browser"
       "cherry-studio"
