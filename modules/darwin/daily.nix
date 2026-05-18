@@ -26,15 +26,12 @@
       "tencent-meeting"
       "termius"
       "wechat"
+      "windows-app" # 远程桌面，原 microsoft-remote-desktop 已改名
       "winbox"
     ];
 
     masApps = {
       "iPreview" = 1519213509;
-      "Microsoft Word" = 462054704;
-      "Microsoft Excel" = 462058435;
-      "Microsoft PowerPoint" = 462062816;
-      "Windows App" = 1295203466;
       "Xnip" = 1221250572;
     };
   };

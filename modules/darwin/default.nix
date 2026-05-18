@@ -82,6 +82,10 @@
       "keka"
       "mos"
       "raycast"
+      # Office：服务器也可能处理文档；用独立 cask 避开 microsoft-office 套装带的 Outlook/OneNote/OneDrive
+      "microsoft-word"
+      "microsoft-excel"
+      "microsoft-powerpoint"
     ];
 
     onActivation = {
