@@ -14,6 +14,8 @@
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
+  system.startup.chime = false;
+
   users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
