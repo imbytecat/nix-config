@@ -2,14 +2,14 @@
 
 ## Overview
 
-Nix flake — 3 日用设备 (Mac Mini, MacBook Air: aarch64-darwin; WSL: x86_64-linux) + 1 单臂透明代理网关 (mihomo-gateway: x86_64-linux)。日用机单用户 `imbytecat`，网关单用户 `root`。Uses **Lix**.
+Nix flake — 1 日用 MacBook Air + 1 服务器 / 写代码机器 Mac mini（均 aarch64-darwin）+ 1 日用 WSL（x86_64-linux）+ 1 单臂透明代理网关 mihomo-gateway（x86_64-linux）。日用机单用户 `imbytecat`，网关单用户 `root`。Uses **Lix**.
 
 ## Architecture
 
 ```
 flake.nix
-├── darwinConfigurations.mac-mini    (aarch64-darwin)
-├── darwinConfigurations.macbook-air (aarch64-darwin)
+├── darwinConfigurations.mac-mini    (aarch64-darwin, 服务器 / 写代码机器)
+├── darwinConfigurations.macbook-air (aarch64-darwin, 日用)
 ├── nixosConfigurations.wsl          (x86_64-linux, 日用)
 └── nixosConfigurations.gateway      (x86_64-linux, 网关，root-only，模块隔离)
 ```
@@ -72,7 +72,8 @@ Note: `just eval`、`just switch`、`just build`、`just deploy` 都有 `[macos]
 - **WSL aliases force-cleared** — `hosts/wsl/default.nix` uses `lib.mkForce {}`. All aliases via Home Manager only.
 - **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme). The `lazyvim.homeManagerModules.default` is loaded as a sharedModule in `lib/default.nix`.
 - **catppuccin modules** — `catppuccin.homeModules.catppuccin` (home), `catppuccin.nixosModules.catppuccin` (NixOS). Not the old `homeManagerModules`.
-- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. **Casks 分三层**：(1) 框架 + **共同基线 cask**（每台 Mac 都装的，如 1password / ghostty / vscode / tailscale-app / orbstack / uuremote / chromium / cyberduck / keka / mos / raycast）在 `modules/darwin/default.nix`；(2) 仅日用机的 cask + masApps + brews 在 `modules/darwin/daily.nix`，仅 `hosts/macbook-air/default.nix` 显式 `imports`；(3) 单机 cask 直接写在 `hosts/<host>/default.nix`（如 `thaw` 在 macbook-air）。Tap casks 需要完整路径（`"goooler/repo/fl-clash"`）。**mac-mini 当服务器**只继承共同基线，不导入 daily；`cleanup = "zap"` 会把未在三层中声明的应用自动卸载。**调整某 cask 在哪层**：日用专属移到 daily，每台都要移到 default，单机专属移到 hosts。
+- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. **Casks 分三层**：(1) 框架 + **共同基线 cask**（每台 Mac 都装的，如 1password / ghostty / vscode / tailscale-app / orbstack / uuremote / chromium / cyberduck / keka / mos / raycast / microsoft-word|excel|powerpoint）在 `modules/darwin/default.nix`；(2) 仅日用机的 cask + masApps + 单机 taps 在 `modules/darwin/daily.nix`，仅 `hosts/macbook-air/default.nix` 显式 `imports`；(3) 单机 cask 直接写在 `hosts/<host>/default.nix`（如 `thaw` 在 macbook-air）。Tap casks 需要完整路径（`"goooler/repo/fl-clash"`）。`mole`（清理工具）在共享层，`goooler/repo` tap + `fl-clash` 在 daily 层。**mac-mini 当服务器**只继承共同基线，不导入 daily；`cleanup = "zap"` 会把未声明的 cask/brew 自动卸载。
+- **`brew bundle cleanup` 不动 mas apps** — [Homebrew/homebrew-bundle#1077](https://github.com/Homebrew/homebrew-bundle/issues/1077)，已知限制：`mas uninstall` 要 root 且 Apple 在缩 mas 用的私有 API。从 `masApps` 删一项 → App 不会被自动卸载，要手动拖到废纸篓。所以**能 cask 化的全部 cask 化**：Office 三件套 + Windows App 已切到 cask；`masApps` 现在只剩 `Xnip` + `iPreview`（这两个只有 MAS 分发渠道）。
 - **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
 - **nix-ld on WSL** — `programs.nix-ld.enable = true` for VSCode Remote.
 - **home-manager `backupFileExtension = "bak"`** — set in `lib/default.nix`. Existing dotfiles get `.bak` suffix on conflict.
@@ -88,6 +89,24 @@ Note: `just eval`、`just switch`、`just build`、`just deploy` 都有 `[macos]
 - **Fish 函数走 `programs.fish.functions.<name>`** — 已有的 `op-env-refresh` / `op-env-clear` / `__wt_osc9_9` 都用 submodule（`body`、`description`、`onVariable`）。**不要**把函数定义塞回 `interactiveShellInit` 字符串里。
 - **平台分支在构建时，不在 shell 里** — WSL 的 `pbcopy`/`pbpaste` 用 `lib.optionalAttrs pkgs.stdenv.isLinux`，OSC 9;9 函数用 `lib.mkIf pkgs.stdenv.isLinux`。**不要**写 `if set -q WSL_DISTRO_NAME ... end` 这种运行时探测。
 - **`nh.flake` 已指向 `~/nix-config`** — 所以 `nh os switch` / `nh home switch` / `nh clean all` 不需要 `--flake` 参数。`programs.nh` 在 `home/default.nix`。
+
+## Darwin hosts
+
+### Mac mini（服务器）
+
+`mac-mini` 当 24/7 服务器，**不导入** `daily.nix`。下面这些是从代码看不出的硬约束，改 `hosts/mac-mini/default.nix` 前必看：
+
+- **自动登录链缺一不能用**：`system.defaults.loginwindow.autoLoginUser` 只写 plist key，nix-darwin **不会**写 `/etc/kcpassword`。完整链需要：(a) **必须关 FileVault**（Apple Silicon 加密盘 pre-boot auth 跨不过去，Apple 官方明确 FileVault 开启时禁用 automatic login），(b) **首次手动在系统设置里输一次密码**让系统生成 `/etc/kcpassword`，(c) 这俩做完才轮到 nix 的 plist key 起作用。
+- **Location Services 关掉**：写 `/var/db/locationd/...ByHost/com.apple.locationd` 的 `LocationServicesEnabled` plist key（DISA STIG V-268480 / CIS macOS 15 L2 §2.6.1.1）。必须用 `sudo -u _locationd defaults -currentHost write ...`，否则归属不对 locationd 不读。**关 location 后自动时区也失效** → 必须显式 `time.timeZone`（mac-mini 写死 `Asia/Shanghai`；macbook-air 不写以保留出差自动切换）。
+- **pmset 与 `power.*` 双保险**：`power.restartAfterPowerFailure` + `pmset -a autorestart 1` 同时写。M1 笔记本上 `systemsetup -setRestartPowerFailure` 有静默失败案例（nix-darwin#1236），pmset 兜底。Mac mini 桌面机受影响小但留着无害。
+- **pmset 上不要加的两条**：(1) `pmset -a powernap 0` —— Power Nap 在 Apple Silicon 上不存在（Apple Support 原话 "only available on Intel-based Mac computers"），写了无效；(2) `pmset -a womp 1` —— 与 `networking.wakeOnLan.enable = true` 完全重复（底层都是 `systemsetup -setWakeOnNetworkAccess`）。
+- **`pmset -a autopoweroff 0 / standby 0`** 必须保留：Apple Silicon Mac mini 默认会进类休眠的"假关机"，影响 24/7 可达性。
+- **Screen Sharing 不能用 launchctl 启用**：macOS 12.1+ 起 `launchctl enable system/com.apple.screensharing` + `kickstart` 都无法完整启用屏幕共享，必须手动在 System Settings → 通用 → 共享 里开。不要在 activation script 里加这种命令，纯噪音。
+
+### MacBook Air（日用笔记本）
+
+- **用纯 pmset 而非 `power.sleep.*` 是有意的**：后者走 `systemsetup -setComputerSleep Never` 会同时屏蔽合盖睡眠，笔记本要保留合盖能睡。不要"优化"成 nix-darwin 的高层 option。
+- 导入 `daily.nix` + 自己加 `thaw`（刘海菜单栏，mini 没刘海所以不共享）。
 
 ## Mihomo Gateway
 
@@ -194,3 +213,4 @@ Use the new names:
 ## Conventions
 
 - Commit messages and in-file comments are written in Chinese (zh-CN). Follow conventional commits: `<type>(<scope>): <desc>` — e.g. `feat(home): 新增 yt-dlp 视频下载工具`, `docs(agents): 同步 overlay 与 nixPath shim 现状`. Match this style when adding new commits/comments.
+- **注释最小化**：用户偏好"代码即文档"。只留**从 option/cask 名字推不出的 WHY**（如 FileVault 前置、`idleTime` 用 `-currentHost` 兜底、cyberduck 那个魔法数字），**不写**重述代码做什么的（如 cask 名后面跟"远程桌面"、`option = false` 后面跟"关闭 X"）。Decision rationale 留在 commit message 里，不灌进文件。
