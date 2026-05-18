@@ -48,8 +48,7 @@
     };
     CustomUserPreferences = {
       "ch.sudo.cyberduck" = {
-        # 把捐赠提示日期设到极远的未来
-        "donate.reminder.date" = 253402300799000;
+        "donate.reminder.date" = 253402300799000; # 极远的未来
       };
       "com.apple.finder" = {
         WarnOnEmptyTrash = false;
@@ -57,8 +56,7 @@
     };
   };
 
-  # screensaver.idleTime 在多数 macOS 上只读 per-host domain，nix-darwin 写
-  # 全局 domain 不生效，用 -currentHost 兜底。
+  # screensaver.idleTime 只读 per-host domain，用 -currentHost 兜底
   system.activationScripts.postActivation.text = ''
     launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
       defaults -currentHost write com.apple.screensaver idleTime -int 0
@@ -69,7 +67,6 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
-    # 每台 Mac 都要的共同基线；仅日用机用的放 daily.nix，单机用的放 hosts/<host>。
     casks = [
       "1password"
       "ghostty"
@@ -82,7 +79,6 @@
       "keka"
       "mos"
       "raycast"
-      # Office：服务器也可能处理文档；用独立 cask 避开 microsoft-office 套装带的 Outlook/OneNote/OneDrive
       "microsoft-word"
       "microsoft-excel"
       "microsoft-powerpoint"

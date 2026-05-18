@@ -26,7 +26,7 @@
       "tencent-meeting"
       "termius"
       "wechat"
-      "windows-app" # 远程桌面，原 microsoft-remote-desktop 已改名
+      "windows-app"
       "winbox"
     ];
 

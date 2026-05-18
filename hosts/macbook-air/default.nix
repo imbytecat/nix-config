@@ -4,11 +4,10 @@
   imports = [ ../../modules/darwin/daily.nix ];
 
   homebrew.casks = [
-    "thaw" # 刘海屏菜单栏管理
+    "thaw"
   ];
 
-  # 用纯 pmset 而不是 power.sleep.*：后者走 systemsetup -setComputerSleep Never
-  # 会连合盖睡眠也屏蔽，笔记本不能要。
+  # 不用 power.sleep.*：systemsetup -setComputerSleep Never 会屏蔽合盖睡眠
   system.activationScripts.postActivation.text = ''
     pmset -a displaysleep 0
     pmset -a sleep 0
