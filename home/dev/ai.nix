@@ -4,6 +4,7 @@ let
   tomlFormat = pkgs.formats.toml { };
 
   claudeCodeSettings = {
+    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     attribution = {
       commit = "";
       pr = "";
@@ -24,15 +25,18 @@ let
   };
 
   codexConfig = {
-    model = "gpt-5-codex";
-    model_provider = "ai-gateway";
-    approval_policy = "on-request";
+    model_provider = "furtherverse";
+    model = "gpt-5.5";
+    model_reasoning_effort = "high";
+    disable_response_storage = true;
+    model_context_window = 1000000;
+    model_auto_compact_token_limit = 400000;
 
-    model_providers.ai-gateway = {
-      name = "AI Gateway";
+    model_providers.furtherverse = {
+      name = "Furtherverse";
       base_url = "https://ai-gateway.furtherverse.com/v1";
+      wire_api = "responses";
       env_key = "AI_GATEWAY_API_KEY";
-      wire_api = "chat";
     };
   };
 in
