@@ -17,6 +17,10 @@ in
     set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
     set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
     set -gx TANSTACK_API_KEY "{{ op://Developer/TanStack API/credential }}"
+
+    # Claude Code → AI Gateway (Anthropic 兼容；Claude 自己拼 /v1/messages)
+    set -gx ANTHROPIC_BASE_URL "{{ op://Developer/AI Gateway API/URL }}"
+    set -gx ANTHROPIC_AUTH_TOKEN "{{ op://Developer/AI Gateway API/credential }}"
   '';
 
   home.sessionPath = [
