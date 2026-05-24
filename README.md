@@ -6,8 +6,8 @@ nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备
 
 | 设备 | 平台 | Flake 目标 | 主机名 | 备注 |
 |------|------|-----------|--------|------|
-| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 服务器 / 写代码机器，不导入 `modules/darwin/daily.nix` |
-| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 日用，导入 `modules/darwin/daily.nix` |
+| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 桌面主力，常开机做 SSH/Tailscale 入口 |
+| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 出门笔记本 |
 | Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
 | Mihomo Gateway | x86_64-linux | `gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
@@ -32,10 +32,10 @@ curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```bash
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
-sudo nix run nix-darwin -- switch --flake .#macbook-air
+sudo nix run nix-darwin -- switch --flake .#mac-mini
 ```
 
-之后日常重建：`just switch macbook-air`
+之后日常重建：`just switch mac-mini`（或 `macbook-air`）
 
 ### WSL
 
@@ -196,7 +196,7 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
 - 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
-- Homebrew cask → 日用 GUI 应用进 `modules/darwin/daily.nix`（macbook-air 导入）；服务器/单机 cask 进 `hosts/<host>/default.nix`；框架开关在 `modules/darwin/default.nix`
+- Homebrew cask → 两台 Mac 都装的进 `modules/darwin/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 macbook-air）
 - PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment

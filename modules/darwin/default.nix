@@ -69,26 +69,52 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
+    taps = [
+      "goooler/repo"
+    ];
+
     brews = [
       "mole" # macOS 清理工具
     ];
 
     casks = [
       "1password"
-      "ghostty"
-      "visual-studio-code"
-      "tailscale-app"
-      "orbstack"
-      "uuremote"
-      "ungoogled-chromium"
+      "brave-browser"
+      "cherry-studio"
       "cyberduck"
+      "dbeaver-community"
+      "discord"
+      "feishu"
+      "ghostty"
+      "goooler/repo/fl-clash"
       "keka"
-      "mos"
-      "raycast"
-      "microsoft-word"
+      "logitech-g-hub"
       "microsoft-excel"
       "microsoft-powerpoint"
+      "microsoft-word"
+      "mos"
+      "movist-pro"
+      "openscad@snapshot"
+      "orbstack"
+      "qq"
+      "raycast"
+      "spotify"
+      "tailscale-app"
+      "telegram-desktop"
+      "tencent-meeting"
+      "termius"
+      "ungoogled-chromium"
+      "uuremote"
+      "visual-studio-code"
+      "wechat"
+      "windows-app"
+      "winbox"
     ];
+
+    masApps = {
+      "iPreview" = 1519213509;
+      "Xnip" = 1221250572;
+    };
 
     onActivation = {
       autoUpdate = true;

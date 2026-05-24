@@ -1,6 +1,8 @@
-{ username, ... }:
+{ ... }:
 
 {
+  # 桌面主力机：常开机以保证 SSH / Tailscale 远程可达。Apple Silicon Mac mini
+  # 默认会进类休眠的"假关机"，下面 autopoweroff/standby 必须显式关掉。
   power.sleep.computer = "never";
   power.sleep.display = "never";
   power.sleep.harddisk = "never";
@@ -13,10 +15,7 @@
   # 关位置服务后自动时区也跟着失效，要静态写死
   time.timeZone = "Asia/Shanghai";
 
-  # 前置：关 FileVault；首次手动到系统设置输密码生成 /etc/kcpassword
-  system.defaults.loginwindow.autoLoginUser = username;
   system.defaults.loginwindow.GuestEnabled = false;
-  system.defaults.SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
 
   system.activationScripts.postActivation.text = ''
     pmset -a autorestart 1

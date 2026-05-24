@@ -1,10 +1,8 @@
 { ... }:
 
 {
-  imports = [ ../../modules/darwin/daily.nix ];
-
   homebrew.casks = [
-    "thaw"
+    "thaw" # 刘海菜单栏，mini 没刘海所以不共享
   ];
 
   # 不用 power.sleep.*：systemsetup -setComputerSleep Never 会屏蔽合盖睡眠
