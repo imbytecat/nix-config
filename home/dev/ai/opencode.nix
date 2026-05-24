@@ -269,6 +269,8 @@ let
   };
 in
 {
+  home.packages = [ pkgs.llm-agents.opencode ];
+
   xdg.configFile = lib.mkMerge [
     {
       "opencode/opencode.json".source =
