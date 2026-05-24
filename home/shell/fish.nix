@@ -119,14 +119,16 @@ in
         };
 
         omo = {
-          description = "Launch OpenCode with the manual OMO config profile";
+          description = "Launch OpenCode with the omo-claude profile";
           body = ''
-            set -l omo_config "$HOME/.config/opencode-profiles/omo"
-            if not test -d "$omo_config"
-              echo "omo: config directory not found: $omo_config" >&2
-              return 1
-            end
-            env OPENCODE_CONFIG_DIR="$omo_config" opencode $argv
+            env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo-claude" opencode $argv
+          '';
+        };
+
+        omog = {
+          description = "Launch OpenCode with the omo-gpt profile";
+          body = ''
+            env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo-gpt" opencode $argv
           '';
         };
       }
