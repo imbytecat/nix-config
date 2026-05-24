@@ -4,9 +4,9 @@
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    matchBlocks."*" = {
-      identityFile = "~/.ssh/id_ed25519";
-      addKeysToAgent = "yes";
+    settings."*" = {
+      IdentityFile = "~/.ssh/id_ed25519";
+      AddKeysToAgent = "yes";
     };
   };
 }
