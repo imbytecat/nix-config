@@ -35,10 +35,7 @@ let
   };
 in
 {
-  home.packages = with pkgs; [
-    llm-agents.claude-code
-    llm-agents.skills
-  ];
+  home.packages = [ pkgs.llm-agents.claude-code ];
 
   home.file.".claude/settings.json".source =
     jsonFormat.generate "claude-settings.json" claudeCodeSettings;
