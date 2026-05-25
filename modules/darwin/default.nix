@@ -84,6 +84,7 @@
 
     taps = [
       "goooler/repo"
+      "imbytecat/tap"
     ];
 
     brews = [
@@ -100,6 +101,7 @@
       "feishu"
       "ghostty"
       "goooler/repo/fl-clash"
+      "imbytecat/tap/ugreen-nas"
       "keka"
       "logitech-g-hub"
       "microsoft-excel"
