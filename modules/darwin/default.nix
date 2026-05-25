@@ -101,6 +101,7 @@
       "feishu"
       "ghostty"
       "goooler/repo/fl-clash"
+      "imbytecat/tap/doubao-ime"
       "imbytecat/tap/ugreen-nas"
       "keka"
       "logitech-g-hub"
