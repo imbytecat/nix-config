@@ -12,6 +12,9 @@
 
   networking.wakeOnLan.enable = true;
 
+  # 关位置服务后自动时区也跟着失效，要静态写死
+  time.timeZone = "Asia/Shanghai";
+
   system.defaults.loginwindow.GuestEnabled = false;
 
   system.activationScripts.postActivation.text = ''
@@ -20,10 +23,7 @@
     pmset -a standby 0
     pmset -a ttyskeepawake 1
 
-    # 开定位 + 自动时区。改完要 kickstart locationd 才能立刻生效
-    sudo -u _locationd defaults -currentHost write com.apple.locationd LocationServicesEnabled -bool true
-    defaults write /Library/Preferences/com.apple.timezone.auto Active -bool true
-    launchctl kickstart -k system/com.apple.locationd
+    sudo -u _locationd defaults -currentHost write com.apple.locationd LocationServicesEnabled -bool false
   '';
 
   system.stateVersion = 6;
