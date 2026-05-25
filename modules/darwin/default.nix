@@ -55,13 +55,26 @@
       "com.apple.finder" = {
         WarnOnEmptyTrash = false;
       };
+      # Raycast 接管 ⌘Space（下面 activation 会把 Spotlight 那两个快捷键关掉）
+      "com.raycast.macos".raycastGlobalHotkey = "Command-49";
     };
   };
 
   # screensaver.idleTime 只读 per-host domain，用 -currentHost 兜底
   system.activationScripts.postActivation.text = ''
-    launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
+    user_uid="$(id -u -- ${username})"
+
+    launchctl asuser "$user_uid" sudo --user=${username} -- \
       defaults -currentHost write com.apple.screensaver idleTime -int 0
+
+    # 关 Spotlight 两个快捷键：64=⌘Space (Spotlight)、65=⌥⌘Space (Finder 搜索窗口)。
+    # 必须 -dict-add 改单个 key，整体写会覆盖系统默认的几百条快捷键映射。
+    launchctl asuser "$user_uid" sudo --user=${username} -- \
+      defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
+    launchctl asuser "$user_uid" sudo --user=${username} -- \
+      defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
+    launchctl asuser "$user_uid" sudo --user=${username} -- \
+      /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
   '';
 
   homebrew = {
