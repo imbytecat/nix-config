@@ -43,8 +43,6 @@
       AppleShowAllExtensions = true;
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
-      # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
-      TISRomanSwitchState = 1;
     };
     screensaver = {
       askForPassword = false;
@@ -56,6 +54,10 @@
       };
       "com.apple.finder" = {
         WarnOnEmptyTrash = false;
+      };
+      # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
+      "NSGlobalDomain" = {
+        TISRomanSwitchState = 1;
       };
       # Raycast 接管 ⌘Space（下面 activation 会把 Spotlight 那两个快捷键关掉）
       "com.raycast.macos".raycastGlobalHotkey = "Command-49";
