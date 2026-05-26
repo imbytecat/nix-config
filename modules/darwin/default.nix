@@ -43,6 +43,8 @@
       AppleShowAllExtensions = true;
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
+      # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
+      TISRomanSwitchState = 1;
     };
     screensaver = {
       askForPassword = false;
