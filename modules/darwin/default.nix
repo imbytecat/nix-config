@@ -128,6 +128,7 @@
       "uuremote"
       "visual-studio-code"
       "wechat"
+      "wechatwork"
       "windows-app"
       "winbox"
     ];
