@@ -36,6 +36,7 @@
       wvous-br-corner = 1;
     };
     finder = {
+      AppleShowAllFiles = true;
       FXPreferredViewStyle = "clmv";
       NewWindowTarget = "Home";
     };
