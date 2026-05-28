@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   programs.fzf = {
@@ -37,8 +37,16 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
-    config.global = {
-      warn_timeout = "120s";
+    config = {
+      global = {
+        warn_timeout = "120s";
+      };
+      whitelist = {
+        prefix = [
+          "${config.home.homeDirectory}/Developer"
+          "${config.home.homeDirectory}/nix-config"
+        ];
+      };
     };
   };
 
