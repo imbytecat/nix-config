@@ -113,6 +113,7 @@
       "microsoft-excel"
       "microsoft-powerpoint"
       "microsoft-word"
+      "moonlight"
       "mos"
       "movist-pro"
       "openscad@snapshot"
