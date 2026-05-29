@@ -21,7 +21,7 @@ let
 
     model_providers.furtherverse = {
       name = "Furtherverse";
-      base_url = "https://ai-gateway.furtherverse.com/v1";
+      base_url = "https://ai-gateway.furtherverse.net/v1";
       env_key = "AI_GATEWAY_API_KEY";
       wire_api = "responses";
     };
