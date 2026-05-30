@@ -143,6 +143,8 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "zap";
+      # Homebrew 5.1+ 要求 `brew bundle install --cleanup` 显式带 --force / --force-cleanup / $HOMEBREW_ASK
+      extraFlags = [ "--force" ];
     };
   };
 }
