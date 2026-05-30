@@ -22,8 +22,8 @@ let
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
       models = {
-        "claude-opus-4-7" = {
-          name = "Claude Opus 4.7";
+        "claude-opus-4-8" = {
+          name = "Claude Opus 4.8";
           reasoning = true;
           modalities = {
             input = [ "text" "image" "pdf" ];
@@ -160,7 +160,7 @@ let
   # omo 两套 profile 用同一份 opencode.json
   omoOpencode = baseOpencode // {
     plugin = [ "oh-my-openagent@latest" ];
-    model = "anthropic/claude-opus-4-7";
+    model = "anthropic/claude-opus-4-8";
     small_model = "openai/gpt-5.4-mini";
   };
 
@@ -222,14 +222,14 @@ let
   omoClaude = {
     "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
-      sisyphus = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
+      sisyphus = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
       hephaestus = { model = "openai/gpt-5.5"; variant = "high"; };
       oracle = { model = "openai/gpt-5.5"; variant = "high"; };
       librarian = { model = "openai/gpt-5.4-mini"; };
       explore = { model = "openai/gpt-5.4-mini"; };
       multimodal-looker = { model = "openai/gpt-5.5"; variant = "medium"; };
-      prometheus = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
-      metis = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
+      prometheus = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
+      metis = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
       momus = { model = "openai/gpt-5.5"; variant = "xhigh"; };
       atlas = { model = "furtherverse/kimi-k2.6"; };
       sisyphus-junior = { model = "furtherverse/kimi-k2.6"; };
@@ -241,7 +241,7 @@ let
       artistry = { model = "google/gemini-3.1-pro-preview"; variant = "high"; };
       quick = { model = "openai/gpt-5.4-mini"; };
       unspecified-low = { model = "furtherverse/kimi-k2.6"; };
-      unspecified-high = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
+      unspecified-high = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
       writing = { model = "furtherverse/kimi-k2.6"; };
     };
     experimental = omoExperimental;
