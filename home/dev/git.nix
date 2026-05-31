@@ -1,6 +1,8 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
+  home.packages = [ pkgs.gh ];
+
   programs.git = {
     enable = true;
     signing.format = null;
@@ -38,10 +40,5 @@
       update.method = "never";
       disableStartupPopups = true;
     };
-  };
-
-  programs.gh = {
-    enable = true;
-    settings.git_protocol = "ssh";
   };
 }
