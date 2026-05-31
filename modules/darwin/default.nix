@@ -107,6 +107,7 @@
       "ghostty"
       "goooler/repo/fl-clash"
       "imbytecat/tap/doubao-ime"
+      "imbytecat/tap/roxy-browser"
       "imbytecat/tap/ugreen-nas"
       "keka"
       "logitech-g-hub"
