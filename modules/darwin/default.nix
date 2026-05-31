@@ -16,6 +16,19 @@
 
   system.startup.chime = false;
 
+  # SMB 客户端调优(挂载时读取,改完需重新挂载共享才生效)
+  # 仅保留 Apple 官方明确推荐的项,详见 https://support.apple.com/en-us/102050
+  # - protocol_vers_map=6: 只用 SMB2+SMB3,禁掉对老旧不安全 SMB1 的回退
+  # - port445=no_netbios: 禁 NetBIOS,关闭 139 端口与 SMB1 回退路径
+  # - mc_prefer_wired=yes: 多通道时优先有线网卡(MacBook Air 有 Wi-Fi 时受益)
+  # 不再写 signing_required(默认就是 no)、dir_cache_*(Apple 不推荐拉长缓存)
+  environment.etc."nsmb.conf".text = ''
+    [default]
+    protocol_vers_map=6
+    port445=no_netbios
+    mc_prefer_wired=yes
+  '';
+
   users.knownUsers = [ username ];
   users.users.${username} = {
     home = "/Users/${username}";
@@ -55,6 +68,10 @@
       };
       "com.apple.finder" = {
         WarnOnEmptyTrash = false;
+      };
+      # 不在网络共享(SMB/NFS)上写 .DS_Store,减少 Finder 浏览/拷贝时的元数据往返
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
       };
       # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
       "NSGlobalDomain" = {
