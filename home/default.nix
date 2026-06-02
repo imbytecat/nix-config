@@ -45,6 +45,9 @@
 
     ffmpeg
     pandoc
+
+    trzsz-ssh
+    tsshd
   ];
 
   programs.nh = {
