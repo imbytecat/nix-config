@@ -113,6 +113,12 @@ let
       npm = "@ai-sdk/openai-compatible";
       options = gatewayOptions;
       models = {
+        "deepseek-v4-flash" = {
+          name = "DeepSeek V4 Flash";
+          reasoning = true;
+          modalities = { input = [ "text" ]; output = [ "text" ]; };
+          limit = { context = 1000000; output = 384000; };
+        };
         "deepseek-v4-pro" = {
           name = "DeepSeek V4 Pro";
           reasoning = true;
@@ -134,17 +140,41 @@ let
           };
           limit = { context = 262144; output = 65536; };
         };
+        "mimo-v2.5" = {
+          name = "MiMo-V2.5";
+          reasoning = true;
+          modalities = { input = [ "text" ]; output = [ "text" ]; };
+          limit = { context = 1048576; output = 131072; };
+        };
         "mimo-v2.5-pro" = {
           name = "MiMo-V2.5-Pro";
           reasoning = true;
           modalities = { input = [ "text" ]; output = [ "text" ]; };
           limit = { context = 1048576; output = 131072; };
         };
-        "minimax-m2.7" = {
-          name = "MiniMax M2.7";
+        "minimax-m3" = {
+          name = "MiniMax M3";
+          reasoning = true;
+          modalities = {
+            input = [ "text" "image" "video" ];
+            output = [ "text" ];
+          };
+          limit = { context = 512000; output = 128000; };
+        };
+        "qwen3.6-plus" = {
+          name = "Qwen3.6 Plus";
+          reasoning = true;
+          modalities = {
+            input = [ "text" "image" "video" ];
+            output = [ "text" ];
+          };
+          limit = { context = 1000000; output = 65536; };
+        };
+        "qwen3.7-max" = {
+          name = "Qwen3.7 Max";
           reasoning = true;
           modalities = { input = [ "text" ]; output = [ "text" ]; };
-          limit = { context = 204800; output = 131072; };
+          limit = { context = 1000000; output = 65536; };
         };
       };
     };
@@ -160,13 +190,13 @@ let
 
   defaultOpencode = baseOpencode // {
     model = "furtherverse/mimo-v2.5-pro";
-    small_model = "furtherverse/minimax-m2.7";
+    small_model = "furtherverse/deepseek-v4-flash";
   };
 
   omoOpencode = baseOpencode // {
     plugin = [ "oh-my-openagent@latest" ];
     model = "anthropic/claude-opus-4-7";
-    small_model = "openai/gpt-5.4-mini";
+    small_model = "openai/deepseek-v4-flash";
   };
 
   tui = {
