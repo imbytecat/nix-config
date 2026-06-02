@@ -30,7 +30,6 @@
 
   services.qemuGuest.enable = true;
 
-  # root-only 硬化 SSH
   services.openssh = {
     enable = true;
     settings = {
