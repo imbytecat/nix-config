@@ -7,10 +7,6 @@
 let
   jsonFormat = pkgs.formats.json { };
 
-  # ============================================================
-  # 共用的 AI Gateway providers / models
-  # default 和 omo 走的是同一条 AI Gateway，所以同一张表
-  # ============================================================
   gatewayOptions = {
     baseURL = "{env:AI_GATEWAY_BASE_URL}/v1";
     apiKey = "{env:AI_GATEWAY_API_KEY}";
@@ -24,6 +20,15 @@ let
       models = {
         "claude-opus-4-8" = {
           name = "Claude Opus 4.8";
+          reasoning = true;
+          modalities = {
+            input = [ "text" "image" "pdf" ];
+            output = [ "text" ];
+          };
+          limit = { context = 1000000; output = 128000; };
+        };
+        "claude-opus-4-7" = {
+          name = "Claude Opus 4.7";
           reasoning = true;
           modalities = {
             input = [ "text" "image" "pdf" ];
@@ -92,8 +97,8 @@ let
           };
           limit = { context = 1048576; output = 65536; };
         };
-        "gemini-3-flash-preview" = {
-          name = "Gemini 3 Flash";
+        "gemini-3.5-flash" = {
+          name = "Gemini 3.5 Flash";
           reasoning = true;
           modalities = {
             input = [ "text" "image" "video" "audio" "pdf" ];
@@ -108,6 +113,12 @@ let
       npm = "@ai-sdk/openai-compatible";
       options = gatewayOptions;
       models = {
+        "deepseek-v4-pro" = {
+          name = "DeepSeek V4 Pro";
+          reasoning = true;
+          modalities = { input = [ "text" ]; output = [ "text" ]; };
+          limit = { context = 1000000; output = 384000; };
+        };
         "glm-5.1" = {
           name = "GLM-5.1";
           reasoning = true;
@@ -123,14 +134,11 @@ let
           };
           limit = { context = 262144; output = 65536; };
         };
-        "kimi-k2.6-turbo" = {
-          name = "Kimi K2.6 Turbo";
+        "mimo-v2.5-pro" = {
+          name = "MiMo-V2.5-Pro";
           reasoning = true;
-          modalities = {
-            input = [ "text" "image" ];
-            output = [ "text" ];
-          };
-          limit = { context = 262000; output = 262000; };
+          modalities = { input = [ "text" ]; output = [ "text" ]; };
+          limit = { context = 1048576; output = 131072; };
         };
         "minimax-m2.7" = {
           name = "MiniMax M2.7";
@@ -142,7 +150,6 @@ let
     };
   };
 
-  # 所有 opencode profile 共用的脚手架（schema / providers / permission / 等）
   baseOpencode = {
     "$schema" = "https://opencode.ai/config.json";
     autoupdate = false;
@@ -151,16 +158,14 @@ let
     experimental.disable_paste_summary = true;
   };
 
-  # 默认 ~/.config/opencode：kimi 主力，不挂 omo 插件
   defaultOpencode = baseOpencode // {
-    model = "furtherverse/kimi-k2.6-turbo";
+    model = "furtherverse/mimo-v2.5-pro";
     small_model = "furtherverse/minimax-m2.7";
   };
 
-  # omo 两套 profile 用同一份 opencode.json
   omoOpencode = baseOpencode // {
     plugin = [ "oh-my-openagent@latest" ];
-    model = "anthropic/claude-opus-4-8";
+    model = "anthropic/claude-opus-4-7";
     small_model = "openai/gpt-5.4-mini";
   };
 
@@ -177,9 +182,6 @@ let
     - Keep code, commands, file paths, logs, and identifiers unchanged.
   '';
 
-  # ============================================================
-  # oh-my-openagent：两套 variant 仅 4 个字段不同，靠 recursiveUpdate 派生
-  # ============================================================
   omoExperimental = {
     disable_omo_env = true;
     dynamic_context_pruning = {
@@ -218,18 +220,17 @@ let
     git_env_prefix = "GIT_MASTER=1";
   };
 
-  # Claude variant（主力 = Claude Opus）
   omoClaude = {
     "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
-      sisyphus = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
+      sisyphus = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
       hephaestus = { model = "openai/gpt-5.5"; variant = "high"; };
       oracle = { model = "openai/gpt-5.5"; variant = "high"; };
       librarian = { model = "openai/gpt-5.4-mini"; };
       explore = { model = "openai/gpt-5.4-mini"; };
       multimodal-looker = { model = "openai/gpt-5.5"; variant = "medium"; };
-      prometheus = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
-      metis = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
+      prometheus = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
+      metis = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
       momus = { model = "openai/gpt-5.5"; variant = "xhigh"; };
       atlas = { model = "furtherverse/kimi-k2.6"; };
       sisyphus-junior = { model = "furtherverse/kimi-k2.6"; };
@@ -241,14 +242,13 @@ let
       artistry = { model = "google/gemini-3.1-pro-preview"; variant = "high"; };
       quick = { model = "openai/gpt-5.4-mini"; };
       unspecified-low = { model = "furtherverse/kimi-k2.6"; };
-      unspecified-high = { model = "anthropic/claude-opus-4-8"; variant = "max"; };
+      unspecified-high = { model = "anthropic/claude-opus-4-7"; variant = "max"; };
       writing = { model = "furtherverse/kimi-k2.6"; };
     };
     experimental = omoExperimental;
     git_master = omoGitMaster;
   };
 
-  # GPT variant：sisyphus / prometheus / metis / unspecified-high 切到 gpt-5.5
   omoGpt = lib.recursiveUpdate omoClaude {
     agents = {
       sisyphus = { model = "openai/gpt-5.5"; variant = "high"; };
