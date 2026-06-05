@@ -265,10 +265,12 @@ just lsp <host>              # 生成 .vscode/settings.json，nixd 补全感知 
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
 
-裸机克隆后第一次跑 just 之前，本机可能还没装齐工具：
+仓库带 `.envrc`（`use flake`），`home/shell/tools.nix` 已把 `~/nix-config` 加进 direnv whitelist，`cd` 进来即自动激活 dev shell，拿到 `just / jq / nixfmt / nixd / statix / nvd`，结果缓存到 `.direnv/`，flake.lock 不变则不重算。
+
+裸机克隆后 direnv 还没装齐之前先手动一次：
 
 ```bash
-nix develop      # 拉 just / jq / nixfmt / nixd / statix / nvd 临时 shell
+nix develop      # 等价的临时 shell
 ```
 
 ## Shell
