@@ -119,6 +119,7 @@ deploy-boot host remote:
       --use-substitutes
 
 # --build-host == --target-host：目标机自己 build，避开 Mac 跨架构编译 Linux
+# --no-reexec：darwin 没法 exec target 的 linux nixos-rebuild，显式跳过这一步
 [doc('远程更新（macOS 跨架构，目标机自己 build）')]
 [macos]
 [group('remote')]
@@ -128,7 +129,8 @@ deploy host remote:
       --target-host "root@{{remote}}" \
       --build-host "root@{{remote}}" \
       --sudo \
-      --use-substitutes
+      --use-substitutes \
+      --no-reexec
 
 [doc('远程更新（macOS 跨架构，仅注册下次启动）')]
 [macos]
@@ -139,7 +141,8 @@ deploy-boot host remote:
       --target-host "root@{{remote}}" \
       --build-host "root@{{remote}}" \
       --sudo \
-      --use-substitutes
+      --use-substitutes \
+      --no-reexec
 
 # ─── Flake / Nix ──────────────────────────────────────────
 
