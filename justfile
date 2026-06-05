@@ -54,6 +54,7 @@ eval:
 [group('check')]
 eval:
     @nix eval .#nixosConfigurations.wsl.config.system.build.toplevel > /dev/null && echo "wsl: ok"
+    @nix eval .#nixosConfigurations.desktop.config.system.build.toplevel > /dev/null && echo "desktop: ok"
     @nix eval .#nixosConfigurations.gateway.config.system.build.toplevel > /dev/null && echo "gateway: ok"
 
 [doc('nix flake check —— 完整 flake 健全性检查')]

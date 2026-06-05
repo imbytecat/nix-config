@@ -80,6 +80,13 @@
           ];
         };
 
+        desktop = mylib.mkNixos {
+          hostname = "awesome-desktop";
+          system = "x86_64-linux";
+          username = "imbytecat";
+          extraModules = [ ./hosts/desktop ];
+        };
+
         gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
           extraModules = [

@@ -9,6 +9,7 @@ nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备
 | Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 桌面主力，常开机做 SSH/Tailscale 入口 |
 | MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 出门笔记本 |
 | Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
+| Desktop PC | x86_64-linux | `desktop` | awesome-desktop | 开发工作站，UEFI + systemd-boot + NetworkManager |
 | Mihomo Gateway | x86_64-linux | `gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
@@ -71,6 +72,110 @@ sudo rm -rf /home/nixos
 ```
 
 之后日常重建：`just switch wsl`
+
+### Desktop
+
+裸机 amd64 工作站，UEFI + systemd-boot + NetworkManager。首次用 NixOS minimal ISO 装机，之后跟 WSL/Mac 一样 `just switch desktop` 重建。
+
+<details>
+<summary><b>首次装机完整流程</b>（点开展开）</summary>
+
+#### 1. U 盘启动
+
+下载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso) 烧到 U 盘（dd / Rufus / Ventoy 均可），主板 **UEFI 模式**启动。进 live 环境后 `sudo -i` 提权。
+
+#### 2. 联网
+
+- 有线：通常自动起来，`ping 1.1.1.1` 确认
+- WiFi：`sudo systemctl start wpa_supplicant && wpa_cli`（或更友好的 `nmtui`）
+
+#### 3. 分区 + 挂载
+
+按实际硬盘改 `nvme0n1` / `sda` / `vda`。下面以 NVMe + 512M ESP + 剩余 ext4 为例：
+
+```bash
+parted /dev/nvme0n1 -- mklabel gpt
+parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 513MiB
+parted /dev/nvme0n1 -- set 1 esp on
+parted /dev/nvme0n1 -- mkpart primary 513MiB 100%
+
+mkfs.fat -F32 -n boot /dev/nvme0n1p1
+mkfs.ext4 -L nixos /dev/nvme0n1p2
+
+mount /dev/disk/by-label/nixos /mnt
+mkdir -p /mnt/boot
+mount /dev/disk/by-label/boot /mnt/boot
+```
+
+想用 btrfs / zfs / LUKS 加密，替换 `mkfs.*` 与 `mount` 即可，下一步 `nixos-generate-config` 会按当前挂载点重新生成 `hardware-configuration.nix`。
+
+#### 4. 拉仓库 + 生成 hardware-configuration.nix
+
+```bash
+nix-shell -p git
+git clone <repo-url> /mnt/etc/nixos-config
+nixos-generate-config --root /mnt --show-hardware-config \
+  > /mnt/etc/nixos-config/hosts/desktop/hardware-configuration.nix
+```
+
+生成内容含 `fileSystems` / `boot.initrd.availableKernelModules` 等机器特有项，覆盖掉仓库里的占位文件即可。
+
+#### 5. 安装 + 设密码 + 重启
+
+```bash
+nixos-install --flake /mnt/etc/nixos-config#desktop
+# 提示输入 root 密码
+nixos-enter --root /mnt -c 'passwd imbytecat'   # 设置日用账号密码（modules/nixos 没设 initialPassword）
+reboot
+```
+
+#### 6. 重启后接管
+
+```bash
+sudo mv /etc/nixos-config ~/nix-config
+sudo chown -R imbytecat:users ~/nix-config
+cd ~/nix-config
+just switch desktop                              # 验证可重建
+just lsp desktop                                 # VSCode nixd 补全感知 desktop options
+git add hosts/desktop/hardware-configuration.nix
+git commit -m "desktop: add hardware-configuration"
+```
+
+</details>
+
+<details>
+<summary><b>可选加料</b>（DE / Tailscale / GPU / zram）</summary>
+
+在 `hosts/desktop/default.nix` 里按需追加，加完 `just switch desktop`：
+
+```nix
+# GNOME（X11/Wayland 都可）
+services.xserver.enable = true;
+services.displayManager.gdm.enable = true;
+services.desktopManager.gnome.enable = true;
+
+# 或 Hyprland（Wayland tiling）
+programs.hyprland.enable = true;
+
+# Tailscale（跟 Mac mini 组同一个 tailnet）
+services.tailscale.enable = true;
+
+# NVIDIA 显卡
+hardware.nvidia = {
+  modesetting.enable = true;
+  open = false;  # 闭源驱动；RTX 20 系以上可改 true
+  package = config.boot.kernelPackages.nvidiaPackages.stable;
+};
+services.xserver.videoDrivers = [ "nvidia" ];
+
+# AMD 显卡
+hardware.amdgpu.opencl.enable = true;
+
+# zram swap（内存大可省 SSD 寿命）
+zramSwap.enable = true;
+```
+
+</details>
 
 ### Mihomo Gateway
 
