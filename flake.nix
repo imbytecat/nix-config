@@ -1,21 +1,31 @@
 {
-  description = "Multi-platform Nix configuration — nix-darwin / NixOS-WSL";
+  description = "Multi-platform Nix configuration — nix-darwin + NixOS";
+
+  # 首次 bootstrap 时让 nix 也走这些 cache（系统 nix.settings 在 switch 后才生效）
+  nixConfig = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://nixpkgs-unfree.cachix.org"
+      "https://cache.numtide.com"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
 
   inputs = {
-    # 主 nixpkgs 给 NixOS（WSL/gateway）用，跟 NixOS 集成测试推进
+    # nixos-unstable branch: 走 NixOS hydra 集成测试再推进，给本仓 NixOS host 用
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # darwin 单独 follow nixpkgs-unstable：推进条件更宽松，aarch64-darwin 命中率高于 nixos-unstable
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # nixpkgs-unstable branch: 推进更快、aarch64-darwin 命中率高于 nixos-unstable，
+    # darwin host 显式用这条。不是 darwin 专属，谁想跟更新都可以来这边
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了
     llm-agents.url = "github:numtide/llm-agents.nix";
-
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -51,44 +61,42 @@
     }@inputs:
     let
       mylib = import ./lib { inherit inputs; };
+      systems = [
+        "aarch64-darwin"
+        "x86_64-linux"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
       darwinConfigurations = {
-        mac-mini = mylib.mkDarwin {
+        awesome-mac-mini = mylib.mkDarwin {
           hostname = "awesome-mac-mini";
           system = "aarch64-darwin";
           username = "imbytecat";
-          extraModules = [ ./hosts/mac-mini ];
+          extraModules = [ ./hosts/awesome-mac-mini ];
         };
 
-        macbook-air = mylib.mkDarwin {
+        awesome-macbook-air = mylib.mkDarwin {
           hostname = "awesome-macbook-air";
           system = "aarch64-darwin";
           username = "imbytecat";
-          extraModules = [ ./hosts/macbook-air ];
+          extraModules = [ ./hosts/awesome-macbook-air ];
         };
       };
 
       nixosConfigurations = {
-        wsl = mylib.mkNixos {
-          hostname = "awesome-wsl";
+        # ── desktop ─────────────────────────────────────────
+        awesome-pc = mylib.mkNixos {
+          hostname = "awesome-pc";
           system = "x86_64-linux";
           username = "imbytecat";
-          extraModules = [
-            inputs.nixos-wsl.nixosModules.default
-            ./hosts/wsl
-          ];
+          extraModules = [ ./hosts/awesome-pc ];
         };
 
-        desktop = mylib.mkNixos {
-          hostname = "awesome-desktop";
-          system = "x86_64-linux";
-          username = "imbytecat";
-          extraModules = [ ./hosts/desktop ];
-        };
-
-        gateway = mylib.mkServer {
+        # ── server ──────────────────────────────────────────
+        mihomo-gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
+          system = "x86_64-linux";
           extraModules = [
             ./modules/gateway
             ./hosts/mihomo-gateway
@@ -96,7 +104,7 @@
         };
       };
 
-      packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (
+      packages = forAllSystems (
         system:
         let
           pkgs = import nixpkgs {
@@ -110,5 +118,28 @@
       );
 
       overlays.default = import ./overlays { inherit inputs; };
+
+      # `nix develop` 入口：把仓库需要的 CLI 工具都拉齐，不依赖宿主已装 home-manager
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              just
+              jq
+              nixfmt
+              nixd
+              statix
+              nvd
+            ];
+          };
+        }
+      );
+
+      # `nix fmt` 入口
+      formatter = forAllSystems (system: (import nixpkgs { inherit system; }).nixfmt);
     };
 }

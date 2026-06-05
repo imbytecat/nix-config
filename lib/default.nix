@@ -56,7 +56,7 @@ in
   mkServer =
     {
       hostname,
-      system ? "x86_64-linux",
+      system,
       extraModules ? [ ],
     }:
     lib.nixosSystem {
@@ -90,11 +90,11 @@ in
           ;
       };
       modules = [
-        # 显式注入 nixpkgs-darwin 实例化的 pkgs（aarch64-darwin 命中率高于 nixos-unstable）
+        # 显式注入 nixpkgs-unstable 实例化的 pkgs（aarch64-darwin 命中率高于 nixos-unstable）
         # 不走 nix-darwin.inputs.nixpkgs.follows 是为了避免 nix-darwin 内部 lib 与
         # modules/shared/nix.nix 的 nix.registry 设置冲突。参考 ryan4yin/nix-config。
         {
-          nixpkgs.pkgs = import inputs.nixpkgs-darwin {
+          nixpkgs.pkgs = import inputs.nixpkgs-unstable {
             inherit system;
             config.allowUnfree = true;
             overlays = [ inputs.self.overlays.default ];

@@ -1,8 +1,8 @@
 { ... }:
 
 {
-  # 桌面主力机：常开机以保证 SSH / Tailscale 远程可达。Apple Silicon Mac mini
-  # 默认会进类休眠的"假关机"，下面 autopoweroff/standby 必须显式关掉。
+  # 常开机做远程入口（SSH/Tailscale）。Apple Silicon Mac mini 默认会进类休眠的
+  # "假关机"，下面 autopoweroff/standby 必须显式关掉。
   power.sleep.computer = "never";
   power.sleep.display = "never";
   power.sleep.harddisk = "never";

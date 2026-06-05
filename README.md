@@ -1,18 +1,21 @@
 # Nix Config
 
-nix-darwin + NixOS-WSL + Home Manager + Flakes 声明式管理三台日用设备 + 一台单臂透明代理网关。
+nix-darwin + NixOS + Home Manager + Flakes 声明式管理两台 Mac + 一台 NixOS PC + 一台单臂透明代理网关。
 
 ## 设备
 
-| 设备 | 平台 | Flake 目标 | 主机名 | 备注 |
-|------|------|-----------|--------|------|
-| Mac Mini | aarch64-darwin | `mac-mini` | awesome-mac-mini | 桌面主力，常开机做 SSH/Tailscale 入口 |
-| MacBook Air | aarch64-darwin | `macbook-air` | awesome-macbook-air | 出门笔记本 |
-| Windows PC (WSL) | x86_64-linux | `wsl` | awesome-wsl | 日用 |
-| Desktop PC | x86_64-linux | `desktop` | awesome-desktop | 开发工作站，UEFI + systemd-boot + NetworkManager |
-| Mihomo Gateway | x86_64-linux | `gateway` | mihomo-gateway | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
+flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任一项就全改。
+
+| 设备 | 平台 | Flake 目标 / hostname / dir | 备注 |
+|------|------|----------------------------|------|
+| Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口 |
+| MacBook Air | aarch64-darwin | `awesome-macbook-air` | 笔记本，带刘海 |
+| PC | x86_64-linux | `awesome-pc` | 裸机 NixOS，UEFI + systemd-boot + NetworkManager |
+| Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
+
+> 首次运行本仓任意 flake 命令（`nix run` / `nix develop` / `nixos-install` 等），nix 会提示忽略 flake 自带的 `nixConfig.extra-substituters`。临时加 `--accept-flake-config`，或在 `~/.config/nix/nix.conf` 写 `accept-flake-config = true` 后永久信任本仓 cache 设置。
 
 ### macOS
 
@@ -28,54 +31,19 @@ curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-3. 克隆仓库并首次构建：
+3. 克隆仓库并首次构建（`<host>` 取 `awesome-mac-mini` / `awesome-macbook-air`）：
 
 ```bash
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
-sudo nix run nix-darwin -- switch --flake .#mac-mini
+sudo nix run nix-darwin -- switch --flake .#<host>
 ```
 
-之后日常重建：`just switch mac-mini`（或 `macbook-air`）
+之后日常重建：`just switch <host>`。
 
-### WSL
+### PC
 
-1. 启用 WSL 并更新内核：
-
-```powershell
-wsl --install --no-distribution
-wsl --update
-```
-
-2. 安装 [NixOS-WSL](https://github.com/nix-community/NixOS-WSL/releases)：
-
-```powershell
-wsl --import NixOS C:\wsl\nixos nixos-wsl.tar.gz
-wsl -d NixOS
-```
-
-3. 首次构建：
-
-```bash
-nix shell nixpkgs#git
-git clone <repo-url> ~/nix-config
-cd ~/nix-config
-sudo nixos-rebuild boot --flake .#wsl
-```
-
-4. 清理旧的 `nixos` 用户（可选）：
-
-```bash
-getent passwd nixos
-sudo userdel --remove nixos
-sudo rm -rf /home/nixos
-```
-
-之后日常重建：`just switch wsl`
-
-### Desktop
-
-裸机 amd64 工作站，UEFI + systemd-boot + NetworkManager。首次用 NixOS minimal ISO 装机，之后跟 WSL/Mac 一样 `just switch desktop` 重建。
+裸机 NixOS（amd64），UEFI + systemd-boot + NetworkManager。首次用 NixOS minimal ISO 装机，之后 `just switch awesome-pc` 重建。
 
 <details>
 <summary><b>首次装机完整流程</b>（点开展开）</summary>
@@ -115,7 +83,7 @@ mount /dev/disk/by-label/boot /mnt/boot
 nix-shell -p git
 git clone <repo-url> /mnt/etc/nixos-config
 nixos-generate-config --root /mnt --show-hardware-config \
-  > /mnt/etc/nixos-config/hosts/desktop/hardware-configuration.nix
+  > /mnt/etc/nixos-config/hosts/awesome-pc/hardware-configuration.nix
 ```
 
 生成内容含 `fileSystems` / `boot.initrd.availableKernelModules` 等机器特有项，覆盖掉仓库里的占位文件即可。
@@ -123,7 +91,7 @@ nixos-generate-config --root /mnt --show-hardware-config \
 #### 5. 安装 + 设密码 + 重启
 
 ```bash
-nixos-install --flake /mnt/etc/nixos-config#desktop
+nixos-install --flake /mnt/etc/nixos-config#awesome-pc
 # 提示输入 root 密码
 nixos-enter --root /mnt -c 'passwd imbytecat'   # 设置日用账号密码（modules/nixos 没设 initialPassword）
 reboot
@@ -135,10 +103,10 @@ reboot
 sudo mv /etc/nixos-config ~/nix-config
 sudo chown -R imbytecat:users ~/nix-config
 cd ~/nix-config
-just switch desktop                              # 验证可重建
-just lsp desktop                                 # VSCode nixd 补全感知 desktop options
-git add hosts/desktop/hardware-configuration.nix
-git commit -m "desktop: add hardware-configuration"
+just switch awesome-pc                                   # 验证可重建
+just lsp awesome-pc                                      # VSCode nixd 补全感知 awesome-pc options
+git add hosts/awesome-pc/hardware-configuration.nix
+git commit -m "awesome-pc: add hardware-configuration"
 ```
 
 </details>
@@ -146,7 +114,7 @@ git commit -m "desktop: add hardware-configuration"
 <details>
 <summary><b>可选加料</b>（DE / Tailscale / GPU / zram）</summary>
 
-在 `hosts/desktop/default.nix` 里按需追加，加完 `just switch desktop`：
+在 `hosts/awesome-pc/default.nix` 里按需追加，加完 `just switch awesome-pc`：
 
 ```nix
 # GNOME（X11/Wayland 都可）
@@ -185,10 +153,10 @@ zramSwap.enable = true;
 - 不导入 `modules/shared/default.nix`（fish/1password/openssh）、`modules/nixos/`、home-manager、catppuccin
 - 单用户 root，硬化 SSH（`PermitRootLogin = "prohibit-password"` + `PasswordAuthentication = false`），授权钥匙复用 `lib/default.nix` 的 `sshKeys`
 
-**首次部署**（在工作机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
+**首次部署**（在任一日用机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
 
 ```bash
-just install gateway <gateway-ip>
+just install mihomo-gateway <gateway-ip>
 ```
 
 底下走 [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)：kexec → disko 全盘格式化 → install → reboot。`--build-on remote` 让目标机自己构建 closure，回避本机跨架构编译。磁盘布局在 `hosts/mihomo-gateway/disko.nix`（GPT + 512M ESP + 100% ext4 root），默认 `/dev/sda`，目标机不一致时 `lib.mkForce` 覆盖。
@@ -202,10 +170,10 @@ ssh-keygen -R <gateway-ip>
 **之后远程更新**：
 
 ```bash
-just deploy gateway <gateway-ip>
+just deploy mihomo-gateway <gateway-ip>
 ```
 
-或登上去本机 rebuild：`just switch gateway`。
+或登上去本机 rebuild：`just switch mihomo-gateway`。
 
 **部署完写订阅**：
 
@@ -229,6 +197,7 @@ EOF"
 ```nix
 <host> = mylib.mkServer {
   hostname = "<host>";
+  system = "x86_64-linux";  # 或 aarch64-linux（ARM VPS）
   extraModules = [
     ./modules/<purpose>
     ./hosts/<host>
@@ -242,9 +211,10 @@ EOF"
 
 ```
 flake.nix                      # 入口
-hosts/                         # 主机特定配置
-  ├── mac-mini/ macbook-air/   # 日用 Darwin
-  ├── wsl/                     # 日用 NixOS-WSL
+hosts/                         # 主机特定配置（目录名 == flake 目标 == hostname）
+  ├── awesome-mac-mini/        # 日用 Darwin
+  ├── awesome-macbook-air/     # 日用 Darwin
+  ├── awesome-pc/              # 日用 NixOS
   └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
 modules/
   ├── darwin/                  # macOS 模块
@@ -267,7 +237,7 @@ overlays/ + pkgs/              # 自定义包
 
 ```bash
 # 本机
-just switch <host>           # 重建并激活本机系统（mac-mini / macbook-air / wsl / gateway 在网关本机时）
+just switch <host>           # 重建并激活本机系统（hostname 不匹配会拒绝）
 just build <host>            # 仅构建不激活（产 result/，配合 just diff 看差异）
 just boot <host>             # 仅注册下次启动 generation（kernel/initrd 更新需手动 reboot；仅 NixOS）
 just rollback                # 回滚（仅 NixOS）
@@ -277,10 +247,10 @@ just install <host> <remote> # 首次装机（nixos-anywhere）
 just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
 
 # 检查 / 诊断
-just eval                    # eval 全部主机配置
+just eval                    # eval 本平台所有 host 配置
 just check                   # nix flake check
 just dry <host>              # dry-run 看会编译/下载什么
-just diff                    # 对比 /run/current-system 与 result/
+just diff <host>             # 自动 build + 对比 /run/current-system 与 result/
 
 # flake / 维护
 just update                  # 更新所有 flake 输入
@@ -288,11 +258,18 @@ just up <input>              # 更新单个输入
 just show                    # 列出 flake 输出
 just history                 # profile 历史
 just gc                      # GC（删 7 天前 generation）
-just fmt                     # 格式化 .nix
+just fmt                     # nix fmt 格式化所有 .nix
 just repl                    # 带 nixpkgs 的 nix repl
+just lsp <host>              # 生成 .vscode/settings.json，nixd 补全感知 host options
 ```
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
+
+裸机克隆后第一次跑 just 之前，本机可能还没装齐工具：
+
+```bash
+nix develop      # 拉 just / jq / nixfmt / nixd / statix / nvd 临时 shell
+```
 
 ## Shell
 
@@ -301,7 +278,7 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
 - 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
-- Homebrew cask → 两台 Mac 都装的进 `modules/darwin/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 macbook-air）
+- Homebrew cask → 两台 Mac 都装的进 `modules/darwin/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）
 - PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment
