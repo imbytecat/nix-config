@@ -134,6 +134,7 @@
       "moonlight"
       "mos"
       "movist-pro"
+      "obs"
       "openscad@snapshot"
       "orbstack"
       "qq"
