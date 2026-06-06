@@ -34,22 +34,6 @@ let
             output = 128000;
           };
         };
-        "claude-opus-4-7" = {
-          name = "Claude Opus 4.7";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 1000000;
-            output = 128000;
-          };
-        };
         "claude-sonnet-4-6" = {
           name = "Claude Sonnet 4.6";
           reasoning = true;
@@ -313,7 +297,7 @@ let
 
   omoOpencode = baseOpencode // {
     plugin = [ "oh-my-openagent@latest" ];
-    model = "anthropic/claude-opus-4-7";
+    model = "anthropic/claude-opus-4-8";
     small_model = "openai/deepseek-v4-flash";
   };
 
@@ -373,7 +357,7 @@ let
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
       sisyphus = {
-        model = "anthropic/claude-opus-4-7";
+        model = "anthropic/claude-opus-4-8";
         variant = "max";
       };
       hephaestus = {
@@ -395,11 +379,11 @@ let
         variant = "medium";
       };
       prometheus = {
-        model = "anthropic/claude-opus-4-7";
+        model = "anthropic/claude-opus-4-8";
         variant = "max";
       };
       metis = {
-        model = "anthropic/claude-opus-4-7";
+        model = "anthropic/claude-opus-4-8";
         variant = "max";
       };
       momus = {
@@ -437,7 +421,7 @@ let
         model = "furtherverse/kimi-k2.6";
       };
       unspecified-high = {
-        model = "anthropic/claude-opus-4-7";
+        model = "anthropic/claude-opus-4-8";
         variant = "max";
       };
       writing = {
