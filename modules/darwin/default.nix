@@ -124,20 +124,14 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
-    # 必须列全 nix-homebrew 管的所有 tap,否则 cleanup="zap" 会尝试 untap
-    # 被符号链接的官方 tap;三方 tap trusted=true 走 PR #1789 加的 brew trust --tap,
-    # 否则 HOMEBREW_REQUIRE_TAP_TRUST 默认开,cask 会被静默跳过
+    # 列全 nix-homebrew 管的所有 tap,否则 cleanup="zap" 会尝试 untap
+    # 被符号链接的官方 tap。nix-homebrew pin 的 brew 5.1.14 还没引入 trust 强制,
+    # 所以不需要 trusted=true 字段(若日后升 brew-src 到 5.1.15+ 再加回来)
     taps = [
       "homebrew/homebrew-core"
       "homebrew/homebrew-cask"
-      {
-        name = "goooler/repo";
-        trusted = true;
-      }
-      {
-        name = "imbytecat/tap";
-        trusted = true;
-      }
+      "goooler/repo"
+      "imbytecat/tap"
     ];
 
     brews = [

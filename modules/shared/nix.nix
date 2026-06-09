@@ -29,6 +29,9 @@
       "nix-command"
       "flakes"
     ];
+    # 信任 flake 自带的 nixConfig(extra-substituters),消除每次 switch 的
+    # "ignoring untrusted flake configuration" warning。本仓自管自家 flake,安全可控
+    accept-flake-config = true;
     warn-dirty = false;
     trusted-users = [
       "root"

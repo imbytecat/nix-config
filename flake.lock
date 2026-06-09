@@ -290,16 +290,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1780942996,
-        "narHash": "sha256-tK+yLuHKDyvWg+FdIHQN9kcmwFga69Qdq4luyTQnf+8=",
-        "owner": "stepbrobd",
+        "lastModified": 1780795403,
+        "narHash": "sha256-AkWx4Zt9pQbD/f82Z8N57+d0HGLN/rV3gdMKJTpBPKs=",
+        "owner": "nix-darwin",
         "repo": "nix-darwin",
-        "rev": "d93e95598764674be14ba5134d5d7781e5bd5e58",
+        "rev": "6a771120d607dcccb279a27d227650e324815c35",
         "type": "github"
       },
       "original": {
-        "owner": "stepbrobd",
-        "ref": "bundle",
+        "owner": "nix-darwin",
         "repo": "nix-darwin",
         "type": "github"
       }

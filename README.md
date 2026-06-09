@@ -35,7 +35,7 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 > Homebrew 由 `nix-homebrew` 声明式接管（`autoMigrate = true`），裸机直接装、已有 brew 自动接管，无需手工跑官方 install.sh。
 >
-> 首次 switch 前先在 App Store.app 登录 Apple ID，否则 `homebrew.masApps`（iPreview/Xnip）会装失败但不影响其余 bundle。`nix-darwin` 当前 pin 到 PR #1789 分支（fix `--cleanup` 弃用 + 加 `taps.*.trusted`），上游合并后切回 `github:nix-darwin/nix-darwin` 并删掉 `trusted = true` 字段。
+> 首次 switch 前先在 App Store.app 登录 Apple ID，否则 `homebrew.masApps`（iPreview/Xnip）会装失败但不影响其余 bundle。`nix-homebrew` 当前 pin 的 brew 5.1.14 还未引入 trust 强制和 `--cleanup` 弃用,沿用上游 nix-darwin 即可,无需 PR 分支。
 
 之后日常重建：`just switch <host>`。
 
