@@ -32,9 +32,31 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # PR #1789 修 Homebrew 5.1+ 的 --cleanup 弃用 + 加 taps.*.trusted 选项
+    # 上游合并后切回 github:nix-darwin/nix-darwin
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin";
+      url = "github:stepbrobd/nix-darwin/bundle";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # 声明式 pin Homebrew 本体 + tap 版本，避开 brew update 漂移
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-goooler = {
+      url = "github:goooler/homebrew-repo";
+      flake = false;
+    };
+    homebrew-imbytecat = {
+      url = "github:imbytecat/homebrew-tap";
+      flake = false;
     };
 
     disko = {

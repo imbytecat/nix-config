@@ -1,11 +1,31 @@
 {
   pkgs,
+  inputs,
   username,
   sshKeys,
   ...
 }:
 
 {
+  imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
+
+  # 声明式 pin Homebrew + tap 仓库到 flake input commit,brew update 不再悄悄漂移。
+  # autoMigrate=true: 新机器自动装 brew,已有 brew 接管;无需手工跑官方 install.sh。
+  # mutableTaps=false: tap 只能在 flake 改,`brew tap` 命令禁用。
+  nix-homebrew = {
+    enable = true;
+    user = username;
+    enableRosetta = true;
+    autoMigrate = true;
+    mutableTaps = false;
+    taps = {
+      "homebrew/homebrew-core" = inputs.homebrew-core;
+      "homebrew/homebrew-cask" = inputs.homebrew-cask;
+      "goooler/homebrew-repo" = inputs.homebrew-goooler;
+      "imbytecat/homebrew-tap" = inputs.homebrew-imbytecat;
+    };
+  };
+
   system.primaryUser = username;
 
   security.sudo.extraConfig = ''
@@ -104,9 +124,20 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
+    # 必须列全 nix-homebrew 管的所有 tap,否则 cleanup="zap" 会尝试 untap
+    # 被符号链接的官方 tap;三方 tap trusted=true 走 PR #1789 加的 brew trust --tap,
+    # 否则 HOMEBREW_REQUIRE_TAP_TRUST 默认开,cask 会被静默跳过
     taps = [
-      "goooler/repo"
-      "imbytecat/tap"
+      "homebrew/homebrew-core"
+      "homebrew/homebrew-cask"
+      {
+        name = "goooler/repo";
+        trusted = true;
+      }
+      {
+        name = "imbytecat/tap";
+        trusted = true;
+      }
     ];
 
     brews = [
@@ -159,11 +190,10 @@
     };
 
     onActivation = {
-      autoUpdate = true;
+      # nix-homebrew pin 了 brew 版本,关 autoUpdate 防止运行时 git pull 漂移
+      autoUpdate = false;
       upgrade = true;
       cleanup = "zap";
-      # Homebrew 5.1+ 要求 `brew bundle install --cleanup` 显式带 --force / --force-cleanup / $HOMEBREW_ASK
-      extraFlags = [ "--force" ];
     };
   };
 }
