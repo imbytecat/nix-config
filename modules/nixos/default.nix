@@ -18,7 +18,7 @@
     git
     ghostty.terminfo
     docker-compose
-    openscad-unstable
+    freecad
   ];
 
   i18n = {
