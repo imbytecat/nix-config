@@ -38,8 +38,16 @@
     };
 
     # 声明式 pin Homebrew 本体 + tap 版本,避开 brew update 漂移。
-    # 当前 pin brew 5.1.14,绕过 5.1.15+ 的 --cleanup 弃用和 HOMEBREW_REQUIRE_TAP_TRUST 强制。
+    # brew-src 提为顶层 input 并 pin 死 5.1.14,nix-homebrew.inputs.brew-src 用 follows 引它,
+    # 绕过 5.1.15+ 的 --cleanup 弃用和 HOMEBREW_REQUIRE_TAP_TRUST 强制。
+    # 必须显式 pin,否则 just update 升 nix-homebrew 会把 brew 顺带拖到 6.x。
+    # 上游 https://github.com/nix-darwin/nix-darwin/pull/1789 合并后可解 pin 升 brew 6.x。
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    nix-homebrew.inputs.brew-src.follows = "brew-src";
+    brew-src = {
+      url = "github:Homebrew/brew/5.1.14";
+      flake = false;
+    };
 
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
