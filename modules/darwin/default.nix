@@ -77,6 +77,7 @@
       AppleShowAllExtensions = true;
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
+      AppleICUForce24HourTime = true;
     };
     screensaver = {
       askForPassword = false;
