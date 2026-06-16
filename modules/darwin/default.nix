@@ -70,7 +70,7 @@
     };
     finder = {
       AppleShowAllFiles = true;
-      FXPreferredViewStyle = "clmv";
+      FXPreferredViewStyle = "Nlsv";
       NewWindowTarget = "Home";
     };
     NSGlobalDomain = {
