@@ -44,6 +44,7 @@ just boot <host>                # 仅注册下次启动 generation（NixOS only�
 # 远程 NixOS 主机（任意 nixosConfigurations.<host> 都可，不限网关）
 just install <host> <remote>    # 首装：nixos-anywhere（kexec → disko 全盘 → install → reboot）
 just deploy <host> <remote>     # 更新：nixos-rebuild switch --target-host
+just deploy-boot <host> <remote> # 更新但仅注册下次启动 generation（kernel/initrd，需 reboot）
 
 # 检查 / 诊断
 just eval                       # eval 本平台所有 host
@@ -92,6 +93,7 @@ Note: `just eval`、`just switch`、`just build`、`just deploy`、`just boot`�
 - **AI agent 工具走 `numtide/llm-agents.nix`** — `overlays/default.nix` 拼了 `inputs.llm-agents.overlays.default`，通过 `pkgs.llm-agents.<name>` 访问。**不要**让 `llm-agents` follows 本仓 `nixpkgs`，否则 `cache.numtide.com` 直接 miss（numtide CI 用它自锁的 nixpkgs revision 构建）。`home/dev/ai/` 已拆目录：`default.nix`（imports + `skills`）/ `claude-code.nix` / `codex.nix` / `opencode.nix`。
 - **`~/.claude/settings.json` 在 `home/dev/ai/claude-code.nix`** —— 关 attribution / co-author、`permissions.defaultMode = "bypassPermissions"` + `skipDangerousModePermissionPrompt`、`effortLevel = "max"`、`ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL` 固定到具体 ID、`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1"`、关 autoupdate / install checks / nonessential traffic。改 claude 行为或换模型只动这里。
 - **OpenCode 三套 profile 在 `home/dev/ai/opencode.nix`** —— 生成到 `xdg.configFile`：(1) `opencode/opencode.json` 默认 profile；(2) `opencode-profiles/omo-claude/`；(3) `opencode-profiles/omo-gpt/`。`omoGpt = lib.recursiveUpdate omoClaude {...}`，只覆写 sisyphus/prometheus/metis + unspecified-high 这几个 agent/category 的模型，其它跟 omo-claude 走。Fish 函数 `omo` → omo-claude，`omog` → omo-gpt（`home/shell/fish.nix` 的 `programs.fish.functions`），**不是** opencode plugin，也不在 `opencode.jsonc` 里登记。
+- **Playwright/browser MCP 浏览器仅 Linux 配**（`home/dev/playwright.nix`，`mkIf isLinux`）—— 装 `pkgs.chromium` 并用 `PLAYWRIGHT_MCP_*` env 指过去 + `home.activation` 预建 cache 目录，绕开 playwright 在 NixOS 自下载浏览器跑不起来。Darwin 不设，走 playwright 自带下载。
 - **Channels disabled, legacy `<nixpkgs>` shimmed** — `nix.channel.enable = false`，`modules/shared/nix.nix` 把 `nix.registry.nixpkgs.flake` / `nix.nixPath` 都钉到主 `inputs.nixpkgs`（`nixos-unstable`）。darwin 那边在 `lib/default.nix` 的 `mkDarwin` 里**显式** `nixpkgs.pkgs = import inputs.nixpkgs-unstable {...}`（`nixpkgs-unstable` branch，aarch64-darwin 命中率高于 `nixos-unstable`，不是 darwin 专属，谁想跟得更快都可以用）；nix-darwin 内部 lib 仍来自主 nixpkgs（`nix-darwin.inputs.nixpkgs.follows = "nixpkgs"`），避免 registry 与 darwin lib 冲突。参考 [ryan4yin/nix-config](https://github.com/ryan4yin/nix-config/blob/main/lib/macosSystem.nix)。Flakes 是 source of truth — 不要 `nix-channel`、不要新增 `<…>` 路径，也不要把 darwin 的 `nixpkgs.pkgs` 改回 follow 机制（会复活之前的 registry 冲突）。
 - **`nixpkgs.config` / `nixpkgs.overlays` 分两处** — darwin 在 `mkDarwin` 里 `import nixpkgs-unstable {...}` 时一次性传（`config.allowUnfree` + `inputs.self.overlays.default`），所以 darwin 上**不能**再写 `nixpkgs.config`；NixOS 那边在 `modules/nixos/default.nix` 里写 `nixpkgs.config.allowUnfree` + `nixpkgs.overlays`（gateway 不导入这个文件，gateway 不需要 unfree / 自定义 overlay）。
 - **Binary cache** — `modules/shared/nix.nix` 按命中率排序：`cache.nixos.org` → `nix-community` → `nixpkgs-unfree` → `cache.numtide.com`（llm-agents 产物）。`cache.garnix.io` 已于 2026-07 关停（garnix 服务并入 Shopify），不要再加回来。
@@ -205,7 +207,7 @@ Use the new names:
 - `programs.git.settings.*` (not `extraConfig`)
 - `programs.delta.{enable,options}` (not `programs.git.delta.*`)
 - `programs.delta.enableGitIntegration = true` (must be explicit — defaults to `false`)
-- `programs.ssh.matchBlocks."*".addKeysToAgent` (not top-level)
+- `programs.ssh.settings."*"` with ssh_config-cased keys (`IdentityFile` / `AddKeysToAgent`) — **not** `matchBlocks.*` / `addKeysToAgent` (deprecated; migrated in `home/dev/ssh.nix`)
 - `programs.ssh.enableDefaultConfig = false`
 - **不要写 `enableFishIntegration = true;`** — HM 自 2025-02-07 起继承 `home.shell.enableShellIntegration`（默认 `true`），显式 `true` 是噪声。仅在主动关闭时写 `false`（如 `programs.zellij.enableFishIntegration = false`）。
 - 装 CLI 工具时，先看是否有 `programs.<name>` 模块（如 `nh` / `fastfetch` / `tealdeer`），优先用模块而不是 `home.packages`。
