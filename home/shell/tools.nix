@@ -31,7 +31,7 @@
 
   programs.zoxide = {
     enable = true;
-    options = [ "--cmd cd" ]; # cd/cdi 替代 z/zi
+    options = [ "--cmd cd" ];
   };
 
   programs.direnv = {

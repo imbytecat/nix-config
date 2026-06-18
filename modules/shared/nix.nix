@@ -10,13 +10,9 @@
 
   nix.settings = {
     substituters = [
-      # 1. 官方主源 (priority=40)，覆盖最广
       "https://cache.nixos.org"
-      # 2. nix-community：home-manager / nix-darwin 等社区项目产物
       "https://nix-community.cachix.org"
-      # 3. unfree 包镜像（你 allowUnfree=true，覆盖 vscode/fonts 等）
       "https://nixpkgs-unfree.cachix.org"
-      # 4. numtide：llm-agents.nix 每天构建的 opencode / skills 等推这里
       "https://cache.numtide.com"
     ];
     trusted-public-keys = [
