@@ -127,14 +127,20 @@
     greedyCasks = true;
 
     # 列全 nix-homebrew 管的所有 tap,否则 cleanup="zap" 会尝试 untap
-    # 被符号链接的官方 tap。nix-homebrew pin 的 brew 5.1.14 还没引入 trust 强制,
-    # 所以不需要 trusted=true 字段(若日后升 brew-src 到 5.1.15+ 再加回来,
-    # 见上游 https://github.com/nix-darwin/nix-darwin/pull/1789)
+    # 被符号链接的官方 tap。brew 6.0 默认开 HOMEBREW_REQUIRE_TAP_TRUST,
+    # 非官方 tap(goooler/repo、imbytecat/tap)需标 trusted=true,否则 activation
+    # 拒绝加载其 formula/cask。官方 tap 永远受信,无需标。
     taps = [
       "homebrew/homebrew-core"
       "homebrew/homebrew-cask"
-      "goooler/repo"
-      "imbytecat/tap"
+      {
+        name = "goooler/repo";
+        trusted = true;
+      }
+      {
+        name = "imbytecat/tap";
+        trusted = true;
+      }
     ];
 
     brews = [

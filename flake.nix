@@ -37,17 +37,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # 声明式 pin Homebrew 本体 + tap 版本,避开 brew update 漂移。
-    # brew-src 提为顶层 input 并 pin 死 5.1.14,nix-homebrew.inputs.brew-src 用 follows 引它,
-    # 绕过 5.1.15+ 的 --cleanup 弃用和 HOMEBREW_REQUIRE_TAP_TRUST 强制。
-    # 必须显式 pin,否则 just update 升 nix-homebrew 会把 brew 顺带拖到 6.x。
-    # 上游 https://github.com/nix-darwin/nix-darwin/pull/1789 合并后可解 pin 升 brew 6.x。
+    # Homebrew tap 版本声明式管理,避开 brew update 运行时漂移。
+    # brew 本体不再顶层写死:nix-darwin PR #1789 合并后(见 input nix-darwin)activation
+    # 改用 brew 6.x 的 `--force-cleanup` 并支持 Brewfile `trusted: true`,nix-homebrew
+    # 自带的 brew-src 已是 6.x,随 just update 升 nix-homebrew 一起走即可,无需 follows 覆盖。
+    # 非官方 tap 需在 modules/darwin/default.nix 标 trusted=true 满足
+    # HOMEBREW_REQUIRE_TAP_TRUST(brew 6.0 默认开)。
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-    nix-homebrew.inputs.brew-src.follows = "brew-src";
-    brew-src = {
-      url = "github:Homebrew/brew/5.1.14";
-      flake = false;
-    };
 
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
