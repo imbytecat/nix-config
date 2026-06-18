@@ -45,6 +45,7 @@
 
     ffmpeg
     pandoc
+    libredwg # FreeCAD 导入/导出 DWG（提供 dwg2dxf 转换器）
 
     trzsz-ssh
     tsshd
