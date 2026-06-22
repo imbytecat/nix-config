@@ -180,6 +180,7 @@
       "termius"
       "ungoogled-chromium"
       "uuremote"
+      "videofusion" # 剪映专业版
       "visual-studio-code"
       "wechat"
       "wechatwork"
