@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   home.packages = with pkgs; [
@@ -8,6 +8,8 @@
     python3
 
     uv
+
+    proto
 
     bash-language-server
     dockerfile-language-server
@@ -30,16 +32,7 @@
     ast-grep
   ];
 
-  programs.mise = {
-    enable = true;
-    globalConfig = {
-      settings = {
-        trusted_config_paths = [
-          "${config.home.homeDirectory}/Developer"
-          "${config.home.homeDirectory}/nix-config"
-        ];
-        all_compile = false;
-      };
-    };
-  };
+  programs.fish.interactiveShellInit = ''
+    proto activate fish --no-shim | source
+  '';
 }
