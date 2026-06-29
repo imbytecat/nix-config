@@ -146,8 +146,7 @@
     ];
 
     brews = [
-      "mole" # macOS 清理工具
-      "xcodes" # 多版本 Xcode 管理
+      "mole"
     ];
 
     casks = [
@@ -189,6 +188,7 @@
       "wechatwork"
       "windows-app"
       "winbox"
+      "xcodes-app"
     ];
 
     masApps = {
