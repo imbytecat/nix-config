@@ -79,7 +79,7 @@
       KeyRepeat = 2;
       AppleICUForce24HourTime = true;
     };
-    ".GlobalPreferences"."com.apple.mouse.scaling" = 3.0;
+    ".GlobalPreferences"."com.apple.mouse.scaling" = 1.0;
     screensaver = {
       askForPassword = false;
       askForPasswordDelay = 0;
