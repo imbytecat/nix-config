@@ -146,6 +146,7 @@
     ];
 
     brews = [
+      "cocoapods"
       "mole"
     ];
 
