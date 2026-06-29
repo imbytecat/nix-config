@@ -79,6 +79,10 @@
       KeyRepeat = 2;
       AppleICUForce24HourTime = true;
     };
+    # -1.0 关闭鼠标加速度
+    ".GlobalPreferences" = {
+      "com.apple.mouse.scaling" = -1.0;
+    };
     screensaver = {
       askForPassword = false;
       askForPasswordDelay = 0;
