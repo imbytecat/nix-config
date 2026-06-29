@@ -79,6 +79,8 @@
       KeyRepeat = 2;
       AppleICUForce24HourTime = true;
     };
+    # 跟踪速度 0~3（Tracking speed 滑块 慢→快），配合 mouse.linear=无加速但可调速；满速仍慢就提高鼠标 DPI
+    ".GlobalPreferences"."com.apple.mouse.scaling" = 3.0;
     screensaver = {
       askForPassword = false;
       askForPasswordDelay = 0;
