@@ -79,7 +79,6 @@
       KeyRepeat = 2;
       AppleICUForce24HourTime = true;
     };
-    # 跟踪速度 0~3（Tracking speed 滑块 慢→快），配合 mouse.linear=无加速但可调速；满速仍慢就提高鼠标 DPI
     ".GlobalPreferences"."com.apple.mouse.scaling" = 3.0;
     screensaver = {
       askForPassword = false;
@@ -100,8 +99,7 @@
         # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
         TISRomanSwitchState = 1;
         CGDisableCursorLocationMagnification = true;
-        # true=线性，关闭鼠标加速度（等价系统设置 Mouse→Advanced→Pointer acceleration 关）
-        "com.apple.mouse.linear" = true;
+        "com.apple.mouse.linear" = true; # true=关闭鼠标加速度
       };
       # Raycast 接管 ⌘Space（下面 activation 会把 Spotlight 那两个快捷键关掉）
       "com.raycast.macos".raycastGlobalHotkey = "Command-49";
