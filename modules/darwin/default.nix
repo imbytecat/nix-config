@@ -79,10 +79,6 @@
       KeyRepeat = 2;
       AppleICUForce24HourTime = true;
     };
-    # -1.0 关闭鼠标加速度
-    ".GlobalPreferences" = {
-      "com.apple.mouse.scaling" = -1.0;
-    };
     screensaver = {
       askForPassword = false;
       askForPasswordDelay = 0;
@@ -98,10 +94,12 @@
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
       };
-      # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
       "NSGlobalDomain" = {
+        # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
         TISRomanSwitchState = 1;
         CGDisableCursorLocationMagnification = true;
+        # true=线性，关闭鼠标加速度（等价系统设置 Mouse→Advanced→Pointer acceleration 关）
+        "com.apple.mouse.linear" = true;
       };
       # Raycast 接管 ⌘Space（下面 activation 会把 Spotlight 那两个快捷键关掉）
       "com.raycast.macos".raycastGlobalHotkey = "Command-49";
