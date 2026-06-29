@@ -18,7 +18,7 @@
     lua-language-server
     nixd
     typescript-language-server
-    vue-language-server
+    # vue-language-server  # 依赖 insecure pnpm，不常用先注释
     yaml-language-server
 
     biome
