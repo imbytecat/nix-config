@@ -1,6 +1,19 @@
 result
 .direnv
 .vscode/settings.json
+.omo/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
 
 # Never commit plaintext secrets
 *.dec.yaml
