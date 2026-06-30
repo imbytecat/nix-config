@@ -215,6 +215,7 @@ hosts/                         # 主机特定配置（目录名 == flake 目标 
   ├── awesome-pc/              # 日用 NixOS
   └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
 modules/
+  ├── desktop/                 # 桌面 GUI 应用（Darwin/NixOS desktop 显式导入）
   ├── darwin/                  # macOS 模块
   ├── nixos/                   # NixOS 日用模块
   ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
@@ -228,7 +229,8 @@ overlays/ + pkgs/              # 自定义包
 ```
 
 配置层级：
-- 日用机：`hosts/*` → `modules/{shared,darwin|nixos}` → `home/*`
+- 日用桌面机：`hosts/*` → `modules/{shared,darwin|nixos}` + `modules/desktop` → `home/*`
+- 日用无头 NixOS：`hosts/*` → `modules/{shared,nixos}` → `home/*`
 - 服务器（如网关）：`hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`
 
 ## 日常使用
@@ -278,7 +280,7 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
 - 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
-- Homebrew cask → 两台 Mac 都装的进 `modules/darwin/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）
+- 桌面 GUI 应用 → 多平台/共享的进 `modules/desktop/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）
 - PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment

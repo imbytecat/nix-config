@@ -18,8 +18,9 @@ flake attr / 目录名 / `networking.hostName` 三者保持一致，加新机器
 
 - `lib/default.nix` — `mkDarwin`/`mkNixos`/`mkServer` builders, `sshKeys` (via `specialArgs`), `homeManagerConfig`
 - `modules/shared/` — cross-platform: Lix, overlays, fonts, fish, openssh, 1password
-- `modules/darwin/` — `default.nix` 是两台 Mac 共享的全部配置（user / sudo / Touch ID / system.defaults / 全套 homebrew casks + brews + masApps）。两台机器跑相同的桌面应用，单机差异（如 `awesome-macbook-air` 的 `thaw`、`awesome-mac-mini` 的常开机电源策略）放 `hosts/<host>/default.nix`
-- `modules/nixos/` — system packages, locale, docker, user（**仅日用**，网关不导入）
+- `modules/darwin/` — 两台 Mac 共享的系统级配置（user / sudo / Touch ID / system.defaults / Homebrew 本体、tap、brews、activation）。桌面应用不放这里
+- `modules/nixos/` — system packages, locale, docker, user（**仅日用**，网关不导入；桌面应用不放这里）
+- `modules/desktop/` — 有桌面的日用机显式导入；Darwin Homebrew casks/MAS 与 NixOS GUI packages 在这里尽量保持多平台一致
 - `modules/gateway/` — mihomo + nftables TPROXY + 单臂 networking + resolved（**仅网关**）
 - `home/` — home-manager (shared, `useGlobalPkgs`), catppuccin（**仅日用**，网关不导入）
 - `hosts/*/` — per-host overrides；`hosts/mihomo-gateway/{default,disko}.nix` 提供网关 host-level 配置（boot/disko/openssh/timezone/stateVersion/SJTU 镜像）
@@ -27,7 +28,8 @@ flake attr / 目录名 / `networking.hostName` 三者保持一致，加新机器
 - `.agents/skills/` — Agent skills（如 `mihomo/SKILL.md`：Mihomo CLI 速查 + TPROXY 深度排查手册）
 
 Flow:
-- 日用机：`hosts/*` → `modules/{shared,darwin|nixos}` → `home/*`
+- 日用桌面机：`hosts/*` → `modules/{shared,darwin|nixos}` + `modules/desktop` → `home/*`
+- 日用无头 NixOS：`hosts/*` → `modules/{shared,nixos}` → `home/*`（不导入 `modules/desktop`）
 - 网关：`hosts/mihomo-gateway` → `modules/gateway` + `modules/shared/nix.nix`（**只**复用 nix.nix，不走 default.nix / fonts / fish / 1password）
 
 ## Commands
@@ -82,7 +84,7 @@ Note: `eval`/`switch`/`build`/`dry`/`deploy`/`deploy-boot` 有 `[macos]`/`[linux
 - **`sshKeys` centralized** in `lib/default.nix` via `specialArgs`. Don't hardcode.
 - **Neovim = lazyvim-nix** — `programs.lazyvim` in `home/dev/neovim.nix`. `catppuccin.nvim.enable = false` (LazyVim manages colorscheme). The `lazyvim.homeManagerModules.default` is loaded as a sharedModule in `lib/default.nix`.
 - **catppuccin modules** — `catppuccin.homeModules.catppuccin` (home), `catppuccin.nixosModules.catppuccin` (NixOS). Not the old `homeManagerModules`.
-- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. **Casks 两层**：(1) 两台 Mac 共享的全部 cask + brews + masApps + taps 在 `modules/darwin/default.nix`；(2) 单机差异 cask 写 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）。Tap casks 需要完整路径（`"goooler/repo/fl-clash"`）。**Chromium 走 `ungoogled-chromium`**（普通 `chromium` cask 公证有问题，会被 Gatekeeper 拦）。**`brew bundle cleanup` 不动 mas apps**（见下条）所以 `masApps` 只留 MAS 独占的项。
+- **Homebrew `cleanup = "zap"`** — undeclared casks/brews get removed. `greedyCasks = true` upgrades even auto-updating casks. **Casks 两层**：(1) 多平台/共享桌面应用的 Darwin cask + masApps 在 `modules/desktop/default.nix`；(2) 单机差异 cask 写 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）。Tap casks 需要完整路径（`"goooler/repo/fl-clash"`）。**Chromium 走 `ungoogled-chromium`**（普通 `chromium` cask 公证有问题，会被 Gatekeeper 拦）。**`brew bundle cleanup` 不动 mas apps**（见下条）所以 `masApps` 只留 MAS 独占的项。
 - **Homebrew 本体由 `nix-homebrew` 声明式接管** — `modules/darwin/default.nix` 顶部 `imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ]`，`enable + autoMigrate + mutableTaps=false` 把 brew + 4 个 tap（`homebrew-core/cask/goooler/imbytecat`）从 flake input 符号链接进 `/opt/homebrew/Library`。**裸机无需手工 install.sh**。**brew 本体不再顶层 pin**：`flake.nix` 删掉了 `brew-src` override，由 `nix-homebrew` 自带的 `brew-src` 提供（6.x，随 `just update` 升 nix-homebrew 一起走）。nix-darwin **已合并 PR #1789**，activation 改用 brew 6.x 的 `--force-cleanup`（`cleanup="zap"` → `--zap --force-cleanup`）并支持 Brewfile `trusted: true`。brew 6.0 默认开 `HOMEBREW_REQUIRE_TAP_TRUST`，**非官方 tap（`goooler/repo`、`imbytecat/tap`）必须写成 `{ name = "..."; trusted = true; }`**，官方 tap 仍是纯字符串（永远受信，无需标）；brews/casks 的 `trusted` 默认就是 `true`，自动带上。**`homebrew.taps` 必须列全所有 nix-homebrew 管的 tap**（含 `homebrew/homebrew-core/cask`），否则 `cleanup="zap"` 会尝试 untap 被符号链接的 tap 报错。**已有 brew 用户首次接管会爆**：`/opt/homebrew/README.md` 含 🍺 emoji 会让 `nuke-homebrew-repository:33` 的 `grep -E '^# Homebrew'` 失败（`sudo bash -c 'echo "# Homebrew" > /opt/homebrew/README.md'`）；接着 `Library/Taps` 与 `bin/brew` 也需 `sudo rm -rf` / `sudo rm -f`，nix-homebrew 才能放符号链接。`autoUpdate = false`（onActivation）是必须的：关掉运行时 `git pull` 漂移。
 - **`brew bundle cleanup` 不动 mas apps** — [Homebrew/homebrew-bundle#1077](https://github.com/Homebrew/homebrew-bundle/issues/1077)，已知限制：`mas uninstall` 要 root 且 Apple 在缩 mas 用的私有 API。从 `masApps` 删一项 → App 不会被自动卸载，要手动拖到废纸篓。所以**能 cask 化的全部 cask 化**：Office 三件套 + Windows App 已切到 cask；`masApps` 现在只剩 `Xnip` + `iPreview`（这两个只有 MAS 分发渠道）。
 - **Ghostty macOS-only** — `enable = pkgs.stdenv.isDarwin`, `package = null` (Homebrew cask). Terminfo propagated via `ghostty.terminfo` in `modules/nixos/`.
@@ -121,7 +123,7 @@ Note: `eval`/`switch`/`build`/`dry`/`deploy`/`deploy-boot` 有 `[macos]`/`[linux
 ### MacBook Air
 
 - **用纯 pmset 而非 `power.sleep.*` 是有意的**：后者走 `systemsetup -setComputerSleep Never` 会同时屏蔽合盖睡眠，笔记本要保留合盖能睡。不要"优化"成 nix-darwin 的高层 option。
-- 共享 `modules/darwin/default.nix` 全套 + 自己加 `thaw`（刘海菜单栏，mini 没刘海所以不共享）。
+- 共享 `modules/darwin/default.nix` + `modules/desktop/default.nix`，自己加 `thaw`（刘海菜单栏，mini 没刘海所以不共享）。
 
 ## Mihomo Gateway
 
