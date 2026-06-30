@@ -3,6 +3,7 @@
   stdenv,
   fetchurl,
   autoPatchelfHook,
+  libgcc,
 }:
 
 let
@@ -33,6 +34,8 @@ stdenv.mkDerivation {
   sourceRoot = ".";
 
   nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
+
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [ libgcc ];
 
   unpackPhase = ''
     tar -xzf $src
