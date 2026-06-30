@@ -35,6 +35,7 @@ in
       specialArgs = {
         inherit
           inputs
+          system
           username
           sshKeys
           ;
@@ -62,7 +63,7 @@ in
     lib.nixosSystem {
       inherit system;
       specialArgs = {
-        inherit inputs sshKeys;
+        inherit inputs system sshKeys;
         username = "root";
       };
       modules = [
@@ -85,6 +86,7 @@ in
       specialArgs = {
         inherit
           inputs
+          system
           username
           sshKeys
           ;
