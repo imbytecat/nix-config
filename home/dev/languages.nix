@@ -11,6 +11,7 @@
 
     fvm
     proto
+    android-tools
 
     bash-language-server
     dockerfile-language-server
