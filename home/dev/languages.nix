@@ -9,6 +9,7 @@
 
     uv
 
+    fvm
     proto
 
     bash-language-server
