@@ -10,7 +10,7 @@ flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任�
 |------|------|----------------------------|------|
 | Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口 |
 | MacBook Air | aarch64-darwin | `awesome-macbook-air` | 笔记本，带刘海 |
-| PC | x86_64-linux | `awesome-pc` | 裸机 NixOS，UEFI + systemd-boot + NetworkManager |
+| PC | x86_64-linux | `awesome-pc` | PVE VM 桌面，systemd-boot + KDE Plasma + NVIDIA 直通 |
 | Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
@@ -41,68 +41,65 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 ### PC
 
-裸机 NixOS（amd64），UEFI + systemd-boot + NetworkManager。首次用 NixOS minimal ISO 装机，之后 `just switch awesome-pc` 重建。
+PVE VM NixOS 桌面（amd64），UEFI + systemd-boot + NetworkManager + KDE Plasma 6。首次用 NixOS minimal ISO 启动 VM 后，从本仓跑 `just install awesome-pc <vm-ip>` 远程首装；之后 `just deploy awesome-pc <vm-ip>` 或进系统后 `just switch awesome-pc` 重建。
 
 <details>
 <summary><b>首次装机完整流程</b>（点开展开）</summary>
 
-#### 1. U 盘启动
+#### 1. VM 启动安装环境
 
-下载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso) 烧到 U 盘（dd / Rufus / Ventoy 均可），主板 **UEFI 模式**启动。进 live 环境后 `sudo -i` 提权。
+PVE VM 使用 OVMF/UEFI 启动，挂载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso)。进 live 环境后提权并打开 SSH：
+
+```bash
+sudo -i
+passwd
+systemctl start sshd
+ip -4 addr
+```
+
+这里的 root 密码只用于临时安装环境；用强临时密码，并确保 VM 安装网段可信。装完后清理本地 known_hosts，正式系统用声明式 SSH key 登录。
 
 #### 2. 联网
 
 - 有线：通常自动起来，`ping 1.1.1.1` 确认
 - WiFi：`sudo systemctl start wpa_supplicant && wpa_cli`（或更友好的 `nmtui`）
 
-#### 3. 分区 + 挂载
+#### 3. 确认目标磁盘
 
-按实际硬盘改 `nvme0n1` / `sda` / `vda`。下面以 NVMe + 512M ESP + 剩余 ext4 为例：
+当前 `hosts/awesome-pc/disko.nix` 先按 `/dev/sda` 全盘安装。跑安装前务必在 live 环境确认目标盘：
 
 ```bash
-parted /dev/nvme0n1 -- mklabel gpt
-parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 513MiB
-parted /dev/nvme0n1 -- set 1 esp on
-parted /dev/nvme0n1 -- mkpart primary 513MiB 100%
-
-mkfs.fat -F32 -n boot /dev/nvme0n1p1
-mkfs.ext4 -L nixos /dev/nvme0n1p2
-
-mount /dev/disk/by-label/nixos /mnt
-mkdir -p /mnt/boot
-mount /dev/disk/by-label/boot /mnt/boot
+lsblk -o NAME,MODEL,SIZE,TYPE
 ```
 
-想用 btrfs / zfs / LUKS 加密，替换 `mkfs.*` 与 `mount` 即可，下一步 `nixos-generate-config` 会按当前挂载点重新生成 `hardware-configuration.nix`。
+后续如果要避免盘符漂移，把 `hosts/awesome-pc/disko.nix` 里的 `diskDevice` 改成 `/dev/disk/by-id/...`。
 
-#### 4. 拉仓库 + 生成 hardware-configuration.nix
+#### 4. 远程首装
+
+在本仓机器上执行：
 
 ```bash
-nix-shell -p git
-git clone <repo-url> /mnt/etc/nixos-config
-nixos-generate-config --root /mnt --show-hardware-config \
-  > /mnt/etc/nixos-config/hosts/awesome-pc/hardware-configuration.nix
+just install awesome-pc <vm-ip>
 ```
 
-生成内容含 `fileSystems` / `boot.initrd.availableKernelModules` 等机器特有项，覆盖掉仓库里的占位文件即可。
+底下走 `nixos-anywhere`：kexec → `disko` 全盘格式化 `/dev/sda` → 生成 `hosts/awesome-pc/hardware-configuration.nix` → install → reboot。生成内容含 VM 的 `boot.initrd.availableKernelModules` 等机器特有项，安装后记得提交。
 
-#### 5. 安装 + 设密码 + 重启
-
-```bash
-nixos-install --flake /mnt/etc/nixos-config#awesome-pc
-# 提示输入 root 密码
-nixos-enter --root /mnt -c 'passwd imbytecat'   # 设置日用账号密码（modules/nixos 没设 initialPassword）
-reboot
-```
-
-#### 6. 重启后接管
+#### 5. 首次登录 + 接管
 
 ```bash
-sudo mv /etc/nixos-config ~/nix-config
-sudo chown -R imbytecat:users ~/nix-config
+ssh-keygen -R <vm-ip>
+ssh imbytecat@<vm-ip>
+git clone <repo-url> ~/nix-config
 cd ~/nix-config
-just switch awesome-pc                                   # 验证可重建
-just lsp awesome-pc                                      # VSCode nixd 补全感知 awesome-pc options
+just switch awesome-pc
+just lsp awesome-pc
+```
+
+如果首装时已经通过其他方式同步了仓库，跳过 `git clone`。`programs.nh.flake` 默认指向 `~/nix-config`。
+
+#### 6. 提交硬件配置
+
+```bash
 git add hosts/awesome-pc/hardware-configuration.nix
 git commit -m "awesome-pc: add hardware-configuration"
 ```
@@ -110,35 +107,24 @@ git commit -m "awesome-pc: add hardware-configuration"
 </details>
 
 <details>
-<summary><b>可选加料</b>（DE / Tailscale / GPU / zram）</summary>
+<summary><b>当前桌面 / GPU 配置</b></summary>
 
-在 `hosts/awesome-pc/default.nix` 里按需追加，加完 `just switch awesome-pc`：
+`hosts/awesome-pc/default.nix` 当前已经启用：
 
 ```nix
-# GNOME（X11/Wayland 都可）
+# KDE Plasma 6 + SDDM Wayland
 services.xserver.enable = true;
-services.displayManager.gdm.enable = true;
-services.desktopManager.gnome.enable = true;
+services.displayManager.sddm.enable = true;
+services.displayManager.sddm.wayland.enable = true;
+services.desktopManager.plasma6.enable = true;
 
-# 或 Hyprland（Wayland tiling）
-programs.hyprland.enable = true;
-
-# Tailscale（跟 Mac mini 组同一个 tailnet）
-services.tailscale.enable = true;
-
-# NVIDIA 显卡
+# RTX 4070 SUPER
 hardware.nvidia = {
   modesetting.enable = true;
-  open = false;  # 闭源驱动；RTX 20 系以上可改 true
+  open = true;
   package = config.boot.kernelPackages.nvidiaPackages.stable;
 };
 services.xserver.videoDrivers = [ "nvidia" ];
-
-# AMD 显卡
-hardware.amdgpu.opencl.enable = true;
-
-# zram swap（内存大可省 SSD 寿命）
-zramSwap.enable = true;
 ```
 
 </details>

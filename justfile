@@ -112,7 +112,15 @@ diff host: (_guard host) (build host)
 [doc('远程首装：nixos-anywhere kexec → disko 全盘 → install → reboot')]
 [group('remote')]
 install host remote: (_valid host) (_valid_remote remote)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    hardware_config="./hosts/{{ host }}/hardware-configuration.nix"
+    hardware_args=()
+    if [ -f "$hardware_config" ]; then
+      hardware_args+=(--generate-hardware-config nixos-generate-config "$hardware_config")
+    fi
     nix run github:nix-community/nixos-anywhere -- \
+      "${hardware_args[@]}" \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
       --build-on remote
