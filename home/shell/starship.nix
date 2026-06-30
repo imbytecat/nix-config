@@ -1,6 +1,9 @@
 { lib, ... }:
 
 {
+  # catppuccin/nix 的 starship 模块会在求值期 importTOML 远端生成路径，nixos-anywhere remote build 会因未签名 store path 失败。
+  catppuccin.starship.enable = false;
+
   programs.starship = {
     enable = true;
 
