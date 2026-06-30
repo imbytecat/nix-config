@@ -122,6 +122,7 @@
           system = "x86_64-linux";
           username = "imbytecat";
           extraModules = [
+            inputs.disko.nixosModules.disko
             ./modules/desktop
             ./hosts/awesome-pc
           ];

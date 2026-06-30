@@ -1,7 +1,6 @@
-# 占位文件 —— 装机时用以下命令的输出覆盖：
-#   sudo nixos-generate-config --root /mnt --show-hardware-config > hardware-configuration.nix
-# 生成内容包含 fileSystems / boot.initrd / kernel modules，缺一不可，
-# 缺了 evaluation 会失败（fileSystems."/" is required）。
+# 占位文件 —— 首装时由 nixos-anywhere 覆盖：
+#   --generate-hardware-config nixos-generate-config ./hosts/awesome-pc/hardware-configuration.nix
+# disko.nix 管理 fileSystems；生成内容主要保留 VM 的 initrd / kernel modules。
 { ... }:
 
 {
