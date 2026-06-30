@@ -1,8 +1,11 @@
-{ lib, ... }:
+{ inputs, lib, ... }:
 
 {
-  # catppuccin/nix 的 starship 模块会在求值期 importTOML 远端生成路径，nixos-anywhere remote build 会因未签名 store path 失败。
-  catppuccin.starship.enable = false;
+  catppuccin = {
+    # 避开 catppuccin/nix 默认 starship port 的 IFD，同时保留 flake.lock 跟随 upstream 更新。
+    sources.starship = inputs.catppuccin-starship + "/themes";
+    starship.enable = true;
+  };
 
   programs.starship = {
     enable = true;
