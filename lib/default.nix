@@ -12,6 +12,7 @@ let
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "bak";
+      overwriteBackup = true;
       sharedModules = [
         inputs.lazyvim.homeManagerModules.default
       ];
