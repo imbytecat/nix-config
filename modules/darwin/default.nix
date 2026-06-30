@@ -150,53 +150,6 @@
       "mole"
     ];
 
-    casks = [
-      "1password"
-      "brave-browser"
-      "cherry-studio"
-      "cyberduck"
-      "dbeaver-community"
-      "discord"
-      "feishu"
-      "freecad"
-      "ghostty"
-      "goooler/repo/fl-clash"
-      "imbytecat/tap/doubao-ime"
-      "imbytecat/tap/roxy-browser"
-      "imbytecat/tap/ugreen-nas"
-      "keka"
-      "logitech-g-hub"
-      "microsoft-excel"
-      "microsoft-powerpoint"
-      "microsoft-word"
-      "moonlight"
-      "mos"
-      "movist-pro"
-      "obs"
-      "orbstack"
-      "qq"
-      "raycast"
-      "spotify"
-      "tailscale-app"
-      "telegram-desktop"
-      "tencent-meeting"
-      "termius"
-      "ungoogled-chromium"
-      "uuremote"
-      "videofusion" # 剪映专业版
-      "visual-studio-code"
-      "wechat"
-      "wechatwork"
-      "windows-app"
-      "winbox"
-      "xcodes-app"
-    ];
-
-    masApps = {
-      "iPreview" = 1519213509;
-      "Xnip" = 1221250572;
-    };
-
     onActivation = {
       # nix-homebrew pin 了 brew 版本,关 autoUpdate 防止运行时 git pull 漂移
       autoUpdate = false;

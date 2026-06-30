@@ -18,7 +18,6 @@
     git
     ghostty.terminfo
     docker-compose
-    freecad
   ];
 
   i18n = {

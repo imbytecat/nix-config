@@ -98,14 +98,20 @@
           hostname = "awesome-mac-mini";
           system = "aarch64-darwin";
           username = "imbytecat";
-          extraModules = [ ./hosts/awesome-mac-mini ];
+          extraModules = [
+            ./modules/desktop
+            ./hosts/awesome-mac-mini
+          ];
         };
 
         awesome-macbook-air = mylib.mkDarwin {
           hostname = "awesome-macbook-air";
           system = "aarch64-darwin";
           username = "imbytecat";
-          extraModules = [ ./hosts/awesome-macbook-air ];
+          extraModules = [
+            ./modules/desktop
+            ./hosts/awesome-macbook-air
+          ];
         };
       };
 
@@ -115,7 +121,10 @@
           hostname = "awesome-pc";
           system = "x86_64-linux";
           username = "imbytecat";
-          extraModules = [ ./hosts/awesome-pc ];
+          extraModules = [
+            ./modules/desktop
+            ./hosts/awesome-pc
+          ];
         };
 
         # ── server ──────────────────────────────────────────
