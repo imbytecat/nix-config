@@ -17,140 +17,17 @@ let
       name = "Anthropic";
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
-      models = {
-        "claude-opus-4-8" = {
-          name = "Claude Opus 4.8";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 1000000;
-            output = 128000;
-          };
-        };
-        "claude-sonnet-4-6" = {
-          name = "Claude Sonnet 4.6";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 200000;
-            output = 64000;
-          };
-        };
-        "claude-haiku-4-5" = {
-          name = "Claude Haiku 4.5";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 200000;
-            output = 64000;
-          };
-        };
-      };
     };
     openai = {
       name = "OpenAI";
       npm = "@ai-sdk/openai";
       options = gatewayOptions;
-      models = {
-        "gpt-5.5" = {
-          name = "GPT-5.5";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 1050000;
-            input = 920000;
-            output = 130000;
-          };
-        };
-        "gpt-5.4-mini" = {
-          name = "GPT-5.4 mini";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 400000;
-            input = 272000;
-            output = 128000;
-          };
-        };
-      };
     };
     google = {
       name = "Google";
       npm = "@ai-sdk/google";
       options = gatewayOptions // {
         baseURL = "{env:AI_GATEWAY_BASE_URL}/v1beta";
-      };
-      models = {
-        "gemini-3.1-pro-preview" = {
-          name = "Gemini 3.1 Pro";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "video"
-              "audio"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 1048576;
-            output = 65536;
-          };
-        };
-        "gemini-3.5-flash" = {
-          name = "Gemini 3.5 Flash";
-          reasoning = true;
-          modalities = {
-            input = [
-              "text"
-              "image"
-              "video"
-              "audio"
-              "pdf"
-            ];
-            output = [ "text" ];
-          };
-          limit = {
-            context = 1048576;
-            output = 65536;
-          };
-        };
       };
     };
     furtherverse = {
