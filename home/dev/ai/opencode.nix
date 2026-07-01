@@ -14,17 +14,14 @@ let
 
   providers = {
     anthropic = {
-      name = "Anthropic";
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
     };
     openai = {
-      name = "OpenAI";
       npm = "@ai-sdk/openai";
       options = gatewayOptions;
     };
     google = {
-      name = "Google";
       npm = "@ai-sdk/google";
       options = gatewayOptions // {
         baseURL = "{env:AI_GATEWAY_BASE_URL}/v1beta";
