@@ -10,11 +10,13 @@
       "--border"
       "--info=inline"
     ];
-    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-    fileWidgetOptions = [
+    changeDirWidget.command = "fd --type d --hidden --follow --exclude .git";
+    fileWidget.command = "fd --type f --hidden --follow --exclude .git";
+    fileWidget.options = [
       "--preview 'bat --color=always --style=numbers --line-range=:200 {} 2>/dev/null || eza -la {}'"
     ];
+    # Ctrl-R 交给 Atuin：空字符串禁用 fzf 的 history widget 绑定
+    historyWidget.command = "";
   };
 
   programs.atuin = {
