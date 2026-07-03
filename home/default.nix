@@ -57,7 +57,13 @@
   };
 
   programs.fastfetch.enable = true;
-  programs.tealdeer.enable = true;
+  programs.tealdeer = {
+    enable = true;
+    # macOS 上 home-manager 的 tldr-update launchd agent bootstrap 会报 I/O error (code 5)
+    # 导致 switch 失败；关掉它，改用 tealdeer 内置的按需自动更新（HM 官方迁移建议）
+    enableAutoUpdates = false;
+    settings.updates.auto_update = true;
+  };
 
   xdg.enable = true;
 }
