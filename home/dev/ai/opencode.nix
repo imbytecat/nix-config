@@ -226,6 +226,12 @@ let
     git_env_prefix = "GIT_MASTER=1";
   };
 
+  omoCodegraph = {
+    enabled = true;
+    auto_init = true;
+    auto_provision = true;
+  };
+
   omoClaude = {
     "$schema" =
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
@@ -304,6 +310,7 @@ let
     };
     experimental = omoExperimental;
     git_master = omoGitMaster;
+    codegraph = omoCodegraph;
   };
 
   omoGpt = lib.recursiveUpdate omoClaude {
