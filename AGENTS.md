@@ -16,8 +16,8 @@
 - Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
 - `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
 - Remote NixOS install/update: `just install <host> <remote>` (nixos-anywhere, disko wipes target disk, `--build-on remote`), `just deploy <host> <remote>`, `just deploy-boot <host> <remote>`.
-- `just lsp <host>` regenerates `.vscode/settings.json` for nixd option completion; output is gitignored.
-- `nix develop` provides repo tools (`just`, `jq`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
+- `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-mac-mini`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
+- `nix develop` provides repo tools (`just`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
 
 ## Where Things Go
 
@@ -26,7 +26,7 @@
 - `modules/nixos/default.nix`: daily NixOS base (user, locale, docker, base system packages). Do not put GUI apps here.
 - `modules/desktop/darwin.nix` / `modules/desktop/nixos.nix`: platform desktop roles, split on purpose — GUI app lists evolve independently per platform (brew/MAS vs nixpkgs), do not try to keep them aligned. `nixos.nix` also owns DE (Plasma 6 Wayland-only + SDDM), NetworkManager, fcitx5/rime, and Logitech peripherals (ratbagd/piper/solaar). GPU drivers are hardware, they stay in `hosts/<host>/`. Single-host casks still go in `hosts/<host>/default.nix` (for example `thaw`).
 - `home/dev/languages.nix`: shared development runtimes/tooling (`bun`, `go`, `nodejs`, `python3`, `uv`, `fvm`, `proto`, `android-tools`, LSPs, linters). `android-tools` is enough for `adb`/`fastboot`; in 2026 nixos-unstable no longer needs `programs.adb`, `adbusers`, or `android-udev-rules` because systemd 258 handles uaccess.
-- `home/dev/ai/`: llm-agent packages and generated OpenCode/Claude/Codex config. `opencode.jsonc` only declares `just-lsp` and the `mcp-nixos` server (`uvx mcp-nixos`).
+- `home/dev/ai/`: llm-agent packages and generated OpenCode/Claude/Codex config. `opencode.jsonc` declares `just-lsp`, `nixd` (same option-set exprs as `.vscode/settings.json`, wrapped under `initialization.nixd`), and the `mcp-nixos` server (`uvx mcp-nixos`).
 
 ## Nix / Package Gotchas
 

@@ -94,7 +94,6 @@ ssh imbytecat@<vm-ip>
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
 just switch awesome-pc
-just lsp awesome-pc
 ```
 
 如果首装时已经通过其他方式同步了仓库，跳过 `git clone`。`programs.nh.flake` 默认指向 `~/nix-config`。
@@ -276,12 +275,11 @@ just history                 # profile 历史
 just gc                      # GC（删 7 天前 generation）
 just fmt                     # nix fmt 格式化所有 .nix
 just repl                    # 带 nixpkgs 的 nix repl
-just lsp <host>              # 生成 .vscode/settings.json，nixd 补全感知 host options
 ```
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
 
-仓库带 `.envrc`（`use flake`），`home/shell/tools.nix` 已把 `~/nix-config` 加进 direnv whitelist，`cd` 进来即自动激活 dev shell，拿到 `just / jq / nixfmt / nixd / statix / nvd`，结果缓存到 `.direnv/`，flake.lock 不变则不重算。
+仓库带 `.envrc`（`use flake`），`home/shell/tools.nix` 已把 `~/nix-config` 加进 direnv whitelist，`cd` 进来即自动激活 dev shell，拿到 `just / nixfmt / nixd / statix / nvd`，结果缓存到 `.direnv/`，flake.lock 不变则不重算。
 
 裸机克隆后 direnv 还没装齐之前先手动一次：
 
