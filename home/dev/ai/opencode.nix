@@ -232,7 +232,7 @@ let
     auto_provision = true;
   };
 
-  omoClaude = {
+  omoProfile = {
     "$schema" =
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
@@ -259,12 +259,12 @@ let
         variant = "medium";
       };
       prometheus = {
-        model = "anthropic/claude-opus-4-8";
-        variant = "max";
+        model = "openai/gpt-5.5";
+        variant = "high";
       };
       metis = {
-        model = "anthropic/claude-opus-4-8";
-        variant = "max";
+        model = "openai/gpt-5.5";
+        variant = "high";
       };
       momus = {
         model = "openai/gpt-5.5";
@@ -301,8 +301,8 @@ let
         model = "furtherverse/kimi-k2.6";
       };
       unspecified-high = {
-        model = "anthropic/claude-opus-4-8";
-        variant = "max";
+        model = "openai/gpt-5.5";
+        variant = "high";
       };
       writing = {
         model = "furtherverse/kimi-k2.6";
@@ -311,27 +311,6 @@ let
     experimental = omoExperimental;
     git_master = omoGitMaster;
     codegraph = omoCodegraph;
-  };
-
-  omoGpt = lib.recursiveUpdate omoClaude {
-    agents = {
-      sisyphus = {
-        model = "openai/gpt-5.5";
-        variant = "high";
-      };
-      prometheus = {
-        model = "openai/gpt-5.5";
-        variant = "high";
-      };
-      metis = {
-        model = "openai/gpt-5.5";
-        variant = "high";
-      };
-    };
-    categories.unspecified-high = {
-      model = "openai/gpt-5.5";
-      variant = "high";
-    };
   };
 
   mkOmoProfile = name: variant: {
@@ -350,7 +329,6 @@ in
     {
       "opencode/opencode.json".source = jsonFormat.generate "opencode-default.json" defaultOpencode;
     }
-    (mkOmoProfile "omo-claude" omoClaude)
-    (mkOmoProfile "omo-gpt" omoGpt)
+    (mkOmoProfile "omo" omoProfile)
   ];
 }

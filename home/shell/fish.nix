@@ -113,16 +113,9 @@ in
       };
 
       omo = {
-        description = "Launch OpenCode with the omo-claude profile";
+        description = "Launch OpenCode with the omo profile";
         body = ''
-          env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo-claude" opencode $argv
-        '';
-      };
-
-      omog = {
-        description = "Launch OpenCode with the omo-gpt profile";
-        body = ''
-          env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo-gpt" opencode $argv
+          env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo" opencode $argv
         '';
       };
     };
