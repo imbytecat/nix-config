@@ -30,6 +30,7 @@
     feishu
     freecad
     obs-studio
+    piper # Logitech G 系鼠标配置 GUI（走 ratbagd）
     qq
     spotify
     telegram-desktop
@@ -44,6 +45,15 @@
   programs._1password-gui = {
     enable = true;
     polkitPolicyOwners = [ username ];
+  };
+
+  # ── Logitech 外设（替代 macOS 的 G HUB）──────────────────────
+  # ratbagd + Piper：G 系游戏鼠标的 DPI/按键/灯光配置
+  # hardware.logitech.wireless：Unifying/Bolt 接收器管理（Solaar）
+  services.ratbagd.enable = true;
+  hardware.logitech.wireless = {
+    enable = true;
+    enableGraphical = true;
   };
 
   # ── 输入法: Rime + 雾凇拼音(rime-ice)；Plasma 6 走 Wayland 故开 waylandFrontend ──
