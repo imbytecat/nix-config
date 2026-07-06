@@ -3,6 +3,7 @@
   username,
   pkgs,
   config,
+  lib,
   ...
 }:
 
@@ -66,4 +67,14 @@
   };
 
   xdg.enable = true;
+
+  # 启用雾凇拼音上游默认配置（nixpkgs 的 rime-ice 把 default.yaml 改名为
+  # rime_ice_suggestion.yaml，需在用户配置显式 __include，见 modules/desktop）。
+  # 后续 Rime 自定义（按键、候选数等）也加在这份 patch 里。
+  xdg.dataFile."fcitx5/rime/default.custom.yaml" = lib.mkIf pkgs.stdenv.isLinux {
+    text = ''
+      patch:
+        __include: rime_ice_suggestion:/
+    '';
+  };
 }
