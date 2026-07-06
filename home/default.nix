@@ -82,4 +82,23 @@
         __include: rime_ice_suggestion:/
     '';
   };
+
+  # fcitx5 输入法组（profile）：默认组 Default(us 布局) + 成员 keyboard-us/rime，默认 IM = rime。
+  # 声明式 + 可复现：home-manager 每次 switch 用本内容覆盖 ~/.config/fcitx5/profile（旧的进 .bak，
+  # 靠 lib 里 backupFileExtension+overwriteBackup），新装即成型，免手动去「系统设置 → 输入法」加 Rime。
+  # 走用户路径而非 NixOS 的 ignoreUserConfig：后者设 SKIP_FCITX_USER_PATH 跳过整个用户目录，会连
+  # ~/.local/share/fcitx5 一起跳（上面 rime-ice 的 default.custom.yaml 就在那，且 rime 需在该目录
+  # 可写以编译方案 build/、userdb），直接弄坏输入法。用户路径保持可写 → 既声明式又不破坏 rime。
+  xdg.configFile."fcitx5/profile" = lib.mkIf pkgs.stdenv.isLinux {
+    text = lib.generators.toINI { } {
+      GroupOrder."0" = "Default";
+      "Groups/0" = {
+        Name = "Default";
+        "Default Layout" = "us";
+        DefaultIM = "rime";
+      };
+      "Groups/0/Items/0".Name = "keyboard-us";
+      "Groups/0/Items/1".Name = "rime";
+    };
+  };
 }
