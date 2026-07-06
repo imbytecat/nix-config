@@ -109,22 +109,25 @@ git commit -m "awesome-pc: add hardware-configuration"
 <details>
 <summary><b>当前桌面 / GPU 配置</b></summary>
 
-`hosts/awesome-pc/default.nix` 当前已经启用：
+桌面角色（DE/输入法/桌面应用）在 `modules/desktop/nixos.nix`：
 
 ```nix
-# KDE Plasma 6 + SDDM Wayland
-services.xserver.enable = true;
+# KDE Plasma 6 + SDDM，Wayland-only（不开 services.xserver.enable）
 services.displayManager.sddm.enable = true;
 services.displayManager.sddm.wayland.enable = true;
 services.desktopManager.plasma6.enable = true;
+```
 
+GPU 是硬件属性，在 `hosts/awesome-pc/default.nix`（换 Intel 卡时只改这一段）：
+
+```nix
 # RTX 4070 SUPER
+services.xserver.videoDrivers = [ "nvidia" ];
 hardware.nvidia = {
   modesetting.enable = true;
   open = true;
   package = config.boot.kernelPackages.nvidiaPackages.stable;
 };
-services.xserver.videoDrivers = [ "nvidia" ];
 ```
 
 </details>
@@ -201,12 +204,14 @@ hosts/                         # 主机特定配置（目录名 == flake 目标 
   ├── awesome-pc/              # 日用 NixOS
   └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
 modules/
-  ├── desktop/                 # 桌面 GUI 应用（Darwin/NixOS desktop 显式导入）
+  ├── desktop/                 # 平台桌面角色，故意分开维护、互不迁就
+  │   ├── darwin.nix           #   macOS GUI（brew casks + MAS）
+  │   └── nixos.nix            #   NixOS GUI（Plasma 6 + 桌面应用 + fcitx5/rime + 罗技外设）
   ├── darwin/                  # macOS 模块
-  ├── nixos/                   # NixOS 日用模块
+  ├── nixos/                   # NixOS 日用 base（含无头开发所需：docker/nix-ld/用户）
   ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
   └── shared/                  # 跨平台共享 (fonts/nix/fish/openssh/1password)
-home/                          # Home Manager 配置（只用于日用机）
+home/                          # Home Manager 配置（只用于日用机，跨平台 ~100% 共享）
   ├── dev/                     # 开发工具
   └── shell/                   # Shell 配置
 lib/default.nix                # mkDarwin / mkNixos / mkServer 构建器
@@ -214,10 +219,16 @@ overlays/ + pkgs/              # 自定义包
 .agents/skills/                # Agent skills (Mihomo TPROXY 排查手册等)
 ```
 
-配置层级：
-- 日用桌面机：`hosts/*` → `modules/{shared,darwin|nixos}` + `modules/desktop` → `home/*`
-- 日用无头 NixOS：`hosts/*` → `modules/{shared,nixos}` → `home/*`
-- 服务器（如网关）：`hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`
+三种 NixOS 场景 + Darwin 的配置层级：
+
+| 场景 | 组成 | 示例 |
+|------|------|------|
+| Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | mac mini / MBA |
+| NixOS 桌面 | `hosts/*` → `modules/{shared,nixos}` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
+| NixOS 无头开发 | `hosts/*` → `modules/{shared,nixos}` → `home/*`（不加 desktop） | （预留） |
+| NixOS 服务器 | `hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`（mkServer，无 HM） | mihomo-gateway |
+
+共享边界：`home/`（shell/git/nvim/AI 工具链）跨平台共享，SSH 到任何一台日用机体验一致；GUI 应用列表按平台分开演化——brew/MAS 与 nixpkgs 的包名、机制、可用性差异太大，强行对齐得不偿失。
 
 ## 日常使用
 
@@ -266,7 +277,7 @@ Fish + Starship + Atuin + Zoxide + FZF + Direnv，Catppuccin Mocha 主题。
 常用自定义：
 - fish abbreviation → `home/shell/fish.nix`
 - 添加包 → 优先用 `programs.<name>.enable`（HM 模块），其次 `home/default.nix` 的 `home.packages`；语言/LSP 类放 `home/dev/languages.nix`
-- 桌面 GUI 应用 → 多平台/共享的进 `modules/desktop/default.nix`；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）
+- 桌面 GUI 应用 → macOS cask 进 `modules/desktop/darwin.nix`，NixOS 桌面应用进 `modules/desktop/nixos.nix`（两边独立维护，不要求对齐）；单机差异 cask 进 `hosts/<host>/default.nix`（如 `thaw` 在 `awesome-macbook-air`）
 - PATH 加目录 → `home.sessionPath`（在 `home/shell/fish.nix`）
 
 ## Environment

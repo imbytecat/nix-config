@@ -4,8 +4,8 @@
 
 - Nix flake for `awesome-mac-mini`/`awesome-macbook-air` (`aarch64-darwin`), `awesome-pc` (`x86_64-linux`), and `mihomo-gateway` (`x86_64-linux`, root-only gateway). Uses Lix.
 - Flake attr, host directory, and `networking.hostName` must match exactly; `just _guard` only compares `hostname -s` with the host argument.
-- Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. `sshKeys`, `username`, and `system` are passed via `specialArgs`.
-- Desktop hosts explicitly import `modules/desktop`; future headless NixOS hosts should use `mkNixos` without `modules/desktop`. Servers use `mkServer` and intentionally avoid Home Manager, catppuccin, fish, 1Password, docker, and desktop modules.
+- Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. `sshKeys` and `username` are passed via `specialArgs`; there is no `system` specialArg — use `pkgs.stdenv.isDarwin`/`isLinux` if a shared module ever needs a platform branch.
+- Desktop hosts explicitly import a platform desktop role: Darwin hosts use `modules/desktop/darwin.nix`, NixOS desktops use `modules/desktop/nixos.nix`. Headless dev NixOS hosts use `mkNixos` without any desktop module. Servers use `mkServer` and intentionally avoid Home Manager, catppuccin, fish, 1Password, docker, and desktop modules.
 
 ## Commands
 
@@ -21,7 +21,7 @@
 - `modules/shared/`: cross-platform system basics only (`nix.nix`, fonts, fish, openssh, 1Password CLI). Do not duplicate these in platform modules.
 - `modules/darwin/default.nix`: Darwin system settings, nix-homebrew setup, taps, brews, activation. Shared GUI casks/MAS do not go here.
 - `modules/nixos/default.nix`: daily NixOS base (user, locale, docker, base system packages). Do not put GUI apps here.
-- `modules/desktop/default.nix`: GUI desktop apps for Darwin and NixOS desktop, kept as aligned as practical. Single-host casks still go in `hosts/<host>/default.nix` (for example `thaw`).
+- `modules/desktop/darwin.nix` / `modules/desktop/nixos.nix`: platform desktop roles, split on purpose — GUI app lists evolve independently per platform (brew/MAS vs nixpkgs), do not try to keep them aligned. `nixos.nix` also owns DE (Plasma 6 Wayland-only + SDDM), NetworkManager, fcitx5/rime, and Logitech peripherals (ratbagd/piper/solaar). GPU drivers are hardware, they stay in `hosts/<host>/`. Single-host casks still go in `hosts/<host>/default.nix` (for example `thaw`).
 - `home/dev/languages.nix`: shared development runtimes/tooling (`bun`, `go`, `nodejs`, `python3`, `uv`, `fvm`, `proto`, `android-tools`, LSPs, linters). `android-tools` is enough for `adb`/`fastboot`; in 2026 nixos-unstable no longer needs `programs.adb`, `adbusers`, or `android-udev-rules` because systemd 258 handles uaccess.
 - `home/dev/ai/`: llm-agent packages and generated OpenCode/Claude/Codex config. `opencode.jsonc` only declares `just-lsp` and the `mcp-nixos` server (`uvx mcp-nixos`).
 
@@ -29,8 +29,9 @@
 
 - Always use the `nixos_nix` MCP before adding/changing NixOS, nix-darwin, Home Manager, nixpkgs package, Nixvim, channel, or cache config. Do not guess option names.
 - Darwin pkgs are imported in `mkDarwin` from `inputs.nixpkgs-unstable` with `allowUnfree` and overlays; do not add `nixpkgs.config` in Darwin modules.
-- NixOS `allowUnfree` and overlays are in `modules/nixos/default.nix`; gateway does not import that module.
+- NixOS `allowUnfree` and overlays are in `modules/nixos/default.nix`; gateway does not import that module. `nix-ld` is part of the NixOS base (headless remote dev needs it too), not a desktop or host concern.
 - Channels are disabled. `modules/shared/nix.nix` pins registry and `nixPath` to flake `inputs.nixpkgs`; do not add `<nixpkgs>`/channel-based paths.
+- `cherry-studio` comes from the pinned `nixpkgs-cherry-studio` input (overlay `inherit`), not this repo's main nixpkgs: newer revisions mark build-time pnpm 10.29.2 insecure (CVE) and hydra stops caching it; stable's 1.7.9 depends on insecure electron-38. Do not add `permittedInsecurePackages` and do not package it by hand; delete the pinned input once nixpkgs ships cherry-studio with electron-builder >= 26.8.2.
 - `llm-agents` intentionally does not follow this repo's nixpkgs; changing that will miss `cache.numtide.com`.
 - Binary caches are in `modules/shared/nix.nix`; `flake.nix.nixConfig` is only bootstrap. Do not re-add `cache.garnix.io`.
 - `home.stateVersion` and per-host `system.stateVersion` are migration markers; never bump them as part of routine updates.
@@ -38,7 +39,7 @@
 ## Homebrew / Darwin
 
 - Homebrew itself is declarative via `nix-homebrew` with `autoMigrate = true`, `mutableTaps = false`; bare machines should not run Homebrew install scripts manually.
-- `homebrew.cleanup = "zap"` removes undeclared brews/casks. Shared casks/MAS live in `modules/desktop/default.nix`; taps and brews stay in `modules/darwin/default.nix`; host-only casks stay under `hosts/<host>/`.
+- `homebrew.cleanup = "zap"` removes undeclared brews/casks. Darwin casks/MAS live in `modules/desktop/darwin.nix`; taps and brews stay in `modules/darwin/default.nix`; host-only casks stay under `hosts/<host>/`.
 - Brew 6 requires non-official taps to be trusted. Keep `goooler/repo` and `imbytecat/tap` as `{ name = ...; trusted = true; }` and list all nix-homebrew-managed taps.
 - Do not use removed Homebrew quarantine knobs (`caskArgs.no_quarantine`) or add automatic `xattr` bypass scripts; Gatekeeper exceptions are manual.
 - `homebrew.enableFishIntegration = true` is required for nix-darwin Homebrew integration; do not replace it with shell `brew shellenv` snippets.
@@ -50,7 +51,7 @@
 - Do not set HM `programs.*.enableFishIntegration = true`; HM inherits shell integration by default. Only set `false` when deliberately disabling it.
 - Static PATH entries go in `home.sessionPath`, not `fish_add_path` in `interactiveShellInit`.
 - Fish functions belong in `programs.fish.functions`; do not put function definitions back into `interactiveShellInit`.
-- Platform branches should be Nix-time (`lib.optional`, `lib.optionalAttrs`, or the `system` specialArg), not runtime `uname` checks.
+- Platform branches should be Nix-time (`lib.optional`, `lib.optionalAttrs`, `pkgs.stdenv.isDarwin`/`isLinux`), not runtime `uname` checks. System-level modules should not need them at all — platform-specific config belongs in the platform module tree, not behind conditionals.
 - `proto` is installed as a package plus `proto activate fish --no-shim`; do not add `~/.proto/shims` globally or symlink `~/.proto` into the store.
 - 1Password env vars are cached in `~/.cache/op-env/env.fish`; `op-env-refresh` is manual and uses `OP_SERVICE_ACCOUNT_TOKEN` from `~/.config/fish/local.fish`.
 
