@@ -5,9 +5,10 @@ inputs.nixpkgs.lib.composeManyExtensions [
   (final: prev: {
     comment-checker = final.callPackage ../pkgs/comment-checker { };
 
-    # 从 pin 的旧 revision 取 cherry-studio（原因/退出条件见 flake.nix input 注释）
-    inherit (inputs.nixpkgs-cherry-studio.legacyPackages.${final.stdenv.hostPlatform.system})
+    # 从 pin 的旧 revision 取 insecure-pnpm 受害包（原因/退出条件见 flake.nix input 注释）
+    inherit (inputs.nixpkgs-pnpm-pin.legacyPackages.${final.stdenv.hostPlatform.system})
       cherry-studio
+      vue-language-server
       ;
   })
 

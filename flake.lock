@@ -353,7 +353,7 @@
         "type": "github"
       }
     },
-    "nixpkgs-cherry-studio": {
+    "nixpkgs-pnpm-pin": {
       "locked": {
         "lastModified": 1781268102,
         "narHash": "sha256-Zn5KTggEmUB3lXn/ccERNcBdddE6IaOFber9dWViWDg=",
@@ -416,7 +416,7 @@
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-cherry-studio": "nixpkgs-cherry-studio",
+        "nixpkgs-pnpm-pin": "nixpkgs-pnpm-pin",
         "nixpkgs-unstable": "nixpkgs-unstable"
       }
     },

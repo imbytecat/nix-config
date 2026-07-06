@@ -20,7 +20,7 @@
     lua-language-server
     nixd
     typescript-language-server
-    # vue-language-server  # 依赖 insecure pnpm，不常用先注释
+    vue-language-server # 走 nixpkgs-pnpm-pin overlay（见 flake.nix），非主 nixpkgs
     yaml-language-server
 
     biome
