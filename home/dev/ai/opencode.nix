@@ -183,9 +183,9 @@ let
   agentsMd = ''
     # AGENTS.md
 
-    - Always reply in Simplified Chinese by default.
-    - Use English only if the user explicitly asks for it.
-    - Keep code, commands, file paths, logs, and identifiers unchanged.
+    - 默认始终使用简体中文回复。
+    - 仅当用户明确要求时才使用英文。
+    - 保持代码、命令、文件路径、日志和标识符不变。
   '';
 
   omoExperimental = {
@@ -288,7 +288,7 @@ let
       };
       deep = {
         model = "openai/gpt-5.5";
-        variant = "medium";
+        variant = "high";
       };
       artistry = {
         model = "google/gemini-3.1-pro-preview";
@@ -298,7 +298,8 @@ let
         model = "openai/gpt-5.4-mini";
       };
       unspecified-low = {
-        model = "furtherverse/kimi-k2.6";
+        model = "openai/gpt-5.5";
+        variant = "medium";
       };
       unspecified-high = {
         model = "openai/gpt-5.5";
