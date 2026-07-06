@@ -4,6 +4,7 @@
   pkgs,
   config,
   lib,
+  system,
   ...
 }:
 
@@ -12,7 +13,11 @@
     inputs.catppuccin.homeModules.catppuccin
     ./shell
     ./dev
-  ];
+  ]
+  # 桌面角色的 home 层：只在 Linux 导入（Darwin 无 Plasma），内部再按系统实际启用的
+  # DE 决定是否生效。换 DE / 加无头机时改 home/desktop，这里不动。
+  # 用 system（specialArg）判平台而非 pkgs.stdenv —— 后者依赖 config，用在 imports 会递归。
+  ++ lib.optionals (lib.hasSuffix "-linux" system) [ ./desktop ];
 
   catppuccin = {
     enable = true;

@@ -91,6 +91,15 @@
       url = "github:pfassina/lazyvim-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # KDE Plasma 6 声明式设置（home-manager 模块）。只在 Linux 桌面生效：home/ 按
+    # stdenv.isLinux 导入 home/desktop，再按系统是否启用 Plasma 6（osConfig）激活。
+    # follows nixpkgs + home-manager 与本仓一致，避免额外实例化。
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs =

@@ -7,21 +7,25 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
   ];
 
-  homeManagerConfig = username: {
-    home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      backupFileExtension = "bak";
-      overwriteBackup = true;
-      sharedModules = [
-        inputs.lazyvim.homeManagerModules.default
-      ];
-      extraSpecialArgs = {
-        inherit inputs username;
+  # system 透传进 extraSpecialArgs：home 模块在 imports 里门控平台要用 specialArg
+  # （pkgs 来自 _module.args、依赖 config，用在 imports 会无限递归），故不能用 pkgs.stdenv。
+  homeManagerConfig =
+    { username, system }:
+    {
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        backupFileExtension = "bak";
+        overwriteBackup = true;
+        sharedModules = [
+          inputs.lazyvim.homeManagerModules.default
+        ];
+        extraSpecialArgs = {
+          inherit inputs username system;
+        };
+        users.${username} = import ../home;
       };
-      users.${username} = import ../home;
     };
-  };
 in
 {
   mkNixos =
@@ -45,7 +49,7 @@ in
         ../modules/nixos
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
-        (homeManagerConfig username)
+        (homeManagerConfig { inherit username system; })
         { networking.hostName = hostname; }
       ]
       ++ extraModules;
@@ -104,7 +108,7 @@ in
         ../modules/shared
         ../modules/darwin
         inputs.home-manager.darwinModules.home-manager
-        (homeManagerConfig username)
+        (homeManagerConfig { inherit username system; })
         { networking.hostName = hostname; }
       ]
       ++ extraModules;
