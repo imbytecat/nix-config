@@ -182,7 +182,6 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               just
-              jq
               nixfmt
               nixd
               statix
