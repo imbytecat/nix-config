@@ -10,8 +10,11 @@
 ## Commands
 
 - Local activation: `just switch <host>`; hostname mismatch is refused. NixOS-only: `just boot <host>`, `just rollback`.
-- Build without activating: `just build <host>`. Compare current generation: `just diff <host>`.
-- Checks: `just fmt`, `just eval`, `just check`. On Darwin, `just check` may need a Linux remote builder because it checks NixOS configs too; use `just eval` for current-platform sanity.
+- Build without activating: `just build <host>`. Compare current generation: `just diff <host>` (auto-builds first). Hunt cache misses: `just dry <host>`.
+- Checks: `just fmt`, `just eval`, `just check`. `just eval` only covers current-platform hosts, but eval-only cross-checks work from Linux too: `nix eval .#darwinConfigurations.<host>.system.drvPath` (building/activating Darwin still needs a Mac). Run evals sequentially — parallel `nix eval` can die on a busy eval-cache SQLite.
+- Flake evals only see git-tracked files. `git add` new `.nix` files before any `nix eval`/`just build`, or you get "No such file or directory" against the store copy of the repo.
+- Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
+- `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
 - Remote NixOS install/update: `just install <host> <remote>` (nixos-anywhere, disko wipes target disk, `--build-on remote`), `just deploy <host> <remote>`, `just deploy-boot <host> <remote>`.
 - `just lsp <host>` regenerates `.vscode/settings.json` for nixd option completion; output is gitignored.
 - `nix develop` provides repo tools (`just`, `jq`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
@@ -39,11 +42,11 @@
 ## Homebrew / Darwin
 
 - Homebrew itself is declarative via `nix-homebrew` with `autoMigrate = true`, `mutableTaps = false`; bare machines should not run Homebrew install scripts manually.
-- `homebrew.cleanup = "zap"` removes undeclared brews/casks. Darwin casks/MAS live in `modules/desktop/darwin.nix`; taps and brews stay in `modules/darwin/default.nix`; host-only casks stay under `hosts/<host>/`.
+- `homebrew.onActivation.cleanup = "zap"` uninstalls undeclared brews/casks including their prefs — removing a cask from the list is destructive on next switch. Darwin casks/MAS live in `modules/desktop/darwin.nix`; taps and brews stay in `modules/darwin/default.nix`; host-only casks stay under `hosts/<host>/`.
 - Brew 6 requires non-official taps to be trusted. Keep `goooler/repo` and `imbytecat/tap` as `{ name = ...; trusted = true; }` and list all nix-homebrew-managed taps.
 - Do not use removed Homebrew quarantine knobs (`caskArgs.no_quarantine`) or add automatic `xattr` bypass scripts; Gatekeeper exceptions are manual.
 - `homebrew.enableFishIntegration = true` is required for nix-darwin Homebrew integration; do not replace it with shell `brew shellenv` snippets.
-- Mac mini intentionally has always-on power/location-service tweaks. MacBook Air intentionally uses raw `pmset`, not `power.sleep.*`, to preserve lid sleep behavior.
+- Mac mini intentionally has always-on power/wake tweaks (`power.sleep.*`, `pmset` activation, wake-on-LAN) — it is the SSH/Tailscale entry. MacBook Air intentionally uses raw `pmset`, not `power.sleep.*`, to preserve lid sleep behavior.
 
 ## Home Manager / Shell
 

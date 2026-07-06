@@ -194,6 +194,22 @@ EOF"
 
 部署：`just install <host> <remote>`（首装），之后 `just deploy <host> <remote>`（更新）。
 
+### 加新无头开发 NixOS 机
+
+日用但不带桌面（SSH remote dev）：用 `mkNixos`，`extraModules` **不加** `./modules/desktop/nixos.nix` 即可。base（`modules/nixos`）已含 docker、nix-ld、用户、locale，home-manager 全量生效，SSH 上去 shell/git/nvim 体验与桌面机一致。
+
+```nix
+<host> = mylib.mkNixos {
+  hostname = "<host>";
+  system = "x86_64-linux";
+  username = "imbytecat";
+  extraModules = [
+    inputs.disko.nixosModules.disko  # 如走 nixos-anywhere 首装
+    ./hosts/<host>
+  ];
+};
+```
+
 ## 仓库结构
 
 ```
