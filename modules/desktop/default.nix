@@ -87,5 +87,20 @@ lib.mkMerge [
       enable = true;
       polkitPolicyOwners = [ username ];
     };
+
+    # Rime + 雾凇拼音(rime-ice)；Plasma 6 走 Wayland 故开 waylandFrontend。
+    # override rimeDataPkgs 会整个替换默认 rime-data，rime-ice 自带完整方案数据故只留它
+    i18n.inputMethod = {
+      enable = true;
+      type = "fcitx5";
+      fcitx5 = {
+        waylandFrontend = true;
+        addons = with pkgs; [
+          (fcitx5-rime.override {
+            rimeDataPkgs = [ rime-ice ];
+          })
+        ];
+      };
+    };
   })
 ]
