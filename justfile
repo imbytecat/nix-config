@@ -215,37 +215,3 @@ repl:
 fmt:
     nix fmt -- $(find . -name '*.nix' -not -path './result/*' -not -path './.git/*')
 
-# ─── Tools ────────────────────────────────────────────────
-
-# 自动探测 host 属于 darwin / nixos，以及是否含 home-manager（server 类不含）
-[doc('给 nixd LSP 生成 options expr，让 VSCode 自动补全感知 {{host}} 配置')]
-[group('tools')]
-lsp host: (_valid host)
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # hasAttr 走懒求值，比直接 nix eval host attr 便宜
-    if [ "$(nix eval ".#darwinConfigurations" --apply 'builtins.hasAttr "{{ host }}"' 2>/dev/null)" = "true" ]; then
-      SET=darwinConfigurations
-      KEY=nix-darwin
-    elif [ "$(nix eval ".#nixosConfigurations" --apply 'builtins.hasAttr "{{ host }}"' 2>/dev/null)" = "true" ]; then
-      SET=nixosConfigurations
-      KEY=nixos
-    else
-      echo "unknown host: {{ host }}" >&2
-      exit 1
-    fi
-
-    HAS_HM=false
-    if nix eval ".#${SET}.{{ host }}.options.home-manager" --apply 'x: true' >/dev/null 2>&1; then
-      HAS_HM=true
-    fi
-
-    jq --arg h "{{ host }}" --arg set "$SET" --arg key "$KEY" --argjson hm "$HAS_HM" '
-      def base($suffix): ("(builtins.getFlake (toString ./.))." + $set + "." + $h + ".options" + $suffix);
-      ."nix.serverSettings".nixd.options = (
-        { ($key): {"expr": base("")} }
-        + (if $hm then {"home-manager": {"expr": base(".home-manager.users.type.getSubOptions []")}} else {} end)
-      )' .vscode/settings.base.json > .vscode/settings.json
-
-    echo "Generated .vscode/settings.json for {{ host }}"

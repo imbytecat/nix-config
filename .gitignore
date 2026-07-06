@@ -1,6 +1,5 @@
 result
 .direnv
-.vscode/settings.json
 .omo/
 
 # macOS

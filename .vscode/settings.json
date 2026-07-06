@@ -1,0 +1,25 @@
+{
+	"nix.enableLanguageServer": true,
+	"nix.serverPath": "nixd",
+	"nix.serverSettings": {
+		"nixd": {
+			"formatting": {
+				"command": ["nixfmt"]
+			},
+			"nixpkgs": {
+				"expr": "import (builtins.getFlake (toString ./.)).inputs.nixpkgs { }"
+			},
+			"options": {
+				"nixos": {
+					"expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.awesome-pc.options"
+				},
+				"nix-darwin": {
+					"expr": "(builtins.getFlake (toString ./.)).darwinConfigurations.awesome-mac-mini.options"
+				},
+				"home-manager": {
+					"expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.awesome-pc.options.home-manager.users.type.getSubOptions [ ]"
+				}
+			}
+		}
+	}
+}
