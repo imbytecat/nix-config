@@ -25,6 +25,13 @@
     # darwin host 显式用这条。不是 darwin 专属，谁想跟更新都可以来这边
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # cherry-studio 临时 pin：nixpkgs 2026-06-27 起把 pnpm 10.29.2 标记 insecure（CVE），
+    # 而 cherry-studio 的 electron-builder <26.8.2 用不了新 pnpm（pnpm#10601），被迫连坐。
+    # stable 也不行（1.7.9 依赖 insecure 的 electron-38）。pin 到标记前最后一个
+    # 有 hydra cache 的 revision（1.9.9，2026-06-12）：无豁免、无本地 electron 编译。
+    # 退出条件：nixpkgs 的 cherry-studio 升到 electron-builder >=26.8.2 后删除此 input。
+    nixpkgs-cherry-studio.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
+
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了
     llm-agents.url = "github:numtide/llm-agents.nix";
