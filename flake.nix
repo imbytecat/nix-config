@@ -106,7 +106,7 @@
           system = "aarch64-darwin";
           username = "imbytecat";
           extraModules = [
-            ./modules/desktop
+            ./modules/desktop/darwin.nix
             ./hosts/awesome-mac-mini
           ];
         };
@@ -116,26 +116,29 @@
           system = "aarch64-darwin";
           username = "imbytecat";
           extraModules = [
-            ./modules/desktop
+            ./modules/desktop/darwin.nix
             ./hosts/awesome-macbook-air
           ];
         };
       };
 
       nixosConfigurations = {
-        # ── desktop ─────────────────────────────────────────
+        # ── desktop（桌面场景：base + desktop/nixos.nix）────────
         awesome-pc = mylib.mkNixos {
           hostname = "awesome-pc";
           system = "x86_64-linux";
           username = "imbytecat";
           extraModules = [
             inputs.disko.nixosModules.disko
-            ./modules/desktop
+            ./modules/desktop/nixos.nix
             ./hosts/awesome-pc
           ];
         };
 
-        # ── server ──────────────────────────────────────────
+        # ── headless dev（无头开发场景：仅 base，不导入 desktop/nixos.nix）
+        # 新增无头开发机时：mkNixos + hosts/<host>，extraModules 不加 desktop 即可
+
+        # ── server（服务器场景：mkServer，root-only，不走 home-manager）
         mihomo-gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
           system = "x86_64-linux";
