@@ -11,6 +11,8 @@
   # darwin 走 mkDarwin builder（lib/default.nix 里显式 import nixpkgs-unstable），不来这里
   # gateway 走 mkServer，不导入这个文件
   nixpkgs.config.allowUnfree = true;
+  # cherry-studio 构建期依赖 pnpm，被标记为 insecure（CVE-2026-*），仅构建时使用
+  nixpkgs.config.permittedInsecurePackages = [ "pnpm-10.29.2" ];
   nixpkgs.overlays = [ inputs.self.overlays.default ];
 
   environment.systemPackages = with pkgs; [
