@@ -9,10 +9,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # nix-ld：VSCode Remote / Cursor 等预编译二进制需要动态链接器
-  programs.nix-ld.enable = true;
-
   # ── GPU（硬件属性，与桌面角色解耦；换 Intel 卡时只改这一段）──
+  # Wayland-only：不开 services.xserver.enable，videoDrivers 仅控制驱动加载
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia = {
     modesetting.enable = true;

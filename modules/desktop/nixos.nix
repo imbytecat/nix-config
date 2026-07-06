@@ -8,8 +8,8 @@
 }:
 
 {
-  # ── DE: KDE Plasma 6 + SDDM ─────────────────────────────────
-  services.xserver.enable = true;
+  # ── DE: KDE Plasma 6 (Wayland-only) + SDDM ──────────────────
+  # 不开 services.xserver.enable：不提供 X11 session，XWayland 由 Plasma 自带
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;

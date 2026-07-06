@@ -40,5 +40,9 @@
 
   virtualisation.docker.enable = true;
 
+  # nix-ld：VSCode Remote / Cursor 等预编译二进制需要动态链接器。
+  # 无头开发场景（SSH remote dev）的基础能力，放 base 而非 host。
+  programs.nix-ld.enable = true;
+
   security.sudo.wheelNeedsPassword = false;
 }
