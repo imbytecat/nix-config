@@ -2,15 +2,17 @@
 
 nix-darwin + NixOS + Home Manager + Flakes 声明式管理两台 Mac + 一台 NixOS PC + 一台单臂透明代理网关。
 
+Linux 为主、macOS 为辅：NixOS PC 是主力桌面，GUI 应用列表按平台分开维护（`modules/desktop/{darwin,nixos}.nix`），CLI/开发环境（`home/`）跨平台完全共享，SSH 到任何一台机器 shell/git/nvim 体验一致。
+
 ## 设备
 
 flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任一项就全改。
 
 | 设备 | 平台 | Flake 目标 / hostname / dir | 备注 |
 |------|------|----------------------------|------|
-| Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口 |
-| MacBook Air | aarch64-darwin | `awesome-macbook-air` | 笔记本，带刘海 |
-| PC | x86_64-linux | `awesome-pc` | PVE VM 桌面，systemd-boot + KDE Plasma + NVIDIA 直通 |
+| PC | x86_64-linux | `awesome-pc` | **主力桌面**。PVE VM，systemd-boot + Plasma 6 Wayland + NVIDIA 直通 |
+| MacBook Air | aarch64-darwin | `awesome-macbook-air` | 外出 + Xcode/Flutter 构建机，带刘海 |
+| Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口；待退役，入口角色迁到 PVE 侧后删除 |
 | Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
@@ -41,7 +43,7 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 ### PC
 
-PVE VM NixOS 桌面（amd64），UEFI + systemd-boot + NetworkManager + KDE Plasma 6。首次用 NixOS minimal ISO 启动 VM 后，从本仓跑 `just install awesome-pc <vm-ip>` 远程首装；之后 `just deploy awesome-pc <vm-ip>` 或进系统后 `just switch awesome-pc` 重建。
+PVE VM NixOS 桌面（amd64），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动 VM 后，从本仓跑 `just install awesome-pc <vm-ip>` 远程首装；之后 `just deploy awesome-pc <vm-ip>` 或进系统后 `just switch awesome-pc` 重建。
 
 <details>
 <summary><b>首次装机完整流程</b>（点开展开）</summary>
@@ -258,6 +260,7 @@ just rollback                # 回滚（仅 NixOS）
 # 远程 NixOS 主机
 just install <host> <remote> # 首次装机（nixos-anywhere）
 just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
+just deploy-boot <host> <remote> # 远程更新但仅注册下次启动（kernel/initrd 类更新）
 
 # 检查 / 诊断
 just eval                    # eval 本平台所有 host 配置
