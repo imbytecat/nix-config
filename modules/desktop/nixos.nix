@@ -27,6 +27,24 @@ let
         --set XMODIFIERS @im=fcitx
     '';
   };
+
+  # WPS 与微信同一类问题：也是 XWayland 下的 Qt5 应用，waylandFrontend=true 不全局设 *_IM_MODULE
+  # （理由见上），故 WPS 的 Qt 不加载 fcitx5 输入上下文 → 打不出中文。wpsoffice-cn 已内置 fcitx5-qt
+  # 插件（buildInputs 的 libsForQt5.fcitx5-qt），只差这几个变量点亮。四个入口 wps/et/wpp/wpspdf 都要
+  # 包（desktop 文件各用各的 bin）；启动脚本按绝对 store 路径定位 office6、非 $0 相对，故 wrap 无碍。
+  wpsoffice-fcitx = pkgs.symlinkJoin {
+    name = "wpsoffice-cn-fcitx5";
+    paths = [ pkgs.wpsoffice-cn ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      for bin in wps et wpp wpspdf; do
+        wrapProgram $out/bin/$bin \
+          --set QT_IM_MODULE fcitx \
+          --set GTK_IM_MODULE fcitx \
+          --set XMODIFIERS @im=fcitx
+      done
+    '';
+  };
 in
 {
   # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
@@ -62,7 +80,7 @@ in
     wechat-fcitx
     wemeet
     winbox
-    wpsoffice-cn
+    wpsoffice-fcitx
   ];
 
   programs._1password-gui = {
