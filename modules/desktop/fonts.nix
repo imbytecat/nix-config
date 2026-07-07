@@ -8,6 +8,11 @@
 # 优先落到日文字形，故下面用 mkBefore 把 SC 字族显式摆到 defaultFonts 最前。
 { pkgs, lib, ... }:
 
+let
+  # 真 Windows 10 字体（宋体/黑体/楷体/仿宋/微软雅黑/等线 + Calibri/Times New Roman 等），
+  # 让 WPS 打开别人发来的文档能按具名字体渲染、不串版；具体两个上游与取舍见 pkgs/ttf-ms-win10。
+  ttf-ms-win10 = pkgs.callPackage ../../pkgs/ttf-ms-win10 { };
+in
 {
   fonts = {
     packages = with pkgs; [
@@ -22,6 +27,8 @@
       lxgw-wenkai
       # ── 西文 UI sans ──
       inter
+      # ── WPS/Office 文档保真：真 Windows 中文/西文具名字体 ──
+      ttf-ms-win10
     ];
 
     # 用 mkBefore 把首选字族插到 Plasma 6 默认(Noto Sans/Serif、Hack)之前：

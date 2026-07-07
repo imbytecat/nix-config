@@ -62,6 +62,7 @@ in
     wechat-fcitx
     wemeet
     winbox
+    wpsoffice-cn
   ];
 
   programs._1password-gui = {
