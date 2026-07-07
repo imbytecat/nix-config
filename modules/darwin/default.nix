@@ -36,12 +36,8 @@
 
   system.startup.chime = false;
 
-  # SMB 客户端调优(挂载时读取,改完需重新挂载共享才生效)
-  # 仅保留 Apple 官方明确推荐的项,详见 https://support.apple.com/en-us/102050
-  # - protocol_vers_map=6: 只用 SMB2+SMB3,禁掉对老旧不安全 SMB1 的回退
-  # - port445=no_netbios: 禁 NetBIOS,关闭 139 端口与 SMB1 回退路径
-  # - mc_prefer_wired=yes: 多通道时优先有线网卡(MacBook Air 有 Wi-Fi 时受益)
-  # 不再写 signing_required(默认就是 no)、dir_cache_*(Apple 不推荐拉长缓存)
+  # SMB 客户端调优（挂载时读取，改完需重挂共享）。仅留 Apple 官方推荐项（support.apple.com/en-us/102050）：
+  # protocol_vers_map=6 只用 SMB2/3、port445=no_netbios 禁 NetBIOS/SMB1、mc_prefer_wired 多通道优先有线。
   environment.etc."nsmb.conf".text = ''
     [default]
     protocol_vers_map=6
@@ -128,10 +124,8 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
-    # 列全 nix-homebrew 管的所有 tap,否则 cleanup="zap" 会尝试 untap
-    # 被符号链接的官方 tap。brew 6.0 默认开 HOMEBREW_REQUIRE_TAP_TRUST,
-    # 非官方 tap(goooler/repo、imbytecat/tap)需标 trusted=true,否则 activation
-    # 拒绝加载其 formula/cask。官方 tap 永远受信,无需标。
+    # 列全 nix-homebrew 管的所有 tap，否则 cleanup="zap" 会 untap 符号链接的官方 tap。
+    # 非官方 tap 需 trusted=true（brew 6.0 HOMEBREW_REQUIRE_TAP_TRUST）；官方 tap 永远受信。
     taps = [
       "homebrew/homebrew-core"
       "homebrew/homebrew-cask"

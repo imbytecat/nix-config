@@ -1,7 +1,5 @@
-# macOS 桌面角色：GUI 应用（Homebrew casks + Mac App Store）。
-# 与 desktop/nixos.nix 各自独立演化，互不迁就 —— brew/MAS 与 nixpkgs
-# 的包名、机制、可用性差异太大，强行共享列表得不偿失。
-# 单机差异 cask 放 hosts/<host>/default.nix（如 thaw 只在 MacBook Air）。
+# macOS 桌面角色：GUI 应用（Homebrew casks + Mac App Store）。与 desktop/nixos.nix
+# 各自独立演化（brew/MAS 与 nixpkgs 差异太大，不强行共享）。单机差异 cask 放 hosts/<host>/。
 {
   homebrew.casks = [
     "1password"

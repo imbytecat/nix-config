@@ -73,8 +73,7 @@
 
   xdg.enable = true;
 
-  # 启用雾凇拼音上游默认配置（nixpkgs 的 rime-ice 把 default.yaml 改名为
-  # rime_ice_suggestion.yaml，需在用户配置显式 __include，见 modules/desktop）。
+  # 雾凇拼音需用户侧 default.custom.yaml __include 才有候选（见 docs/adr/0003-wayland-ime-fcitx.md）。
   # 后续 Rime 自定义（按键、候选数等）也加在这份 patch 里。
   xdg.dataFile."fcitx5/rime/default.custom.yaml" = lib.mkIf pkgs.stdenv.isLinux {
     text = ''
@@ -83,12 +82,8 @@
     '';
   };
 
-  # fcitx5 输入法组（profile）：默认组 Default(us 布局) + 成员 keyboard-us/rime，默认 IM = rime。
-  # 声明式 + 可复现：home-manager 每次 switch 用本内容覆盖 ~/.config/fcitx5/profile（旧的进 .bak，
-  # 靠 lib 里 backupFileExtension+overwriteBackup），新装即成型，免手动去「系统设置 → 输入法」加 Rime。
-  # 走用户路径而非 NixOS 的 ignoreUserConfig：后者设 SKIP_FCITX_USER_PATH 跳过整个用户目录，会连
-  # ~/.local/share/fcitx5 一起跳（上面 rime-ice 的 default.custom.yaml 就在那，且 rime 需在该目录
-  # 可写以编译方案 build/、userdb），直接弄坏输入法。用户路径保持可写 → 既声明式又不破坏 rime。
+  # fcitx5 输入法组：默认 IM=rime；home-manager 每 switch 覆盖 ~/.config/fcitx5/profile，新装即成型。
+  # 为何走用户路径而非 NixOS ignoreUserConfig，见 docs/adr/0003-wayland-ime-fcitx.md。
   xdg.configFile."fcitx5/profile" = lib.mkIf pkgs.stdenv.isLinux {
     text = lib.generators.toINI { } {
       GroupOrder."0" = "Default";

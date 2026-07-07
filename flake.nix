@@ -27,22 +27,16 @@
     # darwin host 显式用这条。不是 darwin 专属，谁想跟更新都可以来这边
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # pnpm 受害包临时 pin：nixpkgs 2026-06-27 起把构建期 pnpm 10.29.2 标记
-    # insecure（CVE），下游 electron-builder <26.8.2 的包用不了新 pnpm（pnpm#10601）
-    # 被迫连坐，hydra 拒绝构建导致 cache 全 miss。stable 也不行（cherry-studio
-    # 1.7.9 依赖 insecure 的 electron-38）。pin 到标记前最后一个有 hydra cache 的
-    # revision，overlay 从这里 inherit：cherry-studio、vue-language-server。
-    # 退出条件：nixpkgs 相应包摆脱 insecure pnpm 后逐个移出 inherit，清空后删本 input。
+    # pnpm CVE 连坐：pin 到标记前最后一个有 hydra cache 的 revision，overlay 从此
+    # inherit cherry-studio/vue-language-server。完整背景+退出条件见 docs/adr/0002-pnpm-pin.md
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
 
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # CachyOS 内核（awesome-pc 桌面用）。release 分支 = Hydra CI 构建通过
-    # （含 nvidia-open/ZFS 测试配置）且已推 binary cache 的版本。
-    # 故意不 follows nixpkgs：kernel patch 与 nixpkgs 内核版本必须匹配，
-    # 且 pinned overlay 需要它自带的 nixpkgs revision 才能命中 cache。
+    # CachyOS 内核（awesome-pc 桌面）。release 分支 = Hydra CI 通过且已推 binary cache 的版本。
+    # 故意不 follows nixpkgs：kernel patch 需匹配 nixpkgs 内核版本，且 pinned overlay 要自带 revision 才命中 cache。
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
 
     home-manager = {
@@ -55,12 +49,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Homebrew tap 版本声明式管理,避开 brew update 运行时漂移。
-    # brew 本体不再顶层写死:nix-darwin PR #1789 合并后(见 input nix-darwin)activation
-    # 改用 brew 6.x 的 `--force-cleanup` 并支持 Brewfile `trusted: true`,nix-homebrew
-    # 自带的 brew-src 已是 6.x,随 just update 升 nix-homebrew 一起走即可,无需 follows 覆盖。
-    # 非官方 tap 需在 modules/darwin/default.nix 标 trusted=true 满足
-    # HOMEBREW_REQUIRE_TAP_TRUST(brew 6.0 默认开)。
+    # Homebrew tap 声明式 pin 到 flake input，避开 brew update 运行时漂移。brew 本体由
+    # nix-homebrew 自带 brew-src（6.x）提供，随 just update 升级。非官方 tap 需在
+    # modules/darwin/default.nix 标 trusted=true（brew 6.0 的 HOMEBREW_REQUIRE_TAP_TRUST）。
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
 
     homebrew-core = {

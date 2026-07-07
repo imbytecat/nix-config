@@ -1,10 +1,6 @@
-# WPS/Office 文档按具名字体渲染（宋体/黑体/楷体/仿宋/微软雅黑/等线 + Calibri/Times New Roman
-# 等），思源/更纱只能兜底、对不上名字，别人发来的文档会串版。这里装真 Windows 10 字体补齐。
-# 非自由字体，仅本地办公显示用途（用户已确认不商用）。
-#
-# 两个上游互补：base(streetsamurai00mi) 有全套西文（含 corefonts 都没有的 Calibri/Cambria）
-# + 宋体 simsun + 微软雅黑 msyh + 繁体 + Webdings/Wingdings/Symbol，但缺 SimHei/KaiTi/FangSong/
-# DengXian；chillcicada 的补充包正好只补这四族。base 的 hash 复用 NUR rewine 的固定 rev。
+# 真 Windows 10 中文/西文具名字体，让 WPS 打开别人的文档按具名字体渲染不串版；思源/更纱只能
+# 兜底、对不上名字。非自由字体，仅本地办公显示（不商用）。两个上游互补：base(streetsamurai00mi)
+# 全套西文 + 宋体 + 微软雅黑，缺 SimHei/KaiTi/FangSong/DengXian；supplement(chillcicada) 补这四族。
 {
   lib,
   stdenvNoCC,

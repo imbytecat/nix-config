@@ -8,14 +8,9 @@
 }:
 
 let
-  # 微信 4.x 是跑在 XWayland 下的 Qt5 应用（二进制内置 fcitx-qt5 插件），Qt 仅当
-  # QT_IM_MODULE=fcitx 时才会加载该输入上下文。但本机 waylandFrontend=true 故意不全局
-  # 设 *_IM_MODULE（否则原生 Wayland 应用会被拖去走 XIM，见 nixpkgs#278765），而微信自带的
-  # AppRun 也不设，于是它连不上 fcitx5 → 微信打不出中文。QQ 是 Electron，靠 --enable-wayland-ime
-  # 走 text-input-v3 直连 fcitx5 的 wayland 前端，不需要这些变量，故不受影响。
-  # 解法：只给微信单独注入 QT/GTK_IM_MODULE（XMODIFIERS 已全局，带上冗余但无害、自成一体）。
-  # 微信外层是 bwrap 且未 --clearenv，环境变量会透传进沙箱；内置 fcitx-qt5 经 $XDG_RUNTIME_DIR
-  # 的 DBus 连到 fcitx5。不能全局设是因为那会破坏 waylandFrontend 对原生 Wayland 应用的意义。
+  # 微信 4.x（XWayland Qt5，内置 fcitx-qt5）：只有 QT_IM_MODULE=fcitx 才加载输入上下文，故
+  # wrap 单独注入 QT/GTK_IM_MODULE + XMODIFIERS。为何不全局设、QQ 为何不受影响，
+  # 见 docs/adr/0003-wayland-ime-fcitx.md
   wechat-fcitx = pkgs.symlinkJoin {
     name = "wechat-fcitx5";
     paths = [ pkgs.wechat ];
@@ -28,10 +23,8 @@ let
     '';
   };
 
-  # WPS 与微信同一类问题：也是 XWayland 下的 Qt5 应用，waylandFrontend=true 不全局设 *_IM_MODULE
-  # （理由见上），故 WPS 的 Qt 不加载 fcitx5 输入上下文 → 打不出中文。wpsoffice-cn 已内置 fcitx5-qt
-  # 插件（buildInputs 的 libsForQt5.fcitx5-qt），只差这几个变量点亮。四个入口 wps/et/wpp/wpspdf 都要
-  # 包（desktop 文件各用各的 bin）；启动脚本按绝对 store 路径定位 office6、非 $0 相对，故 wrap 无碍。
+  # WPS 同微信（XWayland Qt5，已内置 fcitx5-qt）：四个入口 wps/et/wpp/wpspdf 各 wrap 注入
+  # *_IM_MODULE=fcitx 点亮。见 docs/adr/0003-wayland-ime-fcitx.md
   wpsoffice-fcitx = pkgs.symlinkJoin {
     name = "wpsoffice-cn-fcitx5";
     paths = [ pkgs.wpsoffice-cn ];
@@ -97,11 +90,8 @@ in
   };
 
   # ── 输入法: Rime + 雾凇拼音(rime-ice)；Plasma 6 走 Wayland 故开 waylandFrontend ──
-  # override rimeDataPkgs 会整个替换默认 rime-data，rime-ice 自带完整方案数据故只留它。
-  # 注意：nixpkgs 的 rime-ice 特意把上游 default.yaml 改名为 rime_ice_suggestion.yaml
-  # （避免与其他方案包抢占全局配置），需要用户侧 default.custom.yaml 显式 __include
-  # 启用，否则 schema_list 为空、无候选框（nixpkgs#449487）。
-  # 该文件由 home-manager 管理：home/default.nix 的 xdg.dataFile。
+  # override rimeDataPkgs 整个替换默认 rime-data，只留 rime-ice。rime-ice 需用户侧
+  # default.custom.yaml __include 才有候选（见 home/default.nix + docs/adr/0003-wayland-ime-fcitx.md）。
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";

@@ -34,7 +34,7 @@
 - Darwin pkgs are imported in `mkDarwin` from `inputs.nixpkgs-unstable` with `allowUnfree` and overlays; do not add `nixpkgs.config` in Darwin modules.
 - NixOS `allowUnfree` and overlays are in `modules/nixos/default.nix`; gateway does not import that module. `nix-ld` is part of the NixOS base (headless remote dev needs it too), not a desktop or host concern.
 - Channels are disabled. `modules/shared/nix.nix` pins registry and `nixPath` to flake `inputs.nixpkgs`; do not add `<nixpkgs>`/channel-based paths.
-- `cherry-studio` and `vue-language-server` come from the pinned `nixpkgs-pnpm-pin` input (overlay `inherit`), not this repo's main nixpkgs: newer revisions mark build-time pnpm 10.29.2 insecure (CVE), packages stuck on electron-builder < 26.8.2 can't move to fixed pnpm (pnpm#10601), and hydra stops caching insecure builds; stable is no escape (cherry-studio 1.7.9 depends on insecure electron-38). Do not add `permittedInsecurePackages` and do not package these by hand; when a package sheds insecure pnpm upstream, remove it from the overlay `inherit`, and delete the input once the list is empty.
+- `cherry-studio` and `vue-language-server` come from the pinned `nixpkgs-pnpm-pin` input (overlay `inherit`), not this repo's main nixpkgs — a workaround for pnpm-CVE cache misses. Do not add `permittedInsecurePackages` and do not package these by hand; when a package sheds insecure pnpm upstream, remove it from the overlay `inherit`, and delete the input once the list is empty. Full rationale: `docs/adr/0002-pnpm-pin.md`.
 - `llm-agents` intentionally does not follow this repo's nixpkgs; changing that will miss `cache.numtide.com`.
 - Binary caches are in `modules/shared/nix.nix`; `flake.nix.nixConfig` is only bootstrap. Do not re-add `cache.garnix.io`.
 - `home.stateVersion` and per-host `system.stateVersion` are migration markers; never bump them as part of routine updates.
@@ -74,7 +74,7 @@
 
 - Commit messages and in-file comments are zh-CN Conventional Commits: `feat(scope): 描述`, `fix(scope): 描述`, etc.
 - All Markdown docs in this repo (`README.md`, `AGENTS.md`, `docs/**`) are written in zh-CN.
-- Comments are rare. Add only WHY/gotcha/cross-file coupling notes an agent would likely miss; do not label obvious packages or options.
+- Comments are rare. Add only WHY/gotcha/cross-file coupling notes an agent would likely miss; do not label obvious packages or options. Placement policy (local WHY inline & compressed, archive-grade WHY in `docs/adr/` with an inline pointer): see `docs/adr/0001-comment-placement-policy.md`.
 - If docs conflict with executable config (`flake.nix`, `justfile`, module imports), trust the executable source and update docs.
 
 ## Agent skills

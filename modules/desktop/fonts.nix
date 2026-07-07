@@ -1,11 +1,6 @@
-# NixOS 桌面显示字体 —— 仅本文件在 NixOS 桌面(awesome-pc)生效，与跨平台编码字
-# modules/shared/fonts.nix 分家：fonts.fontconfig 是 NixOS 专有选项，写进 shared
-# 会让两台 mac 的 eval 直接报错；且 mac 自带 PingFang/Apple Emoji，无需这些。
-#
-# 背景：Plasma 6 只自动装 noto-fonts(无 CJK/emoji) + hack-font，而
-# fonts.enableDefaultPackages 默认关，故此前中文仅靠 Maple Mono NF-CN 兜底、
-# emoji 完全缺失(豆腐块)。另 modules/nixos 的 defaultLocale=en_US 会让统一汉字
-# 优先落到日文字形，故下面用 mkBefore 把 SC 字族显式摆到 defaultFonts 最前。
+# NixOS 桌面显示字体 —— 与跨平台编码字 modules/shared/fonts.nix 分家：fonts.fontconfig
+# 是 NixOS 专有选项，写进 shared 会让两台 mac 的 eval 报错；mac 也自带 PingFang/emoji 无需这些。
+# 下面 mkBefore 把 SC 字族摆到 defaultFonts 最前：否则 defaultLocale=en_US 会让统一汉字落到日文字形。
 { pkgs, lib, ... }:
 
 let
