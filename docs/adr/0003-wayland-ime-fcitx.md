@@ -23,7 +23,7 @@ Wayland 程序走 text-input-v3 直连 fcitx5。此时**故意不全局设** `QT
 - **rime-ice**：nixpkgs 把上游 `default.yaml` 改名为 `rime_ice_suggestion.yaml`（避免与其他
   方案包抢占全局配置），需用户侧 `default.custom.yaml` 显式 `__include` 才有候选，否则
   `schema_list` 为空、无候选框（nixpkgs#449487）。该文件由 home-manager 管
-  （`home/default.nix` 的 `xdg.dataFile`）。走用户路径而非 NixOS `ignoreUserConfig`：后者设
+  （`home/desktop/fcitx5.nix` 的 `xdg.dataFile`）。走用户路径而非 NixOS `ignoreUserConfig`：后者设
   `SKIP_FCITX_USER_PATH` 会跳过整个用户目录，连 rime 编译方案所需的可写目录
   （`~/.local/share/fcitx5`：build/、userdb）一起跳，直接弄坏输入法。
 
@@ -31,4 +31,4 @@ Wayland 程序走 text-input-v3 直连 fcitx5。此时**故意不全局设** `QT
 
 - `modules/desktop/nixos.nix` —— `waylandFrontend`、微信 / WPS wrap、rime addon
 - `home/desktop/plasma.nix` —— KWin `InputMethod`
-- `home/default.nix` —— fcitx5 profile、rime `default.custom.yaml`
+- `home/desktop/fcitx5.nix` —— fcitx5 profile、rime `default.custom.yaml`

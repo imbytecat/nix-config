@@ -4,6 +4,14 @@
 领域名词；通用编程 / Nix 概念不入表。命名（issue 标题、重构提案、模块名）请用这里的词，避免漂移到
 _Avoid_ 列出的同义词。
 
+## 主机角色
+
+**桌面角色（Desktop role）**：
+「带 GUI 桌面」的主机角色 = DE + 桌面应用 + 输入法 + 字体，分系统层（`modules/desktop/{darwin,nixos}.nix`，
+按主机加进模块列表）与 home 层（`home/desktop/`，仅 linux 导入、内部按 DE 自我收窄）两层。与无头开发机 /
+服务器角色相对。
+_Avoid_: 裸「desktop」（会和这两层混指）
+
 ## AI 编码代理工具链
 
 **AI 网关（AI gateway）**：
