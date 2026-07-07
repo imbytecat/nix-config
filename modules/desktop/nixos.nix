@@ -33,7 +33,6 @@
     feishu
     freecad
     obs-studio
-    piper # Logitech G 系鼠标配置 GUI（走 ratbagd）
     qq
     spotify
     telegram-desktop
@@ -51,9 +50,8 @@
   };
 
   # ── Logitech 外设（替代 macOS 的 G HUB）──────────────────────
-  # ratbagd + Piper：G 系游戏鼠标的 DPI/按键/灯光配置
-  # hardware.logitech.wireless：Unifying/Bolt 接收器管理（Solaar）
-  services.ratbagd.enable = true;
+  # hardware.logitech.wireless：Unifying/Bolt/Lightspeed 接收器管理（Solaar）
+  # PRO X2 SUPERSTRIKE 走 Solaar 即可；libratbag 未收录该鼠标，故不装 piper/ratbagd
   hardware.logitech.wireless = {
     enable = true;
     enableGraphical = true;
