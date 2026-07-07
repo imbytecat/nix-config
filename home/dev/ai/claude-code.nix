@@ -3,6 +3,10 @@
 let
   jsonFormat = pkgs.formats.json { };
 
+  # AI 网关 / 模型目录的唯一真源（见 home/ai-catalog.nix）；claude-code 的端点/密钥走
+  # ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN 环境变量（fish op-env 注入），这里只取模型 ID。
+  catalog = import ../../ai-catalog.nix;
+
   claudeCodeSettings = {
     effortLevel = "max";
 
@@ -16,10 +20,10 @@ let
     };
 
     env = {
-      ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-8";
-      ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-4-6";
-      ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5";
-      CLAUDE_CODE_SUBAGENT_MODEL = "claude-sonnet-4-6";
+      ANTHROPIC_DEFAULT_OPUS_MODEL = catalog.models.opus;
+      ANTHROPIC_DEFAULT_SONNET_MODEL = catalog.models.sonnet;
+      ANTHROPIC_DEFAULT_HAIKU_MODEL = catalog.models.haiku;
+      CLAUDE_CODE_SUBAGENT_MODEL = catalog.models.sonnet;
 
       CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
       CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS = "1";

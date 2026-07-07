@@ -3,9 +3,12 @@
 let
   tomlFormat = pkgs.formats.toml { };
 
+  # AI 网关端点 / provider 身份 / 模型目录的唯一真源（见 home/ai-catalog.nix）
+  catalog = import ../../ai-catalog.nix;
+
   codexConfig = {
-    model_provider = "furtherverse";
-    model = "gpt-5.5";
+    model_provider = catalog.provider.id;
+    model = catalog.models.gpt;
     forced_login_method = "api";
 
     model_reasoning_effort = "high";
@@ -19,10 +22,10 @@ let
 
     history.persistence = "none";
 
-    model_providers.furtherverse = {
-      name = "Furtherverse";
-      base_url = "https://ai-gateway.furtherverse.net/v1";
-      env_key = "AI_GATEWAY_API_KEY";
+    model_providers.${catalog.provider.id} = {
+      inherit (catalog.provider) name;
+      base_url = "${catalog.endpoint}/v1";
+      env_key = catalog.apiKeyEnv;
       wire_api = "responses";
     };
   };

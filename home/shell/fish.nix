@@ -6,19 +6,23 @@
 }:
 
 let
+  # AI 网关端点 / 密钥 env 名的唯一真源（见 home/ai-catalog.nix）；本模板是端点值与 key 变量名的
+  # 定义处，codex/opencode 从同一 catalog 消费，改名/换端点只此一处。
+  catalog = import ../ai-catalog.nix;
+
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
 in
 {
   # 仅 op:// 引用，无真实密钥；放在 ~/.config/op 之外（op CLI 要求该目录 700）
   xdg.configFile."op-env/env.tpl".text = ''
-    set -gx AI_GATEWAY_BASE_URL "https://ai-gateway.furtherverse.net"
-    set -gx AI_GATEWAY_API_KEY "{{ op://Developer/AI Gateway API/credential }}"
+    set -gx AI_GATEWAY_BASE_URL "${catalog.endpoint}"
+    set -gx ${catalog.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
     set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
     set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
 
-    set -gx ANTHROPIC_BASE_URL "https://ai-gateway.furtherverse.net"
+    set -gx ANTHROPIC_BASE_URL "${catalog.endpoint}"
     set -gx ANTHROPIC_AUTH_TOKEN "{{ op://Developer/AI Gateway API/credential }}"
   '';
 
@@ -109,13 +113,6 @@ in
             command rm -f "${envCache}"
           end
           echo "op-env: cleared"
-        '';
-      };
-
-      omo = {
-        description = "Launch OpenCode with the omo profile";
-        body = ''
-          env OPENCODE_CONFIG_DIR="$HOME/.config/opencode-profiles/omo" opencode $argv
         '';
       };
     };
