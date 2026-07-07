@@ -3,41 +3,37 @@
 # 显卡驱动（nvidia/intel）是硬件属性，放 hosts/<host>/，与桌面角色解耦。
 {
   pkgs,
+  lib,
   username,
   ...
 }:
 
 let
-  # 微信 4.x（XWayland Qt5，内置 fcitx-qt5）：只有 QT_IM_MODULE=fcitx 才加载输入上下文，故
-  # wrap 单独注入 QT/GTK_IM_MODULE + XMODIFIERS。为何不全局设、QQ 为何不受影响，
-  # 见 docs/adr/0003-wayland-ime-fcitx.md
-  wechat-fcitx = pkgs.symlinkJoin {
-    name = "wechat-fcitx5";
-    paths = [ pkgs.wechat ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/wechat \
-        --set QT_IM_MODULE fcitx \
-        --set GTK_IM_MODULE fcitx \
-        --set XMODIFIERS @im=fcitx
-    '';
-  };
+  # XWayland Qt5 应用（微信/WPS，二进制内置 fcitx-qt5）只有显式注入 *_IM_MODULE=fcitx 才加载输入
+  # 上下文，故逐入口 wrap。为何不全局设、QQ（Electron）为何不受影响，见 docs/adr/0003-wayland-ime-fcitx.md
+  wrapWithFcitx =
+    pkg: bins:
+    pkgs.symlinkJoin {
+      name = "${lib.getName pkg}-fcitx5";
+      paths = [ pkg ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        for bin in ${lib.concatStringsSep " " bins}; do
+          wrapProgram $out/bin/$bin \
+            --set QT_IM_MODULE fcitx \
+            --set GTK_IM_MODULE fcitx \
+            --set XMODIFIERS @im=fcitx
+        done
+      '';
+    };
 
-  # WPS 同微信（XWayland Qt5，已内置 fcitx5-qt）：四个入口 wps/et/wpp/wpspdf 各 wrap 注入
-  # *_IM_MODULE=fcitx 点亮。见 docs/adr/0003-wayland-ime-fcitx.md
-  wpsoffice-fcitx = pkgs.symlinkJoin {
-    name = "wpsoffice-cn-fcitx5";
-    paths = [ pkgs.wpsoffice-cn ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      for bin in wps et wpp wpspdf; do
-        wrapProgram $out/bin/$bin \
-          --set QT_IM_MODULE fcitx \
-          --set GTK_IM_MODULE fcitx \
-          --set XMODIFIERS @im=fcitx
-      done
-    '';
-  };
+  wechat-fcitx = wrapWithFcitx pkgs.wechat [ "wechat" ];
+  wpsoffice-fcitx = wrapWithFcitx pkgs.wpsoffice-cn [
+    "wps"
+    "et"
+    "wpp"
+    "wpspdf"
+  ];
 in
 {
   # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
