@@ -7,10 +7,40 @@
 # 与 modules/desktop/nixos.nix 的 waylandFrontend=true 互补、二者都要：
 #   本项走 KWin input-method-v2（XWayland / 不支持 text-input 的旧程序）；
 #   waylandFrontend 走 text-input-v3（原生 Wayland 程序）。
-{ osConfig, lib, ... }:
 {
-  programs.plasma = lib.mkIf osConfig.services.desktopManager.plasma6.enable {
+  inputs,
+  osConfig,
+  lib,
+  ...
+}:
+let
+  plasmaEnabled = osConfig.services.desktopManager.plasma6.enable;
+in
+{
+  programs.plasma = lib.mkIf plasmaEnabled {
     enable = true;
     configFile.kwinrc.Wayland.InputMethod = "/run/current-system/sw/share/applications/fcitx5-wayland-launcher.desktop";
+  };
+
+  # Konsole 声明式外观（plasma-manager）—— 之前没配，字体/配色都吃 Konsole 内置默认，
+  # 故显得「一般」。这里两件事对齐其余桌面：
+  #   1. 字体钉 Maple Mono NF CN / 14，与 Ghostty(home/shell/ghostty.nix)、
+  #      modules/desktop/fonts.nix 的 monospace 首选一致；
+  #   2. 配色补 Catppuccin Mocha —— catppuccin/nix 无 konsole port，全局 autoEnable 唯独
+  #      漏掉它，故手动挂官方 colorscheme(flake input catppuccin-konsole)，不再是默认 Breeze。
+  # 落到 ~/.local/share/konsole/{Main.profile,Catppuccin-Mocha.colorscheme} + konsolerc 默认 profile。
+  programs.konsole = lib.mkIf plasmaEnabled {
+    enable = true;
+    defaultProfile = "Main";
+    customColorSchemes.Catppuccin-Mocha =
+      inputs.catppuccin-konsole + "/themes/catppuccin-mocha.colorscheme";
+    profiles.Main = {
+      name = "Main";
+      colorScheme = "Catppuccin-Mocha";
+      font = {
+        name = "Maple Mono NF CN";
+        size = 14;
+      };
+    };
   };
 }

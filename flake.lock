@@ -127,6 +127,22 @@
         "type": "github"
       }
     },
+    "catppuccin-konsole": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1720277724,
+        "narHash": "sha256-d5+ygDrNl2qBxZ5Cn4U7d836+ZHz77m6/yxTIANd9BU=",
+        "owner": "catppuccin",
+        "repo": "konsole",
+        "rev": "3b64040e3f4ae5afb2347e7be8a38bc3cd8c73a8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "catppuccin",
+        "repo": "konsole",
+        "type": "github"
+      }
+    },
     "catppuccin-starship": {
       "flake": false,
       "locked": {
@@ -547,6 +563,7 @@
     "root": {
       "inputs": {
         "catppuccin": "catppuccin",
+        "catppuccin-konsole": "catppuccin-konsole",
         "catppuccin-starship": "catppuccin-starship",
         "disko": "disko",
         "home-manager": "home-manager",

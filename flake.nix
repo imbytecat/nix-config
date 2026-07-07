@@ -95,6 +95,13 @@
       flake = false;
     };
 
+    # Konsole 的 Catppuccin 配色：catppuccin/nix 没有 konsole port，autoEnable 跳过它，
+    # 故手动挂官方 colorscheme（见 home/desktop/plasma.nix）。同 starship 走 flake=false + flake.lock 跟随上游。
+    catppuccin-konsole = {
+      url = "github:catppuccin/konsole";
+      flake = false;
+    };
+
     lazyvim = {
       url = "github:pfassina/lazyvim-nix";
       inputs.nixpkgs.follows = "nixpkgs";
