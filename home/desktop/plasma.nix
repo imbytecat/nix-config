@@ -39,7 +39,6 @@ in
       colorScheme = "Catppuccin-Mocha";
       font = {
         name = "Maple Mono NF CN";
-        size = 14;
       };
     };
   };
