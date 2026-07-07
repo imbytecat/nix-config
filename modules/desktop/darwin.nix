@@ -10,8 +10,6 @@
     "cherry-studio"
     "cyberduck"
     "dbeaver-community"
-    "discord"
-    "feishu"
     "ghostty"
     "goooler/repo/fl-clash"
     "imbytecat/tap/doubao-ime"

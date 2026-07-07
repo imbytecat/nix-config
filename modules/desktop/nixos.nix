@@ -51,7 +51,6 @@ in
     cherry-studio
     dbeaver-bin
     discord
-    feishu
     freecad
     obs-studio
     qq
