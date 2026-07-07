@@ -7,6 +7,27 @@
   ...
 }:
 
+let
+  # 微信 4.x 是跑在 XWayland 下的 Qt5 应用（二进制内置 fcitx-qt5 插件），Qt 仅当
+  # QT_IM_MODULE=fcitx 时才会加载该输入上下文。但本机 waylandFrontend=true 故意不全局
+  # 设 *_IM_MODULE（否则原生 Wayland 应用会被拖去走 XIM，见 nixpkgs#278765），而微信自带的
+  # AppRun 也不设，于是它连不上 fcitx5 → 微信打不出中文。QQ 是 Electron，靠 --enable-wayland-ime
+  # 走 text-input-v3 直连 fcitx5 的 wayland 前端，不需要这些变量，故不受影响。
+  # 解法：只给微信单独注入 QT/GTK_IM_MODULE（XMODIFIERS 已全局，带上冗余但无害、自成一体）。
+  # 微信外层是 bwrap 且未 --clearenv，环境变量会透传进沙箱；内置 fcitx-qt5 经 $XDG_RUNTIME_DIR
+  # 的 DBus 连到 fcitx5。不能全局设是因为那会破坏 waylandFrontend 对原生 Wayland 应用的意义。
+  wechat-fcitx = pkgs.symlinkJoin {
+    name = "wechat-fcitx5";
+    paths = [ pkgs.wechat ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/wechat \
+        --set QT_IM_MODULE fcitx \
+        --set GTK_IM_MODULE fcitx \
+        --set XMODIFIERS @im=fcitx
+    '';
+  };
+in
 {
   # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
   imports = [ ./fonts.nix ];
@@ -39,7 +60,7 @@
     termius
     ungoogled-chromium
     vscode
-    wechat
+    wechat-fcitx
     wemeet
     winbox
   ];
