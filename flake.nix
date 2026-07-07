@@ -1,7 +1,9 @@
 {
   description = "Multi-platform Nix configuration — nix-darwin + NixOS";
 
-  # 首次 bootstrap 时让 nix 也走这些 cache（系统 nix.settings 在 switch 后才生效）
+  # 首次 bootstrap 时让 nix 也走这些 cache（系统 nix.settings 在 switch 后才生效）。
+  # 与 modules/shared/nix.nix 的 nix.settings 有意重复且无法单源（nixConfig 不能 import，
+  # 见 docs/adr/0004）：改缓存/公钥两处都要动。这里是 bootstrap 子集，稳态真源在 nix.settings。
   nixConfig = {
     extra-substituters = [
       "https://nix-community.cachix.org"
