@@ -172,19 +172,6 @@
         };
       };
 
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ self.overlays.default ];
-          };
-        in
-        {
-          inherit (pkgs) comment-checker;
-        }
-      );
-
       overlays.default = import ./overlays { inherit inputs; };
 
       # `nix develop` 入口：把仓库需要的 CLI 工具都拉齐，不依赖宿主已装 home-manager

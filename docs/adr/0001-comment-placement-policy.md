@@ -30,3 +30,9 @@
 comment-checker 不支持 `.nix`，短期内不自建检查（自定义 lint 噪声大、给上游加
 grammar 不可控）。个人 config、低频改动，靠本政策 + 人肉 review 即可。若日后
 误删 / 回潮频繁，再重新评估。
+
+原本 `pkgs/comment-checker` 自制包已移除：omo 插件自带全平台 vendored 二进制，在
+NixOS 上经 `programs.nix-ld`（已启用）直接运行（实测 `libgcc_s`/glibc 由 nix-ld
+默认库集解析），PATH 供给冗余；本仓 `.nix` 又零约束。TS/Go 等 repo 的检查完全由
+插件自供，无需再维护该包。若将来 vendored 二进制链新库致 nix-ld 缺 `.so`，补一行
+`programs.nix-ld.libraries` 即可。
