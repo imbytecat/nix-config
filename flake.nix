@@ -8,12 +8,14 @@
       "https://nixpkgs-unfree.cachix.org"
       "https://cache.numtide.com"
       "https://catppuccin.cachix.org"
+      "https://attic.xuyh0120.win/lantian" # nix-cachyos-kernel (xddxdd)
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU="
+      "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     ];
   };
 
@@ -36,6 +38,12 @@
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # CachyOS 内核（awesome-pc 桌面用）。release 分支 = Hydra CI 构建通过
+    # （含 nvidia-open/ZFS 测试配置）且已推 binary cache 的版本。
+    # 故意不 follows nixpkgs：kernel patch 与 nixpkgs 内核版本必须匹配，
+    # 且 pinned overlay 需要它自带的 nixpkgs revision 才能命中 cache。
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
 
     home-manager = {
       url = "github:nix-community/home-manager";
