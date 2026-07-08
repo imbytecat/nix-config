@@ -83,7 +83,7 @@
         "pdf"
       ];
       output = [ "text" ];
-      context = 272000;
+      context = 256000;
       maxOutput = 128000;
     };
     gptMini = {
