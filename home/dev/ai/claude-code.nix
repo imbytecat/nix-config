@@ -20,10 +20,10 @@ let
     };
 
     env = {
-      ANTHROPIC_DEFAULT_OPUS_MODEL = catalog.models.opus;
-      ANTHROPIC_DEFAULT_SONNET_MODEL = catalog.models.sonnet;
-      ANTHROPIC_DEFAULT_HAIKU_MODEL = catalog.models.haiku;
-      CLAUDE_CODE_SUBAGENT_MODEL = catalog.models.sonnet;
+      ANTHROPIC_DEFAULT_OPUS_MODEL = catalog.anthropicModels.opus.id;
+      ANTHROPIC_DEFAULT_SONNET_MODEL = catalog.anthropicModels.sonnet.id;
+      ANTHROPIC_DEFAULT_HAIKU_MODEL = catalog.anthropicModels.haiku.id;
+      CLAUDE_CODE_SUBAGENT_MODEL = catalog.anthropicModels.sonnet.id;
 
       CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
       CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS = "1";

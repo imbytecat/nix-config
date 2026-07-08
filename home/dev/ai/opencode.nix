@@ -16,30 +16,44 @@ let
     apiKey = "{env:${catalog.apiKeyEnv}}";
   };
 
-  # 把 catalog 的中性 per-model 元数据投影成 opencode provider.models schema
-  furtherverseModels = lib.mapAttrs (_id: m: {
+  # 把 catalog 的中性 per-model 元数据投影成 opencode provider.models schema。
+  # furtherverse 的 key 即 model id；第一方（anthropic/openai/google）的 key 是 nick、id 在字段里，
+  # 故按 .id 重命名后投影（非对称 keying 见 docs/adr/0005）。
+  projectMeta = m: {
     inherit (m) name reasoning;
     modalities = { inherit (m) input output; };
     limit = {
       context = m.context;
       output = m.maxOutput;
     };
-  }) catalog.furtherverseModels;
+  };
+  furtherverseModels = lib.mapAttrs (_id: projectMeta) catalog.furtherverseModels;
+  byNick = lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m));
+
+  # 本地 id 简写：仅可读性糖，指向唯一真源 catalog（非第二别名层）
+  fable = catalog.anthropicModels.fable.id;
+  opus = catalog.anthropicModels.opus.id;
+  gpt = catalog.openaiModels.gpt.id;
+  gptMini = catalog.openaiModels.gptMini.id;
+  gemini = catalog.googleModels.gemini.id;
 
   providers = {
     anthropic = {
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
+      models = byNick catalog.anthropicModels;
     };
     openai = {
       npm = "@ai-sdk/openai";
       options = gatewayOptions;
+      models = byNick catalog.openaiModels;
     };
     google = {
       npm = "@ai-sdk/google";
       options = gatewayOptions // {
         baseURL = "${catalog.endpoint}/v1beta";
       };
+      models = byNick catalog.googleModels;
     };
     furtherverse = {
       inherit (catalog.provider) name npm;
@@ -57,8 +71,8 @@ let
     permission."*" = "allow";
     experimental.disable_paste_summary = true;
     plugin = [ "oh-my-openagent@latest" ];
-    model = "anthropic/${catalog.models.opus}";
-    small_model = "openai/${catalog.models.gptMini}";
+    model = "anthropic/${opus}";
+    small_model = "openai/${gptMini}";
   };
 
   tui = {
@@ -79,37 +93,37 @@ let
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
       sisyphus = {
-        model = "anthropic/${catalog.models.opus}";
+        model = "anthropic/${fable}";
         variant = "max";
       };
       hephaestus = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       oracle = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       librarian = {
-        model = "openai/${catalog.models.gptMini}";
+        model = "openai/${gptMini}";
       };
       explore = {
-        model = "openai/${catalog.models.gptMini}";
+        model = "openai/${gptMini}";
       };
       multimodal-looker = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "medium";
       };
       prometheus = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       metis = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       momus = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "xhigh";
       };
       atlas = {
@@ -121,30 +135,30 @@ let
     };
     categories = {
       visual-engineering = {
-        model = "google/${catalog.models.gemini}";
+        model = "google/${gemini}";
         variant = "high";
       };
       ultrabrain = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "xhigh";
       };
       deep = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       artistry = {
-        model = "google/${catalog.models.gemini}";
+        model = "google/${gemini}";
         variant = "high";
       };
       quick = {
-        model = "openai/${catalog.models.gptMini}";
+        model = "openai/${gptMini}";
       };
       unspecified-low = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "medium";
       };
       unspecified-high = {
-        model = "openai/${catalog.models.gpt}";
+        model = "openai/${gpt}";
         variant = "high";
       };
       writing = {

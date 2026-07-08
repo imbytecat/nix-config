@@ -8,7 +8,7 @@ let
 
   codexConfig = {
     model_provider = catalog.provider.id;
-    model = catalog.models.gpt;
+    model = catalog.openaiModels.gpt.id;
     forced_login_method = "api";
 
     model_reasoning_effort = "high";
