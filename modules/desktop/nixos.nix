@@ -85,6 +85,14 @@ in
     enableGraphical = true;
   };
 
+  # ── 蓝牙: BlueZ 协议栈；GUI 由 Plasma 6 自带的 bluedevil 托盘提供 ──
+  # 与 Logitech 同属桌面外设。硬件已识别(hci0)但 NixOS 默认不起 BlueZ，
+  # 需显式开才有 bluetooth.service / bluetoothctl / KDE 蓝牙面板。
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
   # ── 输入法: Rime + 雾凇拼音(rime-ice)；Plasma 6 走 Wayland 故开 waylandFrontend ──
   # override rimeDataPkgs 整个替换默认 rime-data，只留 rime-ice。rime-ice 需用户侧
   # default.custom.yaml __include 才有候选（见 home/desktop/fcitx5.nix + docs/adr/0003-wayland-ime-fcitx.md）。
