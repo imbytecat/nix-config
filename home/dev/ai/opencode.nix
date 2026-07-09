@@ -121,10 +121,10 @@ let
         variant = "xhigh";
       };
       atlas = {
-        model = "furtherverse/kimi-k2.6";
+        model = "furtherverse/composer-2.5-fast";
       };
       sisyphus-junior = {
-        model = "furtherverse/kimi-k2.6";
+        model = "furtherverse/composer-2.5-fast";
       };
     };
     categories = {
@@ -156,7 +156,7 @@ let
         variant = "high";
       };
       writing = {
-        model = "furtherverse/kimi-k2.6";
+        model = "furtherverse/composer-2.5-fast";
       };
     };
     experimental = {

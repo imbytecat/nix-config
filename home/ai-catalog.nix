@@ -7,7 +7,6 @@
   endpoint = "https://ai-gateway.furtherverse.net";
   apiKeyEnv = "AI_GATEWAY_API_KEY";
 
-  # Furtherverse OpenAI-compatible provider 身份（codex model_providers / opencode provider）
   provider = {
     id = "furtherverse";
     name = "Furtherverse";
