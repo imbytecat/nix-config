@@ -29,8 +29,9 @@
     # darwin host 显式用这条。不是 darwin 专属，谁想跟更新都可以来这边
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # pnpm CVE 连坐：pin 到标记前最后一个有 hydra cache 的 revision，overlay 从此
-    # inherit cherry-studio/vue-language-server。完整背景+退出条件见 docs/adr/0002-pnpm-pin.md
+    # pnpm CVE 连坐：pin 到标记前最后一个有 hydra cache 的 revision，overlay 从此 inherit
+    # cherry-studio（vue-language-server 已在上游摆脱 insecure pnpm，2026-07 移回主 nixpkgs）。
+    # 完整背景+退出条件见 docs/adr/0002-pnpm-pin.md
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
 
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com
