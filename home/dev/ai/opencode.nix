@@ -77,7 +77,7 @@ let
     compaction = {
       "auto" = true;
       "prune" = true;
-      "reserved" = 15000;
+      "reserved" = 30000;
     };
   };
 
@@ -172,39 +172,11 @@ let
     };
     experimental = {
       disable_omo_env = true;
-      dynamic_context_pruning = {
-        enabled = true;
-        notification = "detailed";
-        turn_protection = {
-          enabled = true;
-          turns = 3;
-        };
-        protected_tools = [
-          "task"
-          "todowrite"
-          "todoread"
-          "lsp_rename"
-          "session_read"
-          "session_write"
-          "session_search"
-        ];
-        strategies = {
-          deduplication.enabled = true;
-          supersede_writes = {
-            enabled = true;
-            aggressive = false;
-          };
-          purge_errors = {
-            enabled = true;
-            turns = 5;
-          };
-        };
-      };
+      dynamic_context_pruning.enabled = true;
     };
     git_master = {
       commit_footer = false;
       include_co_authored_by = false;
-      git_env_prefix = "GIT_MASTER=1";
     };
     codegraph = {
       enabled = true;
