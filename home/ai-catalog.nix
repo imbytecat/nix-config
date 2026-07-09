@@ -116,8 +116,6 @@
     };
   };
 
-  # Furtherverse 自营模型目录：中性 per-model 元数据。opencode adapter 投影成自家
-  # provider.models schema（name/reasoning/modalities/limit）；新增模型只改这一处。
   furtherverseModels = {
     "composer-2.5-fast" = {
       name = "Composer 2.5 (Fast)";
@@ -147,13 +145,13 @@
       context = 1000000;
       maxOutput = 384000;
     };
-    "glm-5.1" = {
-      name = "GLM-5.1";
+    "glm-5.2" = {
+      name = "GLM-5.2";
       reasoning = true;
       input = [ "text" ];
       output = [ "text" ];
-      context = 202752;
-      maxOutput = 32768;
+      context = 1000000;
+      maxOutput = 131072;
     };
     "kimi-k2.6" = {
       name = "Kimi K2.6";
