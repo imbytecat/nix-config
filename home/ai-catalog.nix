@@ -22,7 +22,7 @@
     fable = {
       id = "claude-fable-5";
       name = "Claude Fable 5";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -35,7 +35,7 @@
     opus = {
       id = "claude-opus-4-8";
       name = "Claude Opus 4.8";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -48,7 +48,7 @@
     sonnet = {
       id = "claude-sonnet-5";
       name = "Claude Sonnet 5";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -61,7 +61,7 @@
     haiku = {
       id = "claude-haiku-4-5";
       name = "Claude Haiku 4.5";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -76,7 +76,7 @@
     gpt = {
       id = "gpt-5.5";
       name = "GPT-5.5";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -89,7 +89,7 @@
     gptMini = {
       id = "gpt-5.4-mini";
       name = "GPT-5.4 mini";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -103,7 +103,7 @@
     gemini = {
       id = "gemini-3.1-pro-preview";
       name = "Gemini 3.1 Pro Preview";
-      reasoning = false;
+      reasoning = true;
       input = [
         "text"
         "image"
@@ -120,6 +120,18 @@
   # Furtherverse 自营模型目录：中性 per-model 元数据。opencode adapter 投影成自家
   # provider.models schema（name/reasoning/modalities/limit）；新增模型只改这一处。
   furtherverseModels = {
+    "composer-2.5-fast" = {
+      name = "Composer 2.5 (Fast)";
+      reasoning = true;
+      input = [
+        "text"
+        "image"
+        "video"
+      ];
+      output = [ "text" ];
+      context = 200000;
+      maxOutput = 128000;
+    };
     "deepseek-v4-flash" = {
       name = "DeepSeek V4 Flash";
       reasoning = true;
