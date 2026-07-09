@@ -19,11 +19,14 @@ in
   # Konsole 声明式外观：字体钉 Maple Mono NF CN（与 modules/desktop/fonts.nix monospace 首选一致），
   # 配色挂 Catppuccin Mocha —— catppuccin/nix 无 konsole port，autoEnable 漏掉它，故手动挂官方
   # colorscheme（flake input catppuccin-konsole），不再是默认 Breeze。
+  # plasma-manager c551f 后 customColorSchemes 会把 flake input 拼出的 store path 字符串误当 INI attrset。
+  xdg.dataFile."konsole/Catppuccin-Mocha.colorscheme" = lib.mkIf plasmaEnabled {
+    source = inputs.catppuccin-konsole + "/themes/catppuccin-mocha.colorscheme";
+  };
+
   programs.konsole = lib.mkIf plasmaEnabled {
     enable = true;
     defaultProfile = "Main";
-    customColorSchemes.Catppuccin-Mocha =
-      inputs.catppuccin-konsole + "/themes/catppuccin-mocha.colorscheme";
     profiles.Main = {
       name = "Main";
       colorScheme = "Catppuccin-Mocha";
