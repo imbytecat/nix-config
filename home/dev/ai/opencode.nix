@@ -31,7 +31,6 @@ let
   byNick = lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m));
 
   # 本地 id 简写：仅可读性糖，指向唯一真源 catalog（非第二别名层）
-  fable = catalog.anthropicModels.fable.id;
   opus = catalog.anthropicModels.opus.id;
   gpt = catalog.openaiModels.gpt.id;
   gptMini = catalog.openaiModels.gptMini.id;
@@ -69,10 +68,17 @@ let
     autoupdate = false;
     provider = providers;
     permission."*" = "allow";
-    experimental.disable_paste_summary = true;
+    experimental = {
+      disable_paste_summary = true;
+    };
     plugin = [ "oh-my-openagent@latest" ];
     model = "anthropic/${opus}";
     small_model = "openai/${gptMini}";
+    compaction = {
+      "auto" = true;
+      "prune" = true;
+      "reserved" = 15000;
+    };
   };
 
   tui = {
@@ -85,7 +91,6 @@ let
 
     - 默认始终使用简体中文回复。
     - 仅当用户明确要求时才使用英文。
-    - 保持代码、命令、文件路径、日志和标识符不变。
   '';
 
   omoProfile = {
@@ -93,7 +98,7 @@ let
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
       sisyphus = {
-        model = "anthropic/${fable}";
+        model = "anthropic/${opus}";
         variant = "max";
       };
       hephaestus = {
