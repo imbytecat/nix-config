@@ -153,6 +153,17 @@
       context = 1000000;
       maxOutput = 131072;
     };
+    "grok-4.5" = {
+      name = "Grok 4.5";
+      reasoning = true;
+      input = [
+        "text"
+        "image"
+      ];
+      output = [ "text" ];
+      context = 500000;
+      maxOutput = 500000;
+    };
     "kimi-k2.6" = {
       name = "Kimi K2.6";
       reasoning = true;
