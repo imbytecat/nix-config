@@ -7,10 +7,8 @@
 let
   jsonFormat = pkgs.formats.json { };
 
-  # AI 网关端点 / provider 身份 / 模型目录的唯一真源（见 home/ai-catalog.nix）
   catalog = import ../../ai-catalog.nix;
 
-  # 端点走 Nix-time 字面量（非密钥）；密钥仍走 opencode 运行时 {env:...} 模板
   gatewayOptions = {
     baseURL = "${catalog.endpoint}/v1";
     apiKey = "{env:${catalog.apiKeyEnv}}";
@@ -61,8 +59,6 @@ let
     };
   };
 
-  # 只用 opencode 是为了 oh-my-openagent，故 omo 即唯一配置：直接写默认 ~/.config/opencode/，
-  # 不再分 default / profile 两套，也不需要 shell 里切 OPENCODE_CONFIG_DIR。
   opencodeConfig = {
     "$schema" = "https://opencode.ai/config.json";
     autoupdate = false;
@@ -81,18 +77,12 @@ let
     };
   };
 
-  tui = {
+  opencodeTui = {
     "$schema" = "https://opencode.ai/tui.json";
     theme = "catppuccin";
   };
 
-  agentsMd = ''
-    # AGENTS.md
-
-    - 【强制】所有情况下始终使用 zh-CN 进行回复。
-  '';
-
-  omoProfile = {
+  omoConfig = {
     "$schema" =
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
@@ -183,14 +173,20 @@ let
       auto_provision = true;
     };
   };
+
+  agentsMd = ''
+    # AGENTS.md
+
+    - 【必须】所有情况下始终使用 zh-CN 进行回复。
+  '';
 in
 {
   home.packages = [ pkgs.llm-agents.opencode ];
 
   xdg.configFile = {
     "opencode/opencode.json".source = jsonFormat.generate "opencode.json" opencodeConfig;
-    "opencode/tui.json".source = jsonFormat.generate "opencode-tui.json" tui;
-    "opencode/oh-my-openagent.json".source = jsonFormat.generate "oh-my-openagent.json" omoProfile;
+    "opencode/tui.json".source = jsonFormat.generate "opencode-tui.json" opencodeTui;
+    "opencode/oh-my-openagent.json".source = jsonFormat.generate "oh-my-openagent.json" omoConfig;
     "opencode/AGENTS.md".text = agentsMd;
   };
 }
