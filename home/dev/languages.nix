@@ -10,7 +10,6 @@
     uv
 
     fvm
-    proto
     android-tools
 
     bash-language-server
@@ -34,7 +33,11 @@
     ast-grep
   ];
 
-  programs.fish.interactiveShellInit = ''
-    proto activate fish --no-shim | source
-  '';
+  programs.mise = {
+    enable = true;
+    globalConfig.settings = {
+      trusted_config_paths = [ "/" ];
+      all_compile = false;
+    };
+  };
 }

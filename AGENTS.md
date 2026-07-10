@@ -25,7 +25,7 @@
 - `modules/darwin/default.nix`: Darwin system settings, nix-homebrew setup, taps, brews, activation. Shared GUI casks/MAS do not go here.
 - `modules/nixos/default.nix`: daily NixOS base (user, locale, docker, base system packages). Do not put GUI apps here.
 - `modules/desktop/darwin.nix` / `modules/desktop/nixos.nix`: platform desktop roles, split on purpose — GUI app lists evolve independently per platform (brew/MAS vs nixpkgs), do not try to keep them aligned. `nixos.nix` also owns DE (Plasma 6 Wayland-only + SDDM), NetworkManager, fcitx5/rime, and Logitech peripherals (ratbagd/piper/solaar). GPU drivers are hardware, they stay in `hosts/<host>/`. Single-host casks still go in `hosts/<host>/default.nix` (for example `thaw`).
-- `home/dev/languages.nix`: shared development runtimes/tooling (`bun`, `go`, `nodejs`, `python3`, `uv`, `fvm`, `proto`, `android-tools`, LSPs, linters). `android-tools` is enough for `adb`/`fastboot`; in 2026 nixos-unstable no longer needs `programs.adb`, `adbusers`, or `android-udev-rules` because systemd 258 handles uaccess.
+- `home/dev/languages.nix`: shared development runtimes/tooling (`bun`, `go`, `nodejs`, `python3`, `uv`, `fvm`, `mise`, `android-tools`, LSPs, linters). `android-tools` is enough for `adb`/`fastboot`; in 2026 nixos-unstable no longer needs `programs.adb`, `adbusers`, or `android-udev-rules` because systemd 258 handles uaccess.
 - `home/dev/ai/`: llm-agent packages and generated OpenCode/Claude/Codex config. `home/ai-catalog.nix` is the single source for the AI gateway endpoint, provider identity, and model IDs/metadata (plain attrs imported directly, same pattern as `modules/gateway/constants.nix`); codex/opencode/claude-code and the fish op-env template are adapters that render it — bump a model or rotate the endpoint there, not per-file. opencode is single-config: omo is the only profile, written to `~/.config/opencode/` with the `oh-my-openagent` plugin baked in (no `OPENCODE_CONFIG_DIR` switching, no `omo` shell alias). `opencode.jsonc` declares `just-lsp`, `nixd` (same option-set exprs as `.vscode/settings.json`, wrapped under `initialization.nixd`), and the `mcp-nixos` server (`uvx mcp-nixos`).
 
 ## Nix / Package Gotchas
@@ -55,7 +55,7 @@
 - Static PATH entries go in `home.sessionPath`, not `fish_add_path` in `interactiveShellInit`.
 - Fish functions belong in `programs.fish.functions`; do not put function definitions back into `interactiveShellInit`.
 - Platform branches should be Nix-time (`lib.optional`, `lib.optionalAttrs`, `pkgs.stdenv.isDarwin`/`isLinux`), not runtime `uname` checks. System-level modules should not need them at all — platform-specific config belongs in the platform module tree, not behind conditionals.
-- `proto` is installed as a package plus `proto activate fish --no-shim`; do not add `~/.proto/shims` globally or symlink `~/.proto` into the store.
+- `mise` uses the Home Manager `programs.mise` module; shell integration follows HM defaults. Keep `all_compile = false` for precompiled runtimes on NixOS, and `trusted_config_paths = [ "/" ]` intentionally trusts every mise config without prompting.
 - 1Password env vars are cached in `~/.cache/op-env/env.fish`; `op-env-refresh` is manual and uses `OP_SERVICE_ACCOUNT_TOKEN` from `~/.config/fish/local.fish`.
 
 ## Mihomo Gateway
