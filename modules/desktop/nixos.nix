@@ -61,6 +61,7 @@ in
     freecad
     obs-studio
     qq
+    snipaste
     spotify
     telegram-desktop
     termius
