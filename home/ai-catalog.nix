@@ -72,9 +72,9 @@
     };
   };
   openaiModels = {
-    gpt = {
-      id = "gpt-5.5";
-      name = "GPT-5.5";
+    sol = {
+      id = "gpt-5.6-sol";
+      name = "GPT-5.6 Sol";
       reasoning = true;
       input = [
         "text"
@@ -82,19 +82,33 @@
         "pdf"
       ];
       output = [ "text" ];
-      context = 256000;
+      context = 372000;
       maxOutput = 128000;
     };
-    gptMini = {
-      id = "gpt-5.4-mini";
-      name = "GPT-5.4 mini";
+    terra = {
+      id = "gpt-5.6-terra";
+      name = "GPT-5.6 Terra";
       reasoning = true;
       input = [
         "text"
         "image"
+        "pdf"
       ];
       output = [ "text" ];
-      context = 400000;
+      context = 372000;
+      maxOutput = 128000;
+    };
+    luna = {
+      id = "gpt-5.6-luna";
+      name = "GPT-5.6 Luna";
+      reasoning = true;
+      input = [
+        "text"
+        "image"
+        "pdf"
+      ];
+      output = [ "text" ];
+      context = 372000;
       maxOutput = 128000;
     };
   };

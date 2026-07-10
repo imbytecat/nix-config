@@ -28,10 +28,9 @@ let
   furtherverseModels = lib.mapAttrs (_id: projectMeta) catalog.furtherverseModels;
   byNick = lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m));
 
-  # 本地 id 简写：仅可读性糖，指向唯一真源 catalog（非第二别名层）
   opus = catalog.anthropicModels.opus.id;
-  gpt = catalog.openaiModels.gpt.id;
-  gptMini = catalog.openaiModels.gptMini.id;
+  terra = catalog.openaiModels.terra.id;
+  luna = catalog.openaiModels.luna.id;
   gemini = catalog.googleModels.gemini.id;
 
   providers = {
@@ -69,7 +68,7 @@ let
     };
     plugin = [ "oh-my-openagent@latest" ];
     model = "anthropic/${opus}";
-    small_model = "openai/${gptMini}";
+    small_model = "openai/${luna}";
     compaction = {
       "auto" = true;
       "prune" = true;
@@ -91,40 +90,40 @@ let
         variant = "max";
       };
       hephaestus = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       oracle = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       librarian = {
-        model = "openai/${gptMini}";
+        model = "openai/${luna}";
       };
       explore = {
-        model = "openai/${gptMini}";
+        model = "openai/${luna}";
       };
       multimodal-looker = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "medium";
       };
       prometheus = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       metis = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       momus = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "xhigh";
       };
       atlas = {
-        model = "furtherverse/composer-2.5-fast";
+        model = "furtherverse/grok-4.5";
       };
       sisyphus-junior = {
-        model = "furtherverse/composer-2.5-fast";
+        model = "furtherverse/grok-4.5";
       };
     };
     categories = {
@@ -133,11 +132,11 @@ let
         variant = "high";
       };
       ultrabrain = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "xhigh";
       };
       deep = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       artistry = {
@@ -145,18 +144,18 @@ let
         variant = "high";
       };
       quick = {
-        model = "openai/${gptMini}";
+        model = "openai/${luna}";
       };
       unspecified-low = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "medium";
       };
       unspecified-high = {
-        model = "openai/${gpt}";
+        model = "openai/${terra}";
         variant = "high";
       };
       writing = {
-        model = "furtherverse/composer-2.5-fast";
+        model = "furtherverse/grok-4.5";
       };
     };
     experimental = {
@@ -177,7 +176,7 @@ let
   agentsMd = ''
     # AGENTS.md
 
-    - 【必须】所有情况下始终使用 zh-CN 进行回复。
+    - 【必须】所有情况下始终使用简体中文 (zh-CN) 进行回复。
   '';
 in
 {
