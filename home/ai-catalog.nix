@@ -1,7 +1,7 @@
 # AI 网关 + 模型目录：Furtherverse 网关端点、provider 身份、密钥 env 名，以及跨 agent 引用的
 # 模型 ID / 元数据的唯一真源。codex / opencode / claude-code / fish op-env 都是本目录的 adapter，
 # 各自渲染成 TOML / JSON / env。改这里，各 agent 配置自动一致（同 modules/gateway/constants.nix）。
-# 放 home 根这个中性位置：home/shell 与 home/dev/ai 平等 import，避免 shell→dev/ai 方向依赖。
+# 放 home 根这个中性位置：home/shell 与 home/dev/agents 平等 import，避免 shell→dev/agents 方向依赖。
 {
   # 网关端点（不含 /v1；各 adapter 自加 provider 版本后缀）。密钥永远走 env，不落字面量。
   endpoint = "https://ai-gateway.furtherverse.net";

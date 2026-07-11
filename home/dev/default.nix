@@ -1,6 +1,6 @@
 {
   imports = [
-    ./ai
+    ./agents
     ./devenv.nix
     ./git.nix
     ./languages.nix

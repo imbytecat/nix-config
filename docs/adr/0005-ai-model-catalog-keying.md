@@ -35,5 +35,5 @@ key 各出现一次，与 catalog「唯一真源、防漂移」的本分冲突�
 
 - `home/ai-catalog.nix` —— `anthropicModels`/`openaiModels`/`googleModels`（nick-key）+
   `furtherverseModels`（id-key）
-- `home/dev/ai/opencode.nix` —— `projectMeta`/`byNick` 投影 + 本地 id 简写
+- `home/dev/agents/opencode.nix` —— `projectMeta`/`byNick` 投影 + 本地 id 简写
 - `CONTEXT.md` —— 「模型目录」
