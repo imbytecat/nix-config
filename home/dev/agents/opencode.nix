@@ -171,6 +171,8 @@ let
       auto_init = true;
       auto_provision = true;
     };
+    browser_automation_engine.provider = "agent-browser";
+    disabled_skills = [ "playwright" ];
   };
 
   agentsMd = ''
