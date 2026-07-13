@@ -58,7 +58,7 @@ in
     cherry-studio
     dbeaver-bin
     discord
-    freecad
+    # freecad
     obs-studio
     qq
     snipaste
