@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./browser.nix
     ./claude-code.nix
     ./codex.nix
     ./grok.nix
@@ -10,5 +9,9 @@
   ];
 
   # 上游推荐直接吃 packages（不 follows nixpkgs，命中 cache.numtide.com）
-  home.packages = [ inputs.llm-agents.packages.${system}.skills ];
+  # agent-browser：wrapper 已自带 chromium env，开箱即用（跨平台）。
+  home.packages = with inputs.llm-agents.packages.${system}; [
+    skills
+    agent-browser
+  ];
 }
