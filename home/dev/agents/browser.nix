@@ -2,6 +2,8 @@
   pkgs,
   lib,
   config,
+  inputs,
+  system,
   ...
 }:
 
@@ -13,7 +15,7 @@ in
   # agent-browser：nix 包 wrapper 已自带 env，开箱即用（跨平台）。
   # playwright：npm 装的，得手工用 PLAYWRIGHT_MCP_* 指向 nix chromium，仅 Linux。
   home.packages = [
-    pkgs.llm-agents.agent-browser
+    inputs.llm-agents.packages.${system}.agent-browser
   ]
   ++ lib.optionals pkgs.stdenv.isLinux [ pkgs.chromium ];
 

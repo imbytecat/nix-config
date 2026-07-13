@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, system, ... }:
 
 {
   imports = [
@@ -9,6 +9,6 @@
     ./opencode.nix
   ];
 
-  # 跨所有 coding agent 共用的 skills 安装/管理 CLI（vercel-labs/skills）
-  home.packages = [ pkgs.llm-agents.skills ];
+  # 上游推荐直接吃 packages（不 follows nixpkgs，命中 cache.numtide.com）
+  home.packages = [ inputs.llm-agents.packages.${system}.skills ];
 }

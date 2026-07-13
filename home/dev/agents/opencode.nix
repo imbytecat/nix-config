@@ -1,6 +1,8 @@
 {
   pkgs,
   lib,
+  inputs,
+  system,
   ...
 }:
 
@@ -182,7 +184,7 @@ let
   '';
 in
 {
-  home.packages = [ pkgs.llm-agents.opencode ];
+  home.packages = [ inputs.llm-agents.packages.${system}.opencode ];
 
   xdg.configFile = {
     "opencode/opencode.json".source = jsonFormat.generate "opencode.json" opencodeConfig;

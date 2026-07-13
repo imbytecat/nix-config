@@ -1,9 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, inputs, system, ... }:
 
 let
   tomlFormat = pkgs.formats.toml { };
 
-  # AI 网关端点 / provider 身份 / 模型目录的唯一真源（见 home/ai-catalog.nix）
   catalog = import ../../ai-catalog.nix;
 
   codexConfig = {
@@ -31,7 +30,7 @@ let
   };
 in
 {
-  home.packages = [ pkgs.llm-agents.codex ];
+  home.packages = [ inputs.llm-agents.packages.${system}.codex ];
 
   home.file.".codex/config.toml".source = tomlFormat.generate "codex-config.toml" codexConfig;
 }

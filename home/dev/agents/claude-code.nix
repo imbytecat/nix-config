@@ -1,9 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, inputs, system, ... }:
 
 let
   jsonFormat = pkgs.formats.json { };
 
-  # AI 网关 / 模型目录的唯一真源（见 home/ai-catalog.nix）；claude-code 的端点/密钥走
   # ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN 环境变量（fish op-env 注入），这里只取模型 ID。
   catalog = import ../../ai-catalog.nix;
 
@@ -39,7 +38,7 @@ let
   };
 in
 {
-  home.packages = [ pkgs.llm-agents.claude-code ];
+  home.packages = [ inputs.llm-agents.packages.${system}.claude-code ];
 
   home.file.".claude/settings.json".source =
     jsonFormat.generate "claude-settings.json" claudeCodeSettings;

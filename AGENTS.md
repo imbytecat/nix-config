@@ -35,7 +35,7 @@
 - NixOS `allowUnfree` and overlays are in `modules/nixos/default.nix`; gateway does not import that module. `nix-ld` is part of the NixOS base (headless remote dev needs it too), not a desktop or host concern.
 - Channels are disabled. `modules/shared/nix.nix` pins registry and `nixPath` to flake `inputs.nixpkgs`; do not add `<nixpkgs>`/channel-based paths.
 - `cherry-studio` comes from the pinned `nixpkgs-pnpm-pin` input (overlay `inherit`), not this repo's main nixpkgs — a workaround for pnpm-CVE cache misses. (`vue-language-server` shed insecure pnpm upstream and was moved back to main nixpkgs in 2026-07.) Do not add `permittedInsecurePackages` and do not package these by hand; when a package sheds insecure pnpm upstream, remove it from the overlay `inherit`, and delete the input once the list is empty. Full rationale: `docs/adr/0002-pnpm-pin.md`.
-- `llm-agents` intentionally does not follow this repo's nixpkgs; changing that will miss `cache.numtide.com`.
+- `llm-agents` is consumed via `inputs.llm-agents.packages.${system}.*` in `home/dev/agents/` (upstream recommended; no overlay — upstream dropped `overlays`). Intentionally does not follow this repo's nixpkgs; changing that will miss `cache.numtide.com`.
 - Binary caches are in `modules/shared/nix.nix`; `flake.nix.nixConfig` is only bootstrap. Do not re-add `cache.garnix.io`.
 - `home.stateVersion` and per-host `system.stateVersion` are migration markers; never bump them as part of routine updates.
 

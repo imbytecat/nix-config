@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, system, ... }:
 
 let
   tomlFormat = pkgs.formats.toml { };
@@ -32,7 +32,7 @@ let
   };
 in
 {
-  home.packages = [ pkgs.llm-agents.grok ];
+  home.packages = [ inputs.llm-agents.packages.${system}.grok ];
 
   home.file.".grok/config.toml".source = tomlFormat.generate "grok-config.toml" grokConfig;
 }
