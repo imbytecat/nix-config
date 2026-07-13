@@ -13,6 +13,8 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   xdg.dataFile."fcitx5/rime/default.custom.yaml".text = ''
     patch:
       __include: rime_ice_suggestion:/
+      # 关掉 rime 内部 Shift 切 ascii_mode——中英状态只留 fcitx5 组切换（CapsLock）一个入口
+      ascii_composer/switch_key/Shift_L: noop
   '';
 
   # fcitx5 输入法组：默认 IM=rime；home-manager 每 switch 覆盖 ~/.config/fcitx5/profile，新装即成型。
@@ -33,5 +35,8 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   # symlink 后 fcitx5 GUI 改不了全局热键，与 profile 同纪律。
   xdg.configFile."fcitx5/config".text = lib.generators.toINI { } {
     "Hotkey/TriggerKeys"."0" = "Hangul";
+    # fcitx5 自身默认 AltTriggerKeys=Shift_L（临时切换 IM），与 rime 内部 Shift 切换叠加；
+    # 置空，杜绝单击 Shift 误切中英
+    "Hotkey/AltTriggerKeys"."0" = "";
   };
 }
