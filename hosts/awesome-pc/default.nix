@@ -34,5 +34,8 @@
   services.qemuGuest.enable = true;
   services.spice-vdagentd.enable = true;
 
+  # 压缩内存作 swap（默认 zstd + memoryPercent=50）；不休眠，故不配磁盘 swap。
+  zramSwap.enable = true;
+
   system.stateVersion = "25.11";
 }
