@@ -32,10 +32,14 @@ let
 
     features = {
       telemetry = false;
+      remote_fetch = false;
       codebase_indexing = false;
     };
 
-    telemetry.trace_upload = false;
+    telemetry = {
+      trace_upload = false;
+      mixpanel_enabled = false;
+    };
 
     harness.disable_codebase_upload = true;
   };
