@@ -5,6 +5,7 @@
     ./browser.nix
     ./claude-code.nix
     ./codex.nix
+    ./grok.nix
     ./opencode.nix
   ];
 
