@@ -27,4 +27,11 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     "Groups/0/Items/0".Name = "keyboard-us";
     "Groups/0/Items/1".Name = "rime";
   };
+
+  # 触发键只绑 Hangul（CapsLock 经 keyd 重映射而来，见 modules/desktop/nixos.nix），
+  # 显式覆盖默认的 Ctrl+Space——把它还给应用（VS Code 补全等）。文件被 HM 管成只读
+  # symlink 后 fcitx5 GUI 改不了全局热键，与 profile 同纪律。
+  xdg.configFile."fcitx5/config".text = lib.generators.toINI { } {
+    "Hotkey/TriggerKeys"."0" = "Hangul";
+  };
 }

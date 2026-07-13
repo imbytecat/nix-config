@@ -109,4 +109,19 @@ in
       ];
     };
   };
+
+  # ── CapsLock 中英切换（类 macOS）: keyd 在 evdev 层重映射，Wayland/X/SDDM 全覆盖 ──
+  # 单击=Hangul（fcitx5 唯一触发键，见 home/desktop/fcitx5.nix；Ctrl+Space 还给应用），
+  # 按住=Ctrl，Shift+CapsLock=真大写锁定。选 Hangul 而非 F13：xkb 基础表自带 <HNGL>→Hangul
+  # keysym 且无程序占用，而 evdev 规则把 F13 映成 XF86Tools；evdev 层不产生 caps LED/大写状态。
+  services.keyd = {
+    enable = true;
+    keyboards.default = {
+      ids = [ "*" ];
+      settings = {
+        main.capslock = "overload(control, hangeul)";
+        shift.capslock = "capslock";
+      };
+    };
+  };
 }
