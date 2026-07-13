@@ -29,6 +29,15 @@ let
     sandbox.profile = "off";
 
     cli.auto_update = false;
+
+    features = {
+      telemetry = false;
+      codebase_indexing = false;
+    };
+
+    telemetry.trace_upload = false;
+
+    harness.disable_codebase_upload = true;
   };
 in
 {
