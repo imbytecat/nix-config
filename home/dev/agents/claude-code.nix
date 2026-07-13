@@ -1,4 +1,9 @@
-{ pkgs, inputs, system, ... }:
+{
+  pkgs,
+  inputs,
+  system,
+  ...
+}:
 
 let
   jsonFormat = pkgs.formats.json { };
