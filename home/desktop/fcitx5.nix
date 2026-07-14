@@ -9,24 +9,67 @@
   ...
 }:
 
+let
+  # librime 靠 mtime 判断是否需要重编译，而 nix store 文件 mtime 恒为 1970——patch 变了 rime
+  # 也认为"没变化"永远跳过重编译。删 build/ 强制重编，再尽力触发在线部署；D-Bus 不可用（如系统
+  # 激活时无会话）也无妨，fcitx5 下次启动自会重建。多个 rime 配置文件（default + wanxiang.*）共用此钩子。
+  redeployRime = ''
+    rm -rf "${config.xdg.dataHome}/fcitx5/rime/build"
+    ${pkgs.systemd}/bin/busctl --user call org.fcitx.Fcitx5 /controller \
+      org.fcitx.Fcitx.Controller1 SetConfig sv "fcitx://config/addon/rime/deploy" s "" || true
+  '';
+in
 lib.mkIf osConfig.i18n.inputMethod.enable {
-  # 雾凇拼音需用户侧 default.custom.yaml __include 才有候选（见 docs/adr/0003-wayland-ime-fcitx.md）。
-  # 后续 Rime 自定义（按键、候选数等）也加在这份 patch 里。
+  # 万象拼音需用户侧 default.custom.yaml __include 才成型（见 docs/adr/0003-wayland-ime-fcitx.md）。
+  # 后续 Rime 全局自定义（候选数、按键等）也加在这份 patch 里。
   xdg.dataFile."fcitx5/rime/default.custom.yaml" = {
     text = ''
       patch:
-        __include: rime_ice_suggestion:/
+        __include: wanxiang_suggested_default:/
         # 关掉 rime 内部 Shift 切 ascii_mode——中英状态只留 fcitx5 组切换（CapsLock）一个入口
         ascii_composer/switch_key/Shift_L: noop
     '';
-    # librime 靠 mtime 判断是否需要重编译，而 nix store 文件 mtime 恒为 1970——patch 变了
-    # rime 也认为"没变化"永远跳过重编译。onChange（内容比对、link 后执行）删 build/ 强制
-    # 重编，再尽力触发在线部署；D-Bus 不可用（如系统激活时无会话）也无妨，fcitx5 下次启动自会重建。
-    onChange = ''
-      rm -rf "${config.xdg.dataHome}/fcitx5/rime/build"
-      ${pkgs.systemd}/bin/busctl --user call org.fcitx.Fcitx5 /controller \
-        org.fcitx.Fcitx.Controller1 SetConfig sv "fcitx://config/addon/rime/deploy" s "" || true
+    onChange = redeployRime;
+  };
+
+  # 万象主方案默认全拼；下面四个 custom 把主方案 + 反查/中英混输/英文的辅助码全部定死小鹤双拼，
+  # 等价于官方 /flypy 斜杠指令重部署的结果。nixpkgs 打包时 rm 掉了 custom/ 模板（/flypy 靠拷贝它
+  # 生成用户文件），故这里按上游模板声明式写死（英文/混输方案默认不在 schema_list，写了也只是备着）。
+  xdg.dataFile."fcitx5/rime/wanxiang.custom.yaml" = {
+    text = ''
+      patch:
+        speller/algebra:
+          __patch:
+            - wanxiang_algebra:/base/小鹤双拼
     '';
+    onChange = redeployRime;
+  };
+  xdg.dataFile."fcitx5/rime/wanxiang_reverse.custom.yaml" = {
+    text = ''
+      patch:
+        speller/algebra:
+          __include: wanxiang_algebra:/reverse/小鹤双拼
+          __patch: wanxiang_algebra:/reverse/hspzn
+    '';
+    onChange = redeployRime;
+  };
+  xdg.dataFile."fcitx5/rime/wanxiang_mixedcode.custom.yaml" = {
+    text = ''
+      patch:
+        speller/algebra:
+          __include: wanxiang_algebra:/mixed/通用派生规则
+          __patch: wanxiang_algebra:/mixed/小鹤双拼
+    '';
+    onChange = redeployRime;
+  };
+  xdg.dataFile."fcitx5/rime/wanxiang_english.custom.yaml" = {
+    text = ''
+      patch:
+        speller/algebra:
+          __include: wanxiang_algebra:/english/通用规则
+          __patch: wanxiang_algebra:/english/小鹤双拼
+    '';
+    onChange = redeployRime;
   };
 
   # fcitx5 输入法组：默认 IM=rime；home-manager 每 switch 覆盖 ~/.config/fcitx5/profile，新装即成型。
