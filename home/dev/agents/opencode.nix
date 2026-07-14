@@ -30,6 +30,7 @@ let
   furtherverseModels = lib.mapAttrs (_id: projectMeta) catalog.furtherverseModels;
   byNick = lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m));
 
+  fable = catalog.anthropicModels.fable.id;
   opus = catalog.anthropicModels.opus.id;
   terra = catalog.openaiModels.terra.id;
   luna = catalog.openaiModels.luna.id;
@@ -88,7 +89,7 @@ let
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
       sisyphus = {
-        model = "anthropic/${opus}";
+        model = "anthropic/${fable}";
         variant = "max";
       };
       hephaestus = {
