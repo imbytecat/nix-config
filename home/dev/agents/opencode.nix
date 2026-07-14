@@ -101,10 +101,10 @@ let
         variant = "high";
       };
       librarian = {
-        model = "openai/${luna}";
+        model = "furtherverse/grok-4.5";
       };
       explore = {
-        model = "openai/${luna}";
+        model = "furtherverse/grok-4.5";
       };
       multimodal-looker = {
         model = "openai/${terra}";
@@ -147,7 +147,7 @@ let
         variant = "high";
       };
       quick = {
-        model = "openai/${luna}";
+        model = "furtherverse/grok-4.5";
       };
       unspecified-low = {
         model = "openai/${terra}";
@@ -158,7 +158,7 @@ let
         variant = "high";
       };
       writing = {
-        model = "furtherverse/grok-4.5";
+        model = "furtherverse/kimi-k2.6";
       };
     };
     experimental = {
