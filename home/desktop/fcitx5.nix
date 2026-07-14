@@ -32,42 +32,15 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     onChange = redeployRime;
   };
 
-  # 万象主方案默认全拼；下面四个 custom 把主方案 + 反查/中英混输/英文的辅助码全部定死小鹤双拼，
-  # 等价于官方 /flypy 斜杠指令重部署的结果。nixpkgs 打包时 rm 掉了 custom/ 模板（/flypy 靠拷贝它
-  # 生成用户文件），故这里按上游模板声明式写死（英文/混输方案默认不在 schema_list，写了也只是备着）。
+  # 万象主方案默认全拼；这一个 patch 把它设成小鹤双拼，日常打字够用。不走官方 /flypy 斜杠指令
+  # 切换：home-manager 把 custom 管成只读 symlink 而 /flypy 要写它、且 nixpkgs 删了它依赖的
+  # custom/ 模板，故声明式写死这一处最省事（反查/混输/英文保持默认，不影响打字）。
   xdg.dataFile."fcitx5/rime/wanxiang.custom.yaml" = {
     text = ''
       patch:
         speller/algebra:
           __patch:
             - wanxiang_algebra:/base/小鹤双拼
-    '';
-    onChange = redeployRime;
-  };
-  xdg.dataFile."fcitx5/rime/wanxiang_reverse.custom.yaml" = {
-    text = ''
-      patch:
-        speller/algebra:
-          __include: wanxiang_algebra:/reverse/小鹤双拼
-          __patch: wanxiang_algebra:/reverse/hspzn
-    '';
-    onChange = redeployRime;
-  };
-  xdg.dataFile."fcitx5/rime/wanxiang_mixedcode.custom.yaml" = {
-    text = ''
-      patch:
-        speller/algebra:
-          __include: wanxiang_algebra:/mixed/通用派生规则
-          __patch: wanxiang_algebra:/mixed/小鹤双拼
-    '';
-    onChange = redeployRime;
-  };
-  xdg.dataFile."fcitx5/rime/wanxiang_english.custom.yaml" = {
-    text = ''
-      patch:
-        speller/algebra:
-          __include: wanxiang_algebra:/english/通用规则
-          __patch: wanxiang_algebra:/english/小鹤双拼
     '';
     onChange = redeployRime;
   };

@@ -34,9 +34,6 @@ let
     "wpp"
     "wpspdf"
   ];
-
-  # 万象拼音的 LTS 语法模型；nixpkgs 不含此文件，自己 fetchurl（见 pkgs/rime-wanxiang-grammar）
-  rime-wanxiang-grammar = pkgs.callPackage ../../pkgs/rime-wanxiang-grammar { };
 in
 {
   # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
@@ -98,10 +95,9 @@ in
   };
 
   # ── 输入法: Rime + 万象拼音(rime-wanxiang)；Plasma 6 走 Wayland 故开 waylandFrontend ──
-  # override rimeDataPkgs 整个替换默认 rime-data：rime-wanxiang 提供方案+词库，rime-wanxiang-grammar
-  # 补上 nixpkgs 不含的 LTS 语法模型（整句预测）。两者都是只读共享目录，octagram 靠 FallbackResourceResolver
-  # 回落到共享目录加载 .gram。需用户侧 default.custom.yaml __include + wanxiang.custom.yaml 才成型
-  # （小鹤双拼、候选等，见 home/desktop/fcitx5.nix + docs/adr/0003-wayland-ime-fcitx.md）。
+  # override rimeDataPkgs 整个替换默认 rime-data，只留 rime-wanxiang（方案+词库）。需用户侧
+  # default.custom.yaml __include + wanxiang.custom.yaml 才成型（小鹤双拼，见 home/desktop/fcitx5.nix）。
+  # 语法模型（.gram）暂不带：它要 librime-octagram 插件，当前 fcitx5-rime 未含，装了也不生效。
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
@@ -109,10 +105,7 @@ in
       waylandFrontend = true;
       addons = with pkgs; [
         (fcitx5-rime.override {
-          rimeDataPkgs = [
-            rime-wanxiang
-            rime-wanxiang-grammar
-          ];
+          rimeDataPkgs = [ rime-wanxiang ];
         })
       ];
     };
