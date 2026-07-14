@@ -10,7 +10,7 @@
 
   nix.settings = {
     # 所有 host 的 substituters/公钥唯一真源（gateway 用 mkBefore 加性合并、非拷贝）。flake.nix
-    # nixConfig 的 bootstrap 子集是有意重复：nixConfig 无法 import 单源，见 docs/adr/0004。
+    # nixConfig 的 bootstrap 子集是有意重复：nixConfig 无法 import 单源。
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"

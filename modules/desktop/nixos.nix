@@ -10,7 +10,7 @@
 
 let
   # XWayland Qt5 应用（微信/WPS，二进制内置 fcitx-qt5）只有显式注入 *_IM_MODULE=fcitx 才加载输入
-  # 上下文，故逐入口 wrap。为何不全局设、QQ（Electron）为何不受影响，见 docs/adr/0003-wayland-ime-fcitx.md
+  # 上下文，故逐入口 wrap。
   wrapWithFcitx =
     pkg: bins:
     pkgs.symlinkJoin {

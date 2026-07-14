@@ -16,7 +16,7 @@
   # 第一方模型规格表：nick 为 key，每节点 { id + 元数据 }，schema 同 furtherverseModels。
   # id 已确认（版本对，勿改）；name 为默认显示名可改；reasoning/input/output/context/maxOutput
   # 为占位，首次 switch 前填真实值。新增模型照抄一节点即可。opencode adapter 按 .id 投影成各
-  # provider 的 models（与 furtherverse 的非对称 keying 见 docs/adr/0005）。
+  # provider 的 models（与 furtherverse 的非对称 keying）。
   anthropicModels = {
     fable = {
       id = "claude-fable-5";

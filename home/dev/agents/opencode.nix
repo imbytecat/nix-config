@@ -18,7 +18,7 @@ let
 
   # 把 catalog 的中性 per-model 元数据投影成 opencode provider.models schema。
   # furtherverse 的 key 即 model id；第一方（anthropic/openai/google）的 key 是 nick、id 在字段里，
-  # 故按 .id 重命名后投影（非对称 keying 见 docs/adr/0005）。
+  # 故按 .id 重命名后投影（非对称 keying）。
   projectMeta = m: {
     inherit (m) name reasoning;
     modalities = { inherit (m) input output; };
