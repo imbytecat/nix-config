@@ -42,5 +42,9 @@
   # 无头开发场景（SSH remote dev）的基础能力，放 base 而非 host。
   programs.nix-ld.enable = true;
 
+  # Tailscale：无头服务（tailscaled + CLI），所有日用 NixOS 机共享。
+  # macOS 走 brew cask tailscale-app（modules/desktop/darwin.nix），gateway 不导入本文件。
+  services.tailscale.enable = true;
+
   security.sudo.wheelNeedsPassword = false;
 }
