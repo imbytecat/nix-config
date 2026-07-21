@@ -34,6 +34,9 @@
   services.qemuGuest.enable = true;
   services.spice-vdagentd.enable = true;
 
+  # GPU 监控（htop for GPU）；随 NVIDIA 直通放 host，Intel 机不需要
+  environment.systemPackages = [ pkgs.nvtopPackages.full ];
+
   # 压缩内存作 swap（默认 zstd + memoryPercent=50）；不休眠，故不配磁盘 swap。
   zramSwap.enable = true;
 

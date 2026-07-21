@@ -18,6 +18,10 @@
     git
     ghostty.terminfo
     docker-compose
+    pciutils # lspci / setpci
+    usbutils # lsusb
+    lsof # 谁占用文件/端口
+    smartmontools # smartctl 磁盘 SMART 健康
   ];
 
   i18n = {
