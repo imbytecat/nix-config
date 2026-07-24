@@ -131,34 +131,6 @@
   };
 
   furtherverseModels = {
-    "composer-2.5-fast" = {
-      name = "Composer 2.5 (Fast)";
-      reasoning = true;
-      input = [
-        "text"
-        "image"
-        "video"
-      ];
-      output = [ "text" ];
-      context = 200000;
-      maxOutput = 128000;
-    };
-    "deepseek-v4-flash" = {
-      name = "DeepSeek V4 Flash";
-      reasoning = true;
-      input = [ "text" ];
-      output = [ "text" ];
-      context = 1000000;
-      maxOutput = 384000;
-    };
-    "deepseek-v4-pro" = {
-      name = "DeepSeek V4 Pro";
-      reasoning = true;
-      input = [ "text" ];
-      output = [ "text" ];
-      context = 1000000;
-      maxOutput = 384000;
-    };
     "glm-5.2" = {
       name = "GLM-5.2";
       reasoning = true;
@@ -178,65 +150,17 @@
       context = 500000;
       maxOutput = 500000;
     };
-    "kimi-k2.6" = {
-      name = "Kimi K2.6";
+    "kimi-k3" = {
+      name = "Kimi K3";
       reasoning = true;
       input = [
         "text"
         "image"
         "video"
       ];
-      output = [ "text" ];
-      context = 262144;
-      maxOutput = 65536;
-    };
-    "mimo-v2.5" = {
-      name = "MiMo-V2.5";
-      reasoning = true;
-      input = [ "text" ];
       output = [ "text" ];
       context = 1048576;
       maxOutput = 131072;
-    };
-    "mimo-v2.5-pro" = {
-      name = "MiMo-V2.5-Pro";
-      reasoning = true;
-      input = [ "text" ];
-      output = [ "text" ];
-      context = 1048576;
-      maxOutput = 131072;
-    };
-    "minimax-m3" = {
-      name = "MiniMax M3";
-      reasoning = true;
-      input = [
-        "text"
-        "image"
-        "video"
-      ];
-      output = [ "text" ];
-      context = 512000;
-      maxOutput = 128000;
-    };
-    "qwen3.6-plus" = {
-      name = "Qwen3.6 Plus";
-      reasoning = true;
-      input = [
-        "text"
-        "image"
-        "video"
-      ];
-      output = [ "text" ];
-      context = 1000000;
-      maxOutput = 65536;
-    };
-    "qwen3.7-max" = {
-      name = "Qwen3.7 Max";
-      reasoning = true;
-      input = [ "text" ];
-      output = [ "text" ];
-      context = 1000000;
-      maxOutput = 65536;
     };
   };
 }

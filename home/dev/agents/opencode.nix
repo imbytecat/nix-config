@@ -32,6 +32,7 @@ let
 
   fable = catalog.anthropicModels.fable.id;
   opus = catalog.anthropicModels.opus.id;
+  sol = catalog.openaiModels.sol.id;
   terra = catalog.openaiModels.terra.id;
   luna = catalog.openaiModels.luna.id;
   gemini = catalog.googleModels.gemini.id;
@@ -93,12 +94,12 @@ let
         variant = "max";
       };
       hephaestus = {
-        model = "openai/${terra}";
-        variant = "high";
+        model = "openai/${sol}";
+        variant = "medium";
       };
       oracle = {
-        model = "openai/${terra}";
-        variant = "high";
+        model = "openai/${sol}";
+        variant = "xhigh";
       };
       librarian = {
         model = "furtherverse/grok-4.5";
@@ -107,20 +108,20 @@ let
         model = "furtherverse/grok-4.5";
       };
       multimodal-looker = {
-        model = "openai/${terra}";
-        variant = "medium";
+        model = "openai/${sol}";
+        variant = "low";
       };
       prometheus = {
-        model = "openai/${terra}";
+        model = "openai/${sol}";
         variant = "high";
       };
       metis = {
-        model = "openai/${terra}";
-        variant = "high";
+        model = "openai/${sol}";
+        variant = "medium";
       };
       momus = {
         model = "openai/${terra}";
-        variant = "xhigh";
+        variant = "high";
       };
       atlas = {
         model = "furtherverse/grok-4.5";
@@ -135,12 +136,12 @@ let
         variant = "high";
       };
       ultrabrain = {
-        model = "openai/${terra}";
+        model = "openai/${sol}";
         variant = "xhigh";
       };
       deep = {
         model = "openai/${terra}";
-        variant = "high";
+        variant = "xhigh";
       };
       artistry = {
         model = "google/${gemini}";
@@ -150,15 +151,15 @@ let
         model = "furtherverse/grok-4.5";
       };
       unspecified-low = {
-        model = "openai/${terra}";
-        variant = "medium";
+        model = "openai/${luna}";
+        variant = "xhigh";
       };
       unspecified-high = {
-        model = "openai/${terra}";
+        model = "openai/${sol}";
         variant = "high";
       };
       writing = {
-        model = "furtherverse/kimi-k2.6";
+        model = "furtherverse/kimi-k3";
       };
     };
     experimental = {
