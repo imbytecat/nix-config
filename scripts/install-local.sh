@@ -12,8 +12,13 @@
 #   REPO_URL   默认 https://github.com/imbytecat/nix-config
 #   REPO_REF   默认 main
 #   WORKDIR    默认 /tmp/nix-config（curl|bash 时 clone/解压到这里）
+#   DISK_<name>  覆盖 flake 里 disko.devices.disk.<name>.device
+#                 例：DISK_main=/dev/nvme0n1（by-id 对不上时）
 #
 # 警告：会按 hosts/<host>/disko.nix 全盘 wipe。
+#
+# 注意：disko-install 会忽略 flake 里写的 device，强制要求 CLI
+# `--disk <name> <path>`（安全设计）。本脚本从 flake eval 出 device 再传入。
 
 set -euo pipefail
 
@@ -32,7 +37,7 @@ Usage: install-local.sh <host>
   本地 clone:
     sudo ./scripts/install-local.sh awesome-pc
 
-Env: REPO_URL REPO_REF WORKDIR
+Env: REPO_URL REPO_REF WORKDIR DISK_<name>
 EOF
   exit 2
 }
@@ -167,6 +172,41 @@ main() {
     --option extra-trusted-public-keys "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU="
   )
 
+  # disko-install 故意不用 flake 里的 device，必须 --disk name path
+  # （install-cli.nix: throw "No device passed for disk '...'"）
+  local disk_args=()
+  local disk_map name path override_var
+  log "resolving disko devices from flake #${host} ..."
+  disk_map="$(
+    nix --extra-experimental-features "nix-command flakes" eval \
+      --raw "${repo}#nixosConfigurations.${host}.config.disko.devices.disk" \
+      --apply 'disks: builtins.concatStringsSep "\n" (
+        map (n: "${n}|${disks.${n}.device}") (builtins.attrNames disks)
+      )' \
+      "${nix_options[@]}"
+  )"
+  [[ -n "$disk_map" ]] || die "no disko.devices.disk entries on #${host}"
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    name="${line%%|*}"
+    path="${line#*|}"
+    [[ -n "$name" && -n "$path" && "$name" != "$path" ]] || die "bad disk map line: $line"
+    override_var="DISK_${name}"
+    if [[ -n "${!override_var:-}" ]]; then
+      log "DISK_${name}=${!override_var} overrides flake device ${path}"
+      path="${!override_var}"
+    fi
+    if [[ ! -e "$path" ]]; then
+      die "disk '${name}' device not found: ${path}
+  flake: hosts/${host}/disko.nix
+  live by-id: ls -l /dev/disk/by-id/
+  override: DISK_${name}=/dev/nvme0n1 $0 ${host}"
+    fi
+    log "  --disk ${name} ${path}"
+    disk_args+=(--disk "$name" "$path")
+  done <<<"$disk_map"
+
   log "running disko-install for #${host} ..."
   # --mode format：全盘；--write-efi-boot-entries：本机 UEFI 写 NVRAM
   run_as_root nix --extra-experimental-features "nix-command flakes" run \
@@ -174,6 +214,7 @@ main() {
     --flake "${repo}#${host}" \
     --mode format \
     --write-efi-boot-entries \
+    "${disk_args[@]}" \
     "${nix_options[@]}"
 
   log "install-local done. reboot when ready."

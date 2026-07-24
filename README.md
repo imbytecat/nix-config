@@ -87,6 +87,8 @@ sudo ./scripts/install-local.sh awesome-pc
 
 可选环境变量：`REPO_URL` / `REPO_REF`（默认 `main`）/ `WORKDIR`（默认 `/tmp/nix-config`）。
 
+> `disko-install` 不会用 flake 里写的 `device`，必须 CLI 传 `--disk main /dev/...`（上游安全设计）。脚本会从 `hosts/<host>/disko.nix` eval 出路径再传入。若 live 上 by-id 不存在：`DISK_main=/dev/nvme0n1 bash scripts/install-local.sh awesome-pc`。
+
 只想远程装、Live 啥也不配：另一台机器 `just install awesome-pc <live-ip>`。
 
 底下走 `disko-install`：按 `disko.nix` 全盘格式化 → 若已有 `hardware-configuration.nix` 会用 live 硬件重新生成 → `nixos-install`（写 EFI NVRAM）。装完后记得把更新过的 hardware-config 提交。
