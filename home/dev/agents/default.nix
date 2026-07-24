@@ -6,6 +6,7 @@
     ./codex.nix
     ./grok.nix
     ./opencode.nix
+    ./pi.nix
   ];
 
   # 上游推荐直接吃 packages（不 follows nixpkgs，命中 cache.numtide.com）

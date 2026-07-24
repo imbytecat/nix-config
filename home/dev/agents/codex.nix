@@ -12,7 +12,7 @@ let
 
   codexConfig = {
     model_provider = catalog.provider.id;
-    model = catalog.openaiModels.sol.id;
+    model = catalog.models.sol.id;
     forced_login_method = "api";
 
     model_reasoning_effort = "high";

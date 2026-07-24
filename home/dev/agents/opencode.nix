@@ -17,8 +17,7 @@ let
   };
 
   # 把 catalog 的中性 per-model 元数据投影成 opencode provider.models schema。
-  # furtherverse 的 key 即 model id；第一方（anthropic/openai/google）的 key 是 nick、id 在字段里，
-  # 故按 .id 重命名后投影（非对称 keying）。
+  # catalog 统一以 nick 为 key、id 在字段里，这里一律按 .id 重命名后投影（对称 keying）。
   projectMeta = m: {
     inherit (m) name reasoning;
     modalities = { inherit (m) input output; };
@@ -27,38 +26,34 @@ let
       output = m.maxOutput;
     };
   };
-  furtherverseModels = lib.mapAttrs (_id: projectMeta) catalog.furtherverseModels;
-  byNick = lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m));
+  byId = ms: lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m)) ms;
+  familyModels = p: byId (catalog.byProvider p);
 
-  fable = catalog.anthropicModels.fable.id;
-  opus = catalog.anthropicModels.opus.id;
-  sol = catalog.openaiModels.sol.id;
-  terra = catalog.openaiModels.terra.id;
-  luna = catalog.openaiModels.luna.id;
-  gemini = catalog.googleModels.gemini.id;
+  # "provider/id" 限定名（如 ref "opus" → "anthropic/claude-opus-4-8"），下方模型指派全用它。
+  inherit (catalog) ref;
 
   providers = {
     anthropic = {
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
-      models = byNick catalog.anthropicModels;
+      models = familyModels "anthropic";
     };
     openai = {
       npm = "@ai-sdk/openai";
       options = gatewayOptions;
-      models = byNick catalog.openaiModels;
+      models = familyModels "openai";
     };
     google = {
       npm = "@ai-sdk/google";
       options = gatewayOptions // {
         baseURL = "${catalog.endpoint}/v1beta";
       };
-      models = byNick catalog.googleModels;
+      models = familyModels "google";
     };
     furtherverse = {
       inherit (catalog.provider) name npm;
       options = gatewayOptions;
-      models = furtherverseModels;
+      models = familyModels "furtherverse";
     };
   };
 
@@ -71,8 +66,8 @@ let
       disable_paste_summary = true;
     };
     plugin = [ "oh-my-openagent@latest" ];
-    model = "anthropic/${opus}";
-    small_model = "openai/${luna}";
+    model = (ref "opus");
+    small_model = (ref "luna");
     compaction = {
       "auto" = true;
       "prune" = true;
@@ -90,76 +85,76 @@ let
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
     agents = {
       sisyphus = {
-        model = "anthropic/${fable}";
+        model = (ref "fable");
         variant = "max";
       };
       hephaestus = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "medium";
       };
       oracle = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "xhigh";
       };
       librarian = {
-        model = "furtherverse/grok-4.5";
+        model = (ref "grok");
       };
       explore = {
-        model = "furtherverse/grok-4.5";
+        model = (ref "grok");
       };
       multimodal-looker = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "low";
       };
       prometheus = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "high";
       };
       metis = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "medium";
       };
       momus = {
-        model = "openai/${terra}";
+        model = (ref "terra");
         variant = "high";
       };
       atlas = {
-        model = "furtherverse/grok-4.5";
+        model = (ref "grok");
       };
       sisyphus-junior = {
-        model = "furtherverse/grok-4.5";
+        model = (ref "grok");
       };
     };
     categories = {
       visual-engineering = {
-        model = "google/${gemini}";
+        model = (ref "gemini");
         variant = "high";
       };
       ultrabrain = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "xhigh";
       };
       deep = {
-        model = "openai/${terra}";
+        model = (ref "terra");
         variant = "xhigh";
       };
       artistry = {
-        model = "google/${gemini}";
+        model = (ref "gemini");
         variant = "high";
       };
       quick = {
-        model = "furtherverse/grok-4.5";
+        model = (ref "grok");
       };
       unspecified-low = {
-        model = "openai/${luna}";
+        model = (ref "luna");
         variant = "xhigh";
       };
       unspecified-high = {
-        model = "openai/${sol}";
+        model = (ref "sol");
         variant = "high";
       };
       writing = {
-        model = "furtherverse/kimi-k3";
+        model = (ref "kimi");
       };
     };
     experimental = {

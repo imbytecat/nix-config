@@ -11,8 +11,8 @@ let
   catalog = import ../../ai-catalog.nix;
 
   nick = "furtherverse";
-  modelId = "grok-4.5";
-  modelMeta = catalog.furtherverseModels.${modelId};
+  modelMeta = catalog.models.grok;
+  modelId = modelMeta.id;
 
   grokConfig = {
     models = {
