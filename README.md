@@ -68,21 +68,26 @@ ls -l /dev/disk/by-id/ | grep -i nvme
 
 #### 3a. 本机 Live 首装（推荐实体机坐在机器前时）
 
+Live ISO **默认不开 flakes**、没有 `just`；脚本会自己设 `NIX_CONFIG`、拉仓库、跑 `disko-install`。联网后 **root** 下一键：
+
 ```bash
 sudo -i
-# live 开 flakes（若尚未默认开启）
-mkdir -p ~/.config/nix
-echo 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf
-echo 'accept-flake-config = true' >> ~/.config/nix/nix.conf
-
-nix-shell -p git
-git clone <repo-url> /tmp/nix-config
-cd /tmp/nix-config
-nix develop   # 提供 just 等
-just install-local awesome-pc
-# 提示时输入 awesome-pc 确认 wipe → disko 全盘 → install
+curl -fsSL https://raw.githubusercontent.com/imbytecat/nix-config/main/scripts/install-local.sh \
+  | bash -s -- awesome-pc
+# 提示时输入 awesome-pc 确认 wipe → 拉仓 → disko 全盘 → install
 reboot
 ```
+
+已 clone 时：
+
+```bash
+sudo ./scripts/install-local.sh awesome-pc
+# 或（有 just 时）just install-local awesome-pc
+```
+
+可选环境变量：`REPO_URL` / `REPO_REF`（默认 `main`）/ `WORKDIR`（默认 `/tmp/nix-config`）。
+
+只想远程装、Live 啥也不配：另一台机器 `just install awesome-pc <live-ip>`。
 
 底下走 `disko-install`：按 `disko.nix` 全盘格式化 → 若已有 `hardware-configuration.nix` 会用 live 硬件重新生成 → `nixos-install`（写 EFI NVRAM）。装完后记得把更新过的 hardware-config 提交。
 
@@ -274,7 +279,9 @@ just boot <host>             # 仅注册下次启动 generation（kernel/initrd 
 just rollback                # 回滚（仅 NixOS）
 
 # NixOS 首装 / 远程
-just install-local <host>    # Live 本机首装（disko-install，会 wipe 目标盘；仅 Linux）
+# Live 一键（无需 just）:
+#   curl -fsSL https://raw.githubusercontent.com/imbytecat/nix-config/main/scripts/install-local.sh | bash -s -- <host>
+just install-local <host>    # 本机首装（调用 scripts/install-local.sh；会 wipe 目标盘；仅 Linux）
 just install <host> <remote> # 远程首装（nixos-anywhere）
 just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
 just deploy-boot <host> <remote> # 远程更新但仅注册下次启动（kernel/initrd 类更新）

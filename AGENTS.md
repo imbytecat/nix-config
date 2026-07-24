@@ -15,7 +15,8 @@
 - Flake evals only see git-tracked files. `git add` new `.nix` files before any `nix eval`/`just build`, or you get "No such file or directory" against the store copy of the repo.
 - Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
 - `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
-- NixOS install/update: Live 本机首装 `just install-local <host>`（disko-install，需 root，会 wipe `disko.nix` 目标盘）；远程首装 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；之后 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
+- NixOS install/update: Live 本机首装用 `scripts/install-local.sh <host>`（或 `just install-local <host>`，薄封装）；远程首装 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；之后 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
+- Live 一键：`curl -fsSL …/scripts/install-local.sh | bash -s -- <host>`。脚本自设 `NIX_CONFIG`（flakes + accept-flake-config）、缺 git 时 `nix-shell -p git` 或 tarball 拉仓、确认 hostname 后 `disko-install`（wipe `disko.nix` 目标盘）。逻辑只在脚本里维护，just 不重复实现。
 - `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-mac-mini`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
 - `nix develop` provides repo tools (`just`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
 
