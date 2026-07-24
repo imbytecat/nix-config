@@ -1,8 +1,7 @@
 { lib, ... }:
 
 let
-  # nixos-anywhere 前先用 lsblk 确认目标盘；后续可替换成 /dev/disk/by-id/...
-  diskDevice = "/dev/sda";
+  diskDevice = "/dev/disk/by-id/nvme-HS-SSD-C2000Pro_1024G_AA000000000000001070";
 in
 {
   disko.devices.disk.main = {

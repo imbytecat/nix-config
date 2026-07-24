@@ -10,7 +10,7 @@ flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任�
 
 | 设备 | 平台 | Flake 目标 / hostname / dir | 备注 |
 |------|------|----------------------------|------|
-| PC | x86_64-linux | `awesome-pc` | **主力桌面**。PVE VM，systemd-boot + Plasma 6 Wayland + NVIDIA 直通 |
+| PC | x86_64-linux | `awesome-pc` | **主力桌面**。实体机，systemd-boot + Plasma 6 Wayland + AMD GPU |
 | MacBook Air | aarch64-darwin | `awesome-macbook-air` | 外出 + Xcode/Flutter 构建机，带刘海 |
 | Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口；待退役，入口角色迁到 PVE 侧后删除 |
 | Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
@@ -43,7 +43,7 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 ### PC
 
-PVE VM NixOS 桌面（amd64），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动 VM 后，从本仓跑 `just install awesome-pc <vm-ip>` 远程首装；之后 `just deploy awesome-pc <vm-ip>` 或进系统后 `just switch awesome-pc` 重建。
+NixOS 桌面（amd64 实体机），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动后，从本仓跑 `just install awesome-pc <ip>` 远程首装；之后 `just deploy awesome-pc <ip>` 或进系统后 `just switch awesome-pc` 重建。
 
 <details>
 <summary><b>首次装机完整流程</b>（点开展开）</summary>
@@ -119,16 +119,13 @@ services.displayManager.sddm.wayland.enable = true;
 services.desktopManager.plasma6.enable = true;
 ```
 
-GPU 是硬件属性，在 `hosts/awesome-pc/default.nix`（换 Intel 卡时只改这一段）：
+GPU 是硬件属性，在 `hosts/awesome-pc/default.nix`（换卡时只改这一段）：
 
 ```nix
-# RTX 4070 SUPER
-services.xserver.videoDrivers = [ "nvidia" ];
-hardware.nvidia = {
-  modesetting.enable = true;
-  open = true;
-  package = config.boot.kernelPackages.nvidiaPackages.stable;
-};
+# RX 7650 GRE（RDNA3 / Navi 33）
+services.xserver.videoDrivers = [ "amdgpu" ];
+hardware.enableRedistributableFirmware = true;
+hardware.amdgpu.initrd.enable = true;
 ```
 
 </details>

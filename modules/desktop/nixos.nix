@@ -1,6 +1,6 @@
 # NixOS 桌面角色：完整 GUI 桌面 = DE + 桌面应用 + 输入法。
 # 叠加在 modules/nixos（无头开发 base）之上；无头开发机不导入本文件即可。
-# 显卡驱动（nvidia/intel）是硬件属性，放 hosts/<host>/，与桌面角色解耦。
+# 显卡驱动（nvidia/amd/intel）是硬件属性，放 hosts/<host>/，与桌面角色解耦。
 {
   pkgs,
   lib,
