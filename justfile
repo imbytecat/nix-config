@@ -105,7 +105,7 @@ dry host: (_valid host)
 diff host: (_guard host) (build host)
     nvd diff /run/current-system result/
 
-# ─── Remote ───────────────────────────────────────────────
+# ─── Install / Remote ─────────────────────────────────────
 
 # 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，目标机数据全部丢失
 # 装完 SSH host key 会变，记得 `ssh-keygen -R <remote>`
@@ -129,6 +129,61 @@ install host remote: (_valid host) (_valid_remote remote)
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
       --build-on remote
+
+# 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，本机数据全部丢失
+# 用法（NixOS Live ISO）：clone 本仓 → `nix develop` → `just install-local <host>`
+# 需 root；写 EFI NVRAM（--write-efi-boot-entries）；装完后 reboot
+[doc('本机 Live 首装：disko-install 全盘 → nixos-install（需 root，仅 Linux）')]
+[linux]
+[group('remote')]
+install-local host: (_valid host)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    host="{{ host }}"
+    hardware_config="./hosts/${host}/hardware-configuration.nix"
+
+    if [ ! -f "./hosts/${host}/disko.nix" ]; then
+      echo "refuse: hosts/${host}/disko.nix missing（install-local 需要 disko）" >&2
+      exit 1
+    fi
+
+    echo "WARNING: disko will wipe disks in hosts/${host}/disko.nix" >&2
+    echo "---- lsblk ----" >&2
+    lsblk -o NAME,MODEL,SIZE,TYPE,SERIAL 2>/dev/null || lsblk >&2 || true
+    echo "---- by-id (nvme/ata) ----" >&2
+    ls -1 /dev/disk/by-id 2>/dev/null | grep -E '^(nvme|ata)-' | grep -v -- '-part' || true
+    echo "---------------" >&2
+    read -r -p "Type '${host}' to confirm wipe and install: " answer
+    if [ "${answer}" != "${host}" ]; then
+      echo "aborted" >&2
+      exit 1
+    fi
+
+    if [ -f "${hardware_config}" ] && command -v nixos-generate-config >/dev/null; then
+      echo "regenerating ${hardware_config} from live hardware..." >&2
+      nixos-generate-config --no-filesystems --show-hardware-config >"${hardware_config}"
+    fi
+
+    nix_options=(
+      --option extra-substituters "https://nix-community.cachix.org https://nixpkgs-unfree.cachix.org https://cache.numtide.com https://catppuccin.cachix.org"
+      --option extra-trusted-public-keys "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU="
+    )
+    run() {
+      if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+      else
+        sudo "$@"
+      fi
+    }
+    # --mode format：全盘分区；--write-efi-boot-entries：本机 UEFI 写 NVRAM
+    # nix_options 以 --option 形式传给 disko-install，再转给其内部 nix
+    run nix run github:nix-community/disko/latest#disko-install -- \
+      --flake ".#${host}" \
+      --mode format \
+      --write-efi-boot-entries \
+      "${nix_options[@]}"
+
+    echo "install-local done. reboot when ready." >&2
 
 [doc('远程更新（同架构，本机构建后 SCP 推送）')]
 [linux]

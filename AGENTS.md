@@ -15,7 +15,7 @@
 - Flake evals only see git-tracked files. `git add` new `.nix` files before any `nix eval`/`just build`, or you get "No such file or directory" against the store copy of the repo.
 - Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
 - `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
-- Remote NixOS install/update: `just install <host> <remote>` (nixos-anywhere, disko wipes target disk, `--build-on remote`), `just deploy <host> <remote>`, `just deploy-boot <host> <remote>`.
+- NixOS install/update: Live 本机首装 `just install-local <host>`（disko-install，需 root，会 wipe `disko.nix` 目标盘）；远程首装 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；之后 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
 - `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-mac-mini`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
 - `nix develop` provides repo tools (`just`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
 

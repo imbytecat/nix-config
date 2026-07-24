@@ -43,14 +43,52 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 ### PC
 
-NixOS 桌面（amd64 实体机），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动后，从本仓跑 `just install awesome-pc <ip>` 远程首装；之后 `just deploy awesome-pc <ip>` 或进系统后 `just switch awesome-pc` 重建。
+NixOS 桌面（amd64 实体机），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动后，在 Live 里 `just install-local awesome-pc` 本机首装；或从另一台机器 `just install awesome-pc <ip>` 远程首装。之后 `just deploy awesome-pc <ip>` 或进系统后 `just switch awesome-pc` 重建。
 
 <details>
 <summary><b>首次装机完整流程</b>（点开展开）</summary>
 
-#### 1. VM 启动安装环境
+#### 1. Live 启动安装环境
 
-PVE VM 使用 OVMF/UEFI 启动，挂载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso)。进 live 环境后提权并打开 SSH：
+实体机或 PVE VM（OVMF/UEFI）挂载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso)。进 live 后联网：
+
+- 有线：通常自动起来，`ping 1.1.1.1` 确认
+- WiFi：`sudo systemctl start wpa_supplicant && wpa_cli`（或更友好的 `nmtui`）
+
+#### 2. 确认目标磁盘
+
+当前 `hosts/awesome-pc/disko.nix` 按 C2000 Pro 的 by-id 全盘安装。跑安装前务必在 live 确认：
+
+```bash
+lsblk -o NAME,MODEL,SIZE,TYPE,SERIAL
+ls -l /dev/disk/by-id/ | grep -i nvme
+```
+
+对不上就先改 `hosts/awesome-pc/disko.nix` 里的 `diskDevice`。
+
+#### 3a. 本机 Live 首装（推荐实体机坐在机器前时）
+
+```bash
+sudo -i
+# live 开 flakes（若尚未默认开启）
+mkdir -p ~/.config/nix
+echo 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf
+echo 'accept-flake-config = true' >> ~/.config/nix/nix.conf
+
+nix-shell -p git
+git clone <repo-url> /tmp/nix-config
+cd /tmp/nix-config
+nix develop   # 提供 just 等
+just install-local awesome-pc
+# 提示时输入 awesome-pc 确认 wipe → disko 全盘 → install
+reboot
+```
+
+底下走 `disko-install`：按 `disko.nix` 全盘格式化 → 若已有 `hardware-configuration.nix` 会用 live 硬件重新生成 → `nixos-install`（写 EFI NVRAM）。装完后记得把更新过的 hardware-config 提交。
+
+#### 3b. 远程首装（另一台机器有本仓时）
+
+Live 里提权并开 SSH：
 
 ```bash
 sudo -i
@@ -59,38 +97,20 @@ systemctl start sshd
 ip -4 addr
 ```
 
-这里的 root 密码只用于临时安装环境；用强临时密码，并确保 VM 安装网段可信。装完后清理本地 known_hosts，正式系统用声明式 SSH key 登录。
-
-#### 2. 联网
-
-- 有线：通常自动起来，`ping 1.1.1.1` 确认
-- WiFi：`sudo systemctl start wpa_supplicant && wpa_cli`（或更友好的 `nmtui`）
-
-#### 3. 确认目标磁盘
-
-当前 `hosts/awesome-pc/disko.nix` 先按 `/dev/sda` 全盘安装。跑安装前务必在 live 环境确认目标盘：
+在本仓机器上：
 
 ```bash
-lsblk -o NAME,MODEL,SIZE,TYPE
+just install awesome-pc <live-ip>
 ```
 
-后续如果要避免盘符漂移，把 `hosts/awesome-pc/disko.nix` 里的 `diskDevice` 改成 `/dev/disk/by-id/...`。
+底下走 `nixos-anywhere`：kexec → disko 全盘 → 生成 hardware-config → install → reboot。
 
-#### 4. 远程首装
-
-在本仓机器上执行：
+#### 4. 首次登录 + 接管
 
 ```bash
-just install awesome-pc <vm-ip>
-```
-
-底下走 `nixos-anywhere`：kexec → `disko` 全盘格式化 `/dev/sda` → 生成 `hosts/awesome-pc/hardware-configuration.nix` → install → reboot。生成内容含 VM 的 `boot.initrd.availableKernelModules` 等机器特有项，安装后记得提交。
-
-#### 5. 首次登录 + 接管
-
-```bash
-ssh-keygen -R <vm-ip>
-ssh imbytecat@<vm-ip>
+# 远程装完时 host key 会变
+ssh-keygen -R <ip>
+ssh imbytecat@<ip>
 git clone <repo-url> ~/nix-config
 cd ~/nix-config
 just switch awesome-pc
@@ -98,11 +118,11 @@ just switch awesome-pc
 
 如果首装时已经通过其他方式同步了仓库，跳过 `git clone`。`programs.nh.flake` 默认指向 `~/nix-config`。
 
-#### 6. 提交硬件配置
+#### 5. 提交硬件配置
 
 ```bash
 git add hosts/awesome-pc/hardware-configuration.nix
-git commit -m "awesome-pc: add hardware-configuration"
+git commit -m "fix(awesome-pc): 更新 hardware-configuration"
 ```
 
 </details>
@@ -253,8 +273,9 @@ just build <host>            # 仅构建不激活（产 result/，配合 just di
 just boot <host>             # 仅注册下次启动 generation（kernel/initrd 更新需手动 reboot；仅 NixOS）
 just rollback                # 回滚（仅 NixOS）
 
-# 远程 NixOS 主机
-just install <host> <remote> # 首次装机（nixos-anywhere）
+# NixOS 首装 / 远程
+just install-local <host>    # Live 本机首装（disko-install，会 wipe 目标盘；仅 Linux）
+just install <host> <remote> # 远程首装（nixos-anywhere）
 just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
 just deploy-boot <host> <remote> # 远程更新但仅注册下次启动（kernel/initrd 类更新）
 
