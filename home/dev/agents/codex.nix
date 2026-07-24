@@ -14,6 +14,7 @@ let
     model_provider = "furtherverse";
     model = catalog.models.sol.id;
     forced_login_method = "api";
+    check_for_update_on_startup = false;
 
     model_reasoning_effort = "high";
     model_reasoning_summary = "auto";
@@ -25,6 +26,8 @@ let
     model_auto_compact_token_limit = 400000;
 
     history.persistence = "none";
+    analytics.enabled = false;
+    feedback.enabled = false;
 
     model_providers.furtherverse = {
       name = "Furtherverse";

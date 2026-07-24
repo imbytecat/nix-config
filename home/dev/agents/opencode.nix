@@ -10,6 +10,7 @@ let
   jsonFormat = pkgs.formats.json { };
 
   catalog = import ../../ai-catalog.nix;
+  omo = inputs.llm-agents.packages.${system}.oh-my-opencode;
 
   gatewayOptions = {
     baseURL = "${catalog.gateway.endpoint}/v1";
@@ -69,7 +70,6 @@ let
     experimental = {
       disable_paste_summary = true;
     };
-    plugin = [ "oh-my-openagent@latest" ];
     model = (ref "opus");
     small_model = (ref "luna");
     compaction = {
@@ -87,6 +87,8 @@ let
   omoConfig = {
     "$schema" =
       "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
+    telemetry = false;
+    disabled_hooks = [ "auto-update-checker" ];
     agents = {
       sisyphus = {
         model = (ref "fable");
@@ -173,6 +175,7 @@ let
       enabled = true;
       auto_init = true;
       auto_provision = true;
+      telemetry = false;
     };
     browser_automation_engine.provider = "agent-browser";
     disabled_skills = [ "playwright" ];
@@ -185,12 +188,16 @@ let
   '';
 in
 {
-  home.packages = [ inputs.llm-agents.packages.${system}.opencode ];
+  home.packages = [
+    inputs.llm-agents.packages.${system}.opencode
+    omo
+  ];
 
   xdg.configFile = {
     "opencode/opencode.json".source = jsonFormat.generate "opencode.json" opencodeConfig;
     "opencode/tui.json".source = jsonFormat.generate "opencode-tui.json" opencodeTui;
     "opencode/oh-my-openagent.json".source = jsonFormat.generate "oh-my-openagent.json" omoConfig;
+    "opencode/plugins/oh-my-openagent.js".source = "${omo}/lib/oh-my-opencode/dist/index.js";
     "opencode/AGENTS.md".text = agentsMd;
   };
 }

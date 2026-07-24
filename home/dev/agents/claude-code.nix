@@ -11,32 +11,34 @@ let
   # ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN 环境变量（fish op-env 注入），这里只取模型 ID。
   catalog = import ../../ai-catalog.nix;
 
+  # 网关无法自动确认扩展上下文；目录标记为 1M 的模型在 Claude Code adapter 中追加选择标记。
+  modelId = model: if model.context == 1000000 then "${model.id}[1m]" else model.id;
+
   claudeCodeSettings = {
-    effortLevel = "max";
+    effortLevel = "xhigh";
 
     permissions.defaultMode = "bypassPermissions";
     skipDangerousModePermissionPrompt = true;
+    skipWebFetchPreflight = true;
 
-    includeCoAuthoredBy = false;
     attribution = {
       commit = "";
       pr = "";
     };
 
     env = {
-      ANTHROPIC_DEFAULT_OPUS_MODEL = catalog.models.opus.id;
-      ANTHROPIC_DEFAULT_SONNET_MODEL = catalog.models.sonnet.id;
-      ANTHROPIC_DEFAULT_HAIKU_MODEL = catalog.models.haiku.id;
-      CLAUDE_CODE_SUBAGENT_MODEL = catalog.models.sonnet.id;
+      ANTHROPIC_DEFAULT_FABLE_MODEL = modelId catalog.models.fable;
+      ANTHROPIC_DEFAULT_OPUS_MODEL = modelId catalog.models.opus;
+      ANTHROPIC_DEFAULT_SONNET_MODEL = modelId catalog.models.sonnet;
+      ANTHROPIC_DEFAULT_HAIKU_MODEL = modelId catalog.models.haiku;
+      CLAUDE_CODE_SUBAGENT_MODEL = modelId catalog.models.sonnet;
 
-      CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
-      CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS = "1";
       ENABLE_TOOL_SEARCH = "false";
 
       CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+      CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL = "1";
       DISABLE_AUTOUPDATER = "1";
-      DISABLE_INSTALLATION_CHECKS = "1";
     };
 
     cleanupPeriodDays = 90;

@@ -56,14 +56,15 @@ let
   ompConfig = {
     setupVersion = 1;
     startup.setupWizard = false;
+    enableInstallTelemetry = false;
     theme = {
       dark = "dark-catppuccin";
       light = "light-catppuccin";
     };
     symbolPreset = "nerd";
     # web_search 钉死 Exa（fish op-env 已注入 EXA_API_KEY，opencode 的 websearch MCP 同源），
-    # 不依赖 auto 模式按内置顺序探测的不确定性；未列出的 provider 保持默认顺序作兜底。
-    providers.webSearchOrder = [ "exa" ];
+    # 避免 auto 优先命中 Anthropic 并使用其固定的 Haiku 搜索模型。
+    providers.webSearch = "exa";
     modelRoles = {
       default = "${catalog.ref "sol"}:high";
       smol = catalog.ref "luna";
