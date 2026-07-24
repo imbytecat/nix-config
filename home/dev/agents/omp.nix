@@ -49,7 +49,18 @@ let
   # 与 codex 同款默认模型（openai/sol + high thinking）；smol 对齐 opencode small_model（luna）。
   # config.yml 是 `omp config set` / `/settings` 的写入目标，这里声明式接管后运行时改动会失败，
   # 与本仓其余 agent 配置同一取舍：改配置走 nix，不走 TUI。
+  # setup 向导也因此必须在这里关掉：向导完成时要写 setupVersion 回 config.yml，只读 symlink 写
+  # 不进去，导致每次启动都重跑 bootstrap。setupVersion 标记已完成 + startup.setupWizard 兜底
+  # 禁用（上游 bump CURRENT_SETUP_VERSION 后前者会过期）。外观与全仓一致：catppuccin 主题 +
+  # Nerd 字体图标（fonts.nix 已装 maple-mono NF）。
   ompConfig = {
+    setupVersion = 1;
+    startup.setupWizard = false;
+    theme = {
+      dark = "dark-catppuccin";
+      light = "light-catppuccin";
+    };
+    symbolPreset = "nerd";
     modelRoles = {
       default = "${catalog.ref "sol"}:high";
       smol = catalog.ref "luna";
