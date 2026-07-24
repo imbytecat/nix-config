@@ -12,8 +12,8 @@ let
   catalog = import ../../ai-catalog.nix;
 
   gatewayOptions = {
-    baseURL = "${catalog.endpoint}/v1";
-    apiKey = "{env:${catalog.apiKeyEnv}}";
+    baseURL = "${catalog.gateway.endpoint}/v1";
+    apiKey = "{env:${catalog.gateway.apiKeyEnv}}";
   };
 
   # 把 catalog 的中性 per-model 元数据投影成 opencode provider.models schema。
@@ -27,31 +27,35 @@ let
     };
   };
   byId = ms: lib.mapAttrs' (_nick: m: lib.nameValuePair m.id (projectMeta m)) ms;
-  familyModels = p: byId (catalog.byProvider p);
+  familyModels = p: byId catalog.providers.${p};
 
   # "provider/id" 限定名（如 ref "opus" → "anthropic/claude-opus-4-8"），下方模型指派全用它。
   inherit (catalog) ref;
 
   providers = {
     anthropic = {
+      name = "Anthropic";
       npm = "@ai-sdk/anthropic";
       options = gatewayOptions;
       models = familyModels "anthropic";
     };
     openai = {
+      name = "OpenAI";
       npm = "@ai-sdk/openai";
       options = gatewayOptions;
       models = familyModels "openai";
     };
     google = {
+      name = "Google";
       npm = "@ai-sdk/google";
       options = gatewayOptions // {
-        baseURL = "${catalog.endpoint}/v1beta";
+        baseURL = "${catalog.gateway.endpoint}/v1beta";
       };
       models = familyModels "google";
     };
     furtherverse = {
-      inherit (catalog.provider) name npm;
+      name = "Furtherverse";
+      npm = "@ai-sdk/openai-compatible";
       options = gatewayOptions;
       models = familyModels "furtherverse";
     };

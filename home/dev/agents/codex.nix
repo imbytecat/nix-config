@@ -11,7 +11,7 @@ let
   catalog = import ../../ai-catalog.nix;
 
   codexConfig = {
-    model_provider = catalog.provider.id;
+    model_provider = "furtherverse";
     model = catalog.models.sol.id;
     forced_login_method = "api";
 
@@ -26,10 +26,10 @@ let
 
     history.persistence = "none";
 
-    model_providers.${catalog.provider.id} = {
-      inherit (catalog.provider) name;
-      base_url = "${catalog.endpoint}/v1";
-      env_key = catalog.apiKeyEnv;
+    model_providers.furtherverse = {
+      name = "Furtherverse";
+      base_url = "${catalog.gateway.endpoint}/v1";
+      env_key = catalog.gateway.apiKeyEnv;
       wire_api = "responses";
     };
   };

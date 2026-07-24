@@ -22,9 +22,9 @@ let
 
     model.${nick} = {
       model = modelId;
-      base_url = "${catalog.endpoint}/v1";
+      base_url = "${catalog.gateway.endpoint}/v1";
       name = "${modelMeta.name}";
-      env_key = catalog.apiKeyEnv;
+      env_key = catalog.gateway.apiKeyEnv;
       api_backend = "responses";
       context_window = modelMeta.context;
       supports_reasoning_effort = modelMeta.reasoning;

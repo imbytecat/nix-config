@@ -16,13 +16,13 @@ in
 {
   # 仅 op:// 引用，无真实密钥；放在 ~/.config/op 之外（op CLI 要求该目录 700）
   xdg.configFile."op-env/env.tpl".text = ''
-    set -gx AI_GATEWAY_BASE_URL "${catalog.endpoint}"
-    set -gx ${catalog.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
+    set -gx AI_GATEWAY_BASE_URL "${catalog.gateway.endpoint}"
+    set -gx ${catalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
     set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
     set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
 
-    set -gx ANTHROPIC_BASE_URL "${catalog.endpoint}"
+    set -gx ANTHROPIC_BASE_URL "${catalog.gateway.endpoint}"
     set -gx ANTHROPIC_AUTH_TOKEN "{{ op://Developer/AI Gateway API/credential }}"
   '';
 
