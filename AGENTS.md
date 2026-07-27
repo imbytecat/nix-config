@@ -2,7 +2,7 @@
 
 ## Repo Shape
 
-- Nix flake for `awesome-mac-mini`/`awesome-macbook-air` (`aarch64-darwin`), `awesome-pc` (`x86_64-linux`), and `mihomo-gateway` (`x86_64-linux`, root-only gateway). Uses Lix.
+- Nix flake for `awesome-macbook-air` (`aarch64-darwin`), `awesome-pc` (`x86_64-linux`), and `mihomo-gateway` (`x86_64-linux`, root-only gateway). Uses Lix.
 - Flake attr, host directory, and `networking.hostName` must match exactly; `just _guard` only compares `hostname -s` with the host argument.
 - Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. `sshKeys` and `username` are passed via `specialArgs`; there is no `system` specialArg — use `pkgs.stdenv.isDarwin`/`isLinux` if a shared module ever needs a platform branch.
 - Desktop hosts explicitly import a platform desktop role: Darwin hosts use `modules/desktop/darwin.nix`, NixOS desktops use `modules/desktop/nixos.nix`. Headless dev NixOS hosts use `mkNixos` without any desktop module. Servers use `mkServer` and intentionally avoid Home Manager, catppuccin, fish, 1Password, docker, and desktop modules.
@@ -15,10 +15,9 @@
 - Flake evals only see git-tracked files. `git add` new `.nix` files before any `nix eval`/`just build`, or you get "No such file or directory" against the store copy of the repo.
 - Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
 - `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
-- NixOS install/update: Live 本机首装用 `scripts/install-local.sh <host>`（或 `just install-local <host>`，薄封装）；远程首装 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；之后 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
-- Live 一键：`curl -fsSL …/scripts/install-local.sh | bash -s -- <host>`。脚本自设 `NIX_CONFIG`（flakes + accept-flake-config）、缺 git 时 `nix-shell -p git` 或 tarball 拉仓、确认 hostname 后 `disko-install`（wipe `disko.nix` 目标盘）。逻辑只在脚本里维护，just 不重复实现。
-- `disko-install` **忽略** flake 里的 `device`，强制 CLI `--disk <name> <path>`（见上游 install-cli.nix）。`install-local.sh` 会 `nix eval` 配置里的 device 再传入；by-id 对不上时用 `DISK_main=/dev/nvme0n1`。`nixos-anywhere`（`just install`）不走这套，直接用 flake 里的 device。
-- `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-mac-mini`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
+- NixOS install/update: 首装优先从另一台机器运行 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；Live 本机备用路径直接运行本仓 `packages.x86_64-linux.disko-install`，显式传 `--flake`、`--disk` 和 `--write-efi-boot-entries`；之后用 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
+- `disko-install` **忽略** flake 里的 `device`，强制 CLI `--disk <name> <path>`（见上游 install-cli.nix）。`awesome-pc` 默认 by-id 在 `hosts/awesome-pc/disko.nix`；Live 对不上时只替换 CLI 设备路径。本地安装使用已提交的 hardware config；`nixos-anywhere` 会在调用端工作树生成 hardware config。
+- `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-macbook-air`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
 - `nix develop` provides repo tools (`just`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
 
 ## Where Things Go
@@ -48,7 +47,7 @@
 - Brew 6 requires non-official taps to be trusted. Keep `goooler/repo` and `imbytecat/tap` as `{ name = ...; trusted = true; }` and list all nix-homebrew-managed taps.
 - Do not use removed Homebrew quarantine knobs (`caskArgs.no_quarantine`) or add automatic `xattr` bypass scripts; Gatekeeper exceptions are manual.
 - `homebrew.enableFishIntegration = true` is required for nix-darwin Homebrew integration; do not replace it with shell `brew shellenv` snippets.
-- Mac mini intentionally has always-on power/wake tweaks (`power.sleep.*`, `pmset` activation, wake-on-LAN) — it is the SSH/Tailscale entry. MacBook Air intentionally uses raw `pmset`, not `power.sleep.*`, to preserve lid sleep behavior.
+- MacBook Air intentionally uses raw `pmset`, not `power.sleep.*`, to preserve lid sleep behavior.
 
 ## Home Manager / Shell
 

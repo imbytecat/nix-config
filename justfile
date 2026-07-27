@@ -66,7 +66,6 @@ rollback:
 [macos]
 [group('check')]
 eval:
-    @nix eval .#darwinConfigurations.awesome-mac-mini.system > /dev/null && echo "awesome-mac-mini: ok"
     @nix eval .#darwinConfigurations.awesome-macbook-air.system > /dev/null && echo "awesome-macbook-air: ok"
 
 [doc('eval 全部 nixosConfigurations 的 system toplevel（跨平台需 remote builder）')]
@@ -109,7 +108,7 @@ diff host: (_guard host) (build host)
 
 # 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，目标机数据全部丢失
 # 装完 SSH host key 会变，记得 `ssh-keygen -R <remote>`
-[doc('远程首装：nixos-anywhere kexec → disko 全盘 → install → reboot')]
+[doc('远程首装：nixos-anywhere → disko 全盘 → install → reboot')]
 [group('remote')]
 install host remote: (_valid host) (_valid_remote remote)
     #!/usr/bin/env bash
@@ -129,17 +128,6 @@ install host remote: (_valid host) (_valid_remote remote)
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
       --build-on remote
-
-# 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，本机数据全部丢失
-# Live 一键（无需 just/预先开 flakes）：
-#   curl -fsSL https://raw.githubusercontent.com/imbytecat/nix-config/main/scripts/install-local.sh \
-#     | bash -s -- <host>
-# 本仓已 clone：`just install-local <host>` 或 `./scripts/install-local.sh <host>`
-[doc('本机 Live 首装：scripts/install-local.sh（disko-install，需 root，仅 Linux）')]
-[linux]
-[group('remote')]
-install-local host: (_valid host)
-    ./scripts/install-local.sh {{ host }}
 
 [doc('远程更新（同架构，本机构建后 SCP 推送）')]
 [linux]

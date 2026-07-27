@@ -113,7 +113,6 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       ...
     }@inputs:
@@ -127,16 +126,6 @@
     in
     {
       darwinConfigurations = {
-        awesome-mac-mini = mylib.mkDarwin {
-          hostname = "awesome-mac-mini";
-          system = "aarch64-darwin";
-          username = "imbytecat";
-          extraModules = [
-            ./modules/desktop/darwin.nix
-            ./hosts/awesome-mac-mini
-          ];
-        };
-
         awesome-macbook-air = mylib.mkDarwin {
           hostname = "awesome-macbook-air";
           system = "aarch64-darwin";
@@ -174,6 +163,9 @@
           ];
         };
       };
+
+      # Live 本机安装直接运行本仓锁定的官方 disko-install。
+      packages.x86_64-linux.disko-install = inputs.disko.packages.x86_64-linux.disko-install;
 
       overlays.default = import ./overlays { inherit inputs; };
 

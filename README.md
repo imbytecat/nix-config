@@ -12,7 +12,6 @@ flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任�
 |------|------|----------------------------|------|
 | PC | x86_64-linux | `awesome-pc` | **主力桌面**。实体机，systemd-boot + Plasma 6 Wayland + AMD GPU |
 | MacBook Air | aarch64-darwin | `awesome-macbook-air` | 外出 + Xcode/Flutter 构建机，带刘海 |
-| Mac Mini | aarch64-darwin | `awesome-mac-mini` | 常开机做 SSH/Tailscale 入口；待退役，入口角色迁到 PVE 侧后删除 |
 | Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
 
 ## 快速开始
@@ -27,7 +26,7 @@ flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任�
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```
 
-2. 克隆仓库并首次构建（`<host>` 取 `awesome-mac-mini` / `awesome-macbook-air`）：
+2. 克隆仓库并首次构建：
 
 ```bash
 git clone <repo-url> ~/nix-config
@@ -43,59 +42,13 @@ sudo nix run nix-darwin -- switch --flake .#<host>
 
 ### PC
 
-NixOS 桌面（amd64 实体机），UEFI + systemd-boot + NetworkManager + KDE Plasma 6（Wayland-only）。首次用 NixOS minimal ISO 启动后，在 Live 里 `just install-local awesome-pc` 本机首装；或从另一台机器 `just install awesome-pc <ip>` 远程首装。之后 `just deploy awesome-pc <ip>` 或进系统后 `just switch awesome-pc` 重建。
+`awesome-pc` 是 UEFI + systemd-boot + Plasma 6 Wayland 桌面。磁盘布局由 `hosts/awesome-pc/disko.nix` 声明：1 GiB ESP、ext4 root、zram，无磁盘 swap。
 
-<details>
-<summary><b>首次装机完整流程</b>（点开展开）</summary>
+> 首装会清空 `disko.nix` 指向的整块磁盘。执行前必须核对型号、容量、序列号和 by-id。
 
-#### 1. Live 启动安装环境
+#### 首装（推荐：nixos-anywhere）
 
-实体机或 PVE VM（OVMF/UEFI）挂载 [NixOS minimal ISO (unstable)](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso)。进 live 后联网：
-
-- 有线：通常自动起来，`ping 1.1.1.1` 确认
-- WiFi：`sudo systemctl start wpa_supplicant && wpa_cli`（或更友好的 `nmtui`）
-
-#### 2. 确认目标磁盘
-
-当前 `hosts/awesome-pc/disko.nix` 按 C2000 Pro 的 by-id 全盘安装。跑安装前务必在 live 确认：
-
-```bash
-lsblk -o NAME,MODEL,SIZE,TYPE,SERIAL
-ls -l /dev/disk/by-id/ | grep -i nvme
-```
-
-对不上就先改 `hosts/awesome-pc/disko.nix` 里的 `diskDevice`。
-
-#### 3a. 本机 Live 首装（推荐实体机坐在机器前时）
-
-Live ISO **默认不开 flakes**、没有 `just`；脚本会自己设 `NIX_CONFIG`、拉仓库、跑 `disko-install`。联网后 **root** 下一键：
-
-```bash
-sudo -i
-curl -fsSL https://raw.githubusercontent.com/imbytecat/nix-config/main/scripts/install-local.sh \
-  | bash -s -- awesome-pc
-# 提示时输入 awesome-pc 确认 wipe → 拉仓 → disko 全盘 → install
-reboot
-```
-
-已 clone 时：
-
-```bash
-sudo ./scripts/install-local.sh awesome-pc
-# 或（有 just 时）just install-local awesome-pc
-```
-
-可选环境变量：`REPO_URL` / `REPO_REF`（默认 `main`）/ `WORKDIR`（默认 `/tmp/nix-config`）。
-
-> `disko-install` 不会用 flake 里写的 `device`，必须 CLI 传 `--disk main /dev/...`（上游安全设计）。脚本会从 `hosts/<host>/disko.nix` eval 出路径再传入。若 live 上 by-id 不存在：`DISK_main=/dev/nvme0n1 bash scripts/install-local.sh awesome-pc`。
-
-只想远程装、Live 啥也不配：另一台机器 `just install awesome-pc <live-ip>`。
-
-底下走 `disko-install`：按 `disko.nix` 全盘格式化 → 若已有 `hardware-configuration.nix` 会用 live 硬件重新生成 → `nixos-install`（写 EFI NVRAM）。装完后记得把更新过的 hardware-config 提交。
-
-#### 3b. 远程首装（另一台机器有本仓时）
-
-Live 里提权并开 SSH：
+目标机启动 [NixOS minimal ISO](https://channels.nixos.org/nixos-unstable/latest-nixos-minimal-x86_64-linux.iso)，联网后开放 SSH：
 
 ```bash
 sudo -i
@@ -104,18 +57,45 @@ systemctl start sshd
 ip -4 addr
 ```
 
-在本仓机器上：
+在持有本仓的另一台机器运行：
 
 ```bash
 just install awesome-pc <live-ip>
 ```
 
-底下走 `nixos-anywhere`：kexec → disko 全盘 → 生成 hardware-config → install → reboot。
-
-#### 4. 首次登录 + 接管
+`nixos-anywhere` 会运行 disko、生成 `hardware-configuration.nix`、安装并重启。若硬件配置有变化，确认后提交：
 
 ```bash
-# 远程装完时 host key 会变
+git add hosts/awesome-pc/hardware-configuration.nix
+git commit -m "fix(awesome-pc): 更新 hardware-configuration"
+```
+
+#### 本机 Live 安装（备用）
+
+先确认目标磁盘：
+
+```bash
+lsblk -o NAME,MODEL,SIZE,TYPE,SERIAL
+ls -l /dev/disk/by-id/
+```
+
+然后直接运行本仓 `flake.lock` 锁定的官方 `disko-install`：
+
+```bash
+sudo nix --extra-experimental-features "nix-command flakes" \
+  run --accept-flake-config github:imbytecat/nix-config#disko-install -- \
+  --flake github:imbytecat/nix-config#awesome-pc \
+  --mode format \
+  --write-efi-boot-entries \
+  --disk main /dev/disk/by-id/nvme-HS-SSD-C2000Pro_1024G_AA000000000000001070
+reboot
+```
+
+`disko-install` 故意忽略配置里的 `device`，必须显式传 `--disk main <device>`。Live 环境没有该 by-id 时，只替换命令最后的设备路径，例如 `/dev/nvme0n1`。该命令没有额外确认提示。
+
+#### 首次登录
+
+```bash
 ssh-keygen -R <ip>
 ssh imbytecat@<ip>
 git clone <repo-url> ~/nix-config
@@ -123,39 +103,7 @@ cd ~/nix-config
 just switch awesome-pc
 ```
 
-如果首装时已经通过其他方式同步了仓库，跳过 `git clone`。`programs.nh.flake` 默认指向 `~/nix-config`。
-
-#### 5. 提交硬件配置
-
-```bash
-git add hosts/awesome-pc/hardware-configuration.nix
-git commit -m "fix(awesome-pc): 更新 hardware-configuration"
-```
-
-</details>
-
-<details>
-<summary><b>当前桌面 / GPU 配置</b></summary>
-
-桌面角色（DE/输入法/桌面应用）在 `modules/desktop/nixos.nix`：
-
-```nix
-# KDE Plasma 6 + SDDM，Wayland-only（不开 services.xserver.enable）
-services.displayManager.sddm.enable = true;
-services.displayManager.sddm.wayland.enable = true;
-services.desktopManager.plasma6.enable = true;
-```
-
-GPU 是硬件属性，在 `hosts/awesome-pc/default.nix`（换卡时只改这一段）：
-
-```nix
-# RX 7650 GRE（RDNA3 / Navi 33）
-services.xserver.videoDrivers = [ "amdgpu" ];
-hardware.enableRedistributableFirmware = true;
-hardware.amdgpu.initrd.enable = true;
-```
-
-</details>
+桌面角色在 `modules/desktop/nixos.nix`，AMD GPU 和 CachyOS 内核等硬件配置在 `hosts/awesome-pc/default.nix`。
 
 ### Mihomo Gateway
 
@@ -240,7 +188,6 @@ EOF"
 ```
 flake.nix                      # 入口
 hosts/                         # 主机特定配置（目录名 == flake 目标 == hostname）
-  ├── awesome-mac-mini/        # 日用 Darwin
   ├── awesome-macbook-air/     # 日用 Darwin
   ├── awesome-pc/              # 日用 NixOS
   └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
@@ -264,7 +211,7 @@ overlays/ + pkgs/              # 自定义包
 
 | 场景 | 组成 | 示例 |
 |------|------|------|
-| Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | mac mini / MBA |
+| Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | MacBook Air |
 | NixOS 桌面 | `hosts/*` → `modules/{shared,nixos}` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
 | NixOS 无头开发 | `hosts/*` → `modules/{shared,nixos}` → `home/*`（不加 desktop） | （预留） |
 | NixOS 服务器 | `hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`（mkServer，无 HM） | mihomo-gateway |
@@ -281,9 +228,6 @@ just boot <host>             # 仅注册下次启动 generation（kernel/initrd 
 just rollback                # 回滚（仅 NixOS）
 
 # NixOS 首装 / 远程
-# Live 一键（无需 just）:
-#   curl -fsSL https://raw.githubusercontent.com/imbytecat/nix-config/main/scripts/install-local.sh | bash -s -- <host>
-just install-local <host>    # 本机首装（调用 scripts/install-local.sh；会 wipe 目标盘；仅 Linux）
 just install <host> <remote> # 远程首装（nixos-anywhere）
 just deploy <host> <remote>  # 远程更新（nixos-rebuild --target-host）
 just deploy-boot <host> <remote> # 远程更新但仅注册下次启动（kernel/initrd 类更新）

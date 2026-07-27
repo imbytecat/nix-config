@@ -23,7 +23,7 @@
 							"expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.awesome-pc.options"
 						},
 						"nix-darwin": {
-							"expr": "(builtins.getFlake (toString ./.)).darwinConfigurations.awesome-mac-mini.options"
+							"expr": "(builtins.getFlake (toString ./.)).darwinConfigurations.awesome-macbook-air.options"
 						},
 						"home-manager": {
 							"expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.awesome-pc.options.home-manager.users.type.getSubOptions [ ]"
