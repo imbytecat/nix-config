@@ -121,6 +121,7 @@ install host remote: (_valid host) (_valid_remote remote)
     nix_options=(
       --option extra-substituters "https://nix-community.cachix.org https://nixpkgs-unfree.cachix.org https://cache.numtide.com https://catppuccin.cachix.org"
       --option extra-trusted-public-keys "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU="
+      --option always-allow-substitutes true
     )
     nix run github:nix-community/nixos-anywhere -- \
       "${hardware_args[@]}" \
