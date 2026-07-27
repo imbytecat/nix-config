@@ -62,8 +62,8 @@ let
       light = "light-catppuccin";
     };
     symbolPreset = "nerd";
-    # web_search 钉死 Exa（fish op-env 已注入 EXA_API_KEY，opencode 的 websearch MCP 同源），
-    # 避免 auto 优先命中 Anthropic 并使用其固定的 Haiku 搜索模型。
+    # web_search 钉死 Exa（fish op-env 已注入 EXA_API_KEY），避免 auto 优先命中
+    # Anthropic 并使用其固定的 Haiku 搜索模型。
     providers.webSearch = "exa";
     modelRoles = {
       default = "${catalog.ref "sol"}:high";
