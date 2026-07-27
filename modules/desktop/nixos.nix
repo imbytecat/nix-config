@@ -69,6 +69,7 @@ in
     telegram-desktop
     termius
     ungoogled-chromium
+    vlc
     vscode
     wechat-fcitx
     wemeet
