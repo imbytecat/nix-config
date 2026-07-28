@@ -31,5 +31,13 @@
   # 压缩内存作 swap（默认 zstd + memoryPercent=50）；不休眠，故不配磁盘 swap。
   zramSwap.enable = true;
 
+  # 桌面空闲时只允许息屏，系统始终保持运行；同时封住手动或应用触发的睡眠路径。
+  systemd.sleep.settings.Sleep = {
+    AllowSuspend = false;
+    AllowHibernation = false;
+    AllowHybridSleep = false;
+    AllowSuspendThenHibernate = false;
+  };
+
   system.stateVersion = "25.11";
 }

@@ -9,11 +9,15 @@
 }:
 let
   plasmaEnabled = osConfig.services.desktopManager.plasma6.enable;
+  awesomePc = plasmaEnabled && osConfig.networking.hostName == "awesome-pc";
 in
 {
   programs.plasma = lib.mkIf plasmaEnabled {
     enable = true;
     configFile.kwinrc.Wayland.InputMethod = "/run/current-system/sw/share/applications/fcitx5-wayland-launcher.desktop";
+
+    # awesome-pc 保持后台任务常驻；显示器仍按 Plasma 的既有 DPMS 时间自动熄灭。
+    powerdevil.AC.autoSuspend.action = lib.mkIf awesomePc "nothing";
   };
 
   # Konsole 声明式外观：字体钉 Maple Mono NF CN（与 modules/desktop/fonts.nix monospace 首选一致），
