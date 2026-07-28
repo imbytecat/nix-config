@@ -4,7 +4,6 @@
   imports = [
     ./claude-code.nix
     ./codex.nix
-    ./grok.nix
     ./omp.nix
     ./opencode.nix
   ];

@@ -1,5 +1,5 @@
 # AI 网关 + 模型目录：Furtherverse 网关实体（端点/密钥 env/身份）与跨 agent 引用的模型 ID /
-# 元数据的唯一真源。codex / opencode / claude-code / grok / omp / fish op-env 都是本目录的
+# 元数据的唯一真源。codex / opencode / claude-code / omp / fish op-env 都是本目录的
 # adapter，各自渲染成 TOML / JSON / YAML / env。改这里，各 agent 配置自动一致（同
 # modules/gateway/constants.nix）。
 # 放 home 根这个中性位置：home/shell 与 home/dev/agents 平等 import，避免 shell→dev/agents 方向依赖。
