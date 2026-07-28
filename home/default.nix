@@ -37,6 +37,7 @@
     jq
     procs
     sd
+    socat
     wget
     yq
 
