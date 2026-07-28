@@ -133,8 +133,7 @@ let
     };
     categories = {
       visual-engineering = {
-        model = (ref "gemini");
-        variant = "high";
+        model = (ref "kimi");
       };
       ultrabrain = {
         model = (ref "sol");
