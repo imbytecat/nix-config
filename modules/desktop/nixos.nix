@@ -52,7 +52,14 @@ in
   hardware.graphics.enable = true;
 
   networking.networkmanager.enable = true;
-  users.users.${username}.extraGroups = [ "networkmanager" ];
+  # networkmanager 默认拉起 ModemManager，它会主动 probe /dev/ttyUSB* 抢占串口并自发 AT 指令，
+  # 干扰移远模块调试。本机无 WWAN 需求，直接关掉。
+  networking.modemmanager.enable = false;
+  # dialout：/dev/ttyUSB* 属 root:dialout 660，串口调试需要
+  users.users.${username}.extraGroups = [
+    "networkmanager"
+    "dialout"
+  ];
 
   # ── 桌面应用（与 desktop/darwin.nix 各自独立演化，互不迁就）──
   environment.systemPackages = with pkgs; [
