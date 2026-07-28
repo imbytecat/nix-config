@@ -32,8 +32,8 @@ let
         maxOutput = 128000;
       };
       opus = {
-        id = "claude-opus-4-8";
-        name = "Claude Opus 4.8";
+        id = "claude-opus-5";
+        name = "Claude Opus 5";
         reasoning = true;
         input = [
           "text"
