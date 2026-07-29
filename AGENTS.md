@@ -67,9 +67,11 @@
 - Use `tproxy-port`, not `listeners`. Do not set `routing-mark` in Mihomo config; nftables only intercepts PREROUTING and Mihomo outbound must not be routed back into itself.
 - `rp_filter` must be disabled per-interface via networkd (`lo`, LAN interface patterns); sysctl `all/default` alone is insufficient.
 - Keep `AF_NETLINK` in Mihomo `RestrictAddressFamilies`; without it UDP DIRECT silently fails while TCP may look fine.
-- IPv6 forwarding is intentionally blocked by sysctl plus an `ip6` nftables forward-drop chain. Do not re-enable casually.
+- IPv6 forwarding is intentionally blocked by sysctl plus an `ip6` nftables forward chain that `reject`s (fast client fallback instead of a silent 1–3s stall). Do not re-enable casually.
 - `firewall.enable = false` is intentional; nftables rules are owned by `modules/gateway/tproxy.nix`.
-- `/etc/mihomo/env` provides `CONFIG_URL` and required `SECRET`; subscription updates use systemd `EnvironmentFile=`, sanitize subscription keys, validate with `mihomo -t`, then restart Mihomo.
+- `/etc/mihomo/env` (`CONFIG_URL` + `SECRET`) is written **by hand on the box, on purpose**. Do not add a nix/agenix/sops-nix/`op inject`+scp path for it — this was proposed and explicitly rejected. Everything else is declarative; this one file is not.
+- Subscription flow: systemd `EnvironmentFile=` → sanitize every listener/API key out of the subscription → `mihomo -t` in an **isolated temp dir** (never the state dir: root would leave geo/cache.db root-owned and break `geo-auto-update`) → swap config → restart → `is-active` check → roll back to `.bak` on failure. `systemctl restart` must keep `|| true`, otherwise `set -e` makes the rollback unreachable.
+- Threat model is asymmetric and deliberate: **only the gateway is hardened** (it faces the GFW — encrypted-only DNS, no plaintext upstream, sanitized external input, sandboxed units). Daily hosts optimize for convenience; passwordless sudo, no lock-screen password, `LSQuarantine = false`, broad `mise` trust and Homebrew auto-upgrade on Darwin are accepted trade-offs, not oversights. Do not "harden" them.
 
 ## Conventions
 
