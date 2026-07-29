@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 let
   constants = import ./constants.nix;
@@ -44,7 +44,10 @@ in
         }
       }
 
-      table inet mihomo-dns {
+      # mihomo 的 dns.listen 是 0.0.0.0:1053（ipv6=false），所以这里必须是 ip 而不是
+      # inet：inet 会把 IPv6 的 53 也 redirect 到本机不存在的 v6 监听上，行为不清晰。
+      # IPv6 统一由下面的 forward reject 快速失败。
+      table ip mihomo-dns {
         chain prerouting {
           type nat hook prerouting priority dstnat; policy accept;
 

@@ -135,8 +135,18 @@ let
 
     tmp="$(mktemp -p "${stateDir}" .mihomo-config.XXXXXX.yaml)"
 
+    # 校验必须用独立数据目录：mihomo -t 是 root 跑的，指向 state dir 会把 geo 数据和
+    # cache.db 落成 root 所有，而 mihomo 以 DynamicUser 运行、更新时原地写入直接 EACCES
+    # （实测让 geo 库静默陈旧 3 个月）。软链现有 geo 进去避免每次重下 24MB；
+    # 全新机器上没有就让它自己下到临时目录，随后由 mihomo 本体以自己的身份再下一份。
+    validateDir="$(mktemp -d)"
+    for f in "${stateDir}"/*.dat "${stateDir}"/*.mmdb "${stateDir}"/*.metadb; do
+      if [ -e "$f" ]; then ln -s "$f" "$validateDir/"; fi
+    done
+
     cleanup() {
       rm -f "$tmp"
+      rm -rf "$validateDir"
     }
     trap cleanup EXIT
 
@@ -146,9 +156,10 @@ let
       -o "$tmp" "$CONFIG_URL"
 
     echo "Sanitizing subscription..."
-    # 订阅是外部输入：凡是能开监听、开 API、放权限的字段一律删掉，
-    # 只保留本模块显式给的那套。external-controller-unix/pipe 与 external-doh-server
-    # 都绕过 secret 校验，必须清。
+    # 订阅是外部输入：凡是能开监听、开 API、放权限的字段一律删掉。
+    # external-controller-unix/pipe 与 external-doh-server 都绕过 secret 校验，必须清。
+    # 注意下面的 `*` 是递归合并：base 只覆盖它自己声明的键，proxies/proxy-groups/rules
+    # 与 dns.nameserver 等仍由订阅提供 —— 这是有意的分工，不是白名单。
     yq -i '
       del(.routing-mark) |
       del(.tun) |
@@ -182,18 +193,12 @@ let
     SECRET="$SECRET" yq -i '.secret = strenv(SECRET)' "$tmp"
 
     echo "Validating configuration..."
-    if ! output=$(mihomo -t -f "$tmp" -d "${stateDir}" 2>&1); then
+    if ! output=$(mihomo -t -f "$tmp" -d "$validateDir" 2>&1); then
       echo "Validation failed:"
       echo "$output"
       exit 1
     fi
     echo "$output"
-
-    # 上面这次校验是 root 跑的，会把 geo 数据落成 root 所有；mihomo 是 DynamicUser，
-    # 之后 geo-auto-update 写这些文件会 EACCES（实测静默失败 3 个月，GEOIP 库一直陈旧，
-    # 导致纯 IP 连接的国内外判断出错）。属主对齐到 state dir 当前的 DynamicUser。
-    chown --reference="${stateDir}" \
-      "${stateDir}"/*.dat "${stateDir}"/*.mmdb "${stateDir}"/*.metadb 2>/dev/null || true
 
     if [ -f "${configFile}" ] && [ "$(sha256sum < "$tmp")" = "$(sha256sum < "${configFile}")" ]; then
       echo "No changes; skip restart"
@@ -206,27 +211,39 @@ let
     mv -f "$tmp" "${configFile}"
 
     echo "Configuration updated; restarting mihomo"
-    systemctl restart mihomo
+    # `|| true` 是必须的：起不来时 systemctl 自己返回非 0，set -e 会在这里直接结束脚本，
+    # 下面的回滚就成了死代码，坏配置留在盘上。失败与否统一由 is-active 判定。
+    systemctl restart mihomo || true
 
     # -t 只能查静态语法，起不来的原因（端口占用、节点字段组合非法）只有运行时才暴露。
     # 无人值守场景必须能自己退回上一份可用配置。留 3s 让启动期崩溃浮出水面
     # （Restart=on-failure 会把状态打成 activating (auto-restart)，is-active 返回非 0）。
     sleep 3
-    if ! systemctl is-active --quiet mihomo; then
-      echo "mihomo failed to start with new config"
-      if [ -f "${configFile}.bak" ]; then
-        echo "Rolling back to previous configuration"
-        install -m 0600 "${configFile}.bak" "${configFile}"
-        systemctl restart mihomo
-      fi
+    if systemctl is-active --quiet mihomo; then
+      exit 0
+    fi
+
+    echo "mihomo failed to start with new config"
+    if [ ! -f "${configFile}.bak" ]; then
+      echo "No previous configuration to roll back to"
       exit 1
     fi
+    echo "Rolling back to previous configuration"
+    install -m 0600 "${configFile}.bak" "${configFile}"
+    systemctl restart mihomo || true
+    sleep 3
+    if systemctl is-active --quiet mihomo; then
+      echo "Rolled back; mihomo running on previous configuration"
+    else
+      echo "Rollback failed too; mihomo is down"
+    fi
+    exit 1
   '';
 in
 {
   services.mihomo = {
     enable = true;
-    configFile = configFile;
+    inherit configFile;
     # 订阅里带的是 external-ui-url，会让 mihomo 在运行时从 GitHub 现下 dashboard
     # 解压进 state dir（国内不可靠、内容不固定、还挂在 API 端口上对外服务）。
     # 改用 nixpkgs 里 pin 住的 zashboard，由 -ext-ui 指向 store 路径。
@@ -282,8 +299,9 @@ in
     description = "Periodic Mihomo subscription update";
     wantedBy = [ "timers.target" ];
     timerConfig = {
+      # 单调 timer：不写 Persistent —— 它只对 OnCalendar 生效，写了会让人误以为
+      # 停机期间错过的会补跑。开机时的那次拉取由 service 自己的 wantedBy 负责。
       OnUnitActiveSec = "6h";
-      Persistent = true;
     };
   };
 
