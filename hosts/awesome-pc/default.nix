@@ -36,5 +36,17 @@
     AllowSuspendThenHibernate = false;
   };
 
+  hardware.printers = {
+    ensureDefaultPrinter = "Samsung_M2626D";
+    ensurePrinters = [
+      {
+        name = "Samsung_M2626D";
+        description = "Samsung M2626D";
+        deviceUri = "ipp://10.24.1.1:631/printers/Samsung_M2626D";
+        model = "everywhere";
+      }
+    ];
+  };
+
   system.stateVersion = "25.11";
 }
