@@ -26,8 +26,10 @@ appimageTools.wrapType2 {
     install -Dm444 ${appimageContents}/orca-ide.desktop $out/share/applications/orca-ide.desktop
     install -Dm444 ${appimageContents}/usr/share/icons/hicolor/512x512/apps/orca-ide.png \
       $out/share/icons/hicolor/512x512/apps/orca-ide.png
+    # 上游 Categories=Utility 把 IDE 扔进「工具」，改到「开发」
     substituteInPlace $out/share/applications/orca-ide.desktop \
-      --replace-fail 'Exec=AppRun --no-sandbox %U' 'Exec=orca-ide %U'
+      --replace-fail 'Exec=AppRun --no-sandbox %U' 'Exec=orca-ide %U' \
+      --replace-fail 'Categories=Utility;' 'Categories=Development;IDE;'
   '';
 
   meta = {
