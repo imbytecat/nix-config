@@ -97,6 +97,34 @@ RestrictAddressFamilies = lib.mkForce [
 
 **定位方法**: `systemctl show mihomo | grep RestrictAddressFamilies` 看当前限制；mihomo 日志里 `netlinkrib` 关键字 = 该问题的指纹。
 
+### CAP_NET_BIND_SERVICE 陷阱（已踩坑并修复）
+
+**症状**: TCP 一切正常，UDP 高端口正常（STUN 3478 通），但**目标端口 <1024 的 UDP 回包全丢**。
+日志刷屏：
+```
+level=error msg="listenLocalConn failed with error: permission denied, packet loss (rAddr=1.2.3.4:443 lAddr=10.24.2.201:57595)"
+```
+表现为客户端 QUIC/HTTP3（UDP 443）、NTP（123）静默黑洞。App 要等 QUIC 超时才回落
+TCP —— 闲鱼/手Q/微信 加载图片"莫名慢一两秒"就是这个。非 CN QUIC 常被规则 REJECT
+（快速失败无感），所以**只有国内 App 表现异常**，极易误判。
+
+**根因**: `listener/tproxy/packet.go` 的 `createOrGetLocalConn` 走 UDP 回程时，会新建
+socket 并 `bind` 到**原始目标 addr:port** 来伪造回包源地址（客户端必须看到回包来自它
+发往的地址）。上游 `services.mihomo` 用 `DynamicUser=yes`，非 root bind <1024 端口需要
+`CAP_NET_BIND_SERVICE`，否则 `EACCES`。`IP_TRANSPARENT` 只需 CAP_NET_ADMIN/CAP_NET_RAW，
+所以非特权端口的 UDP 一切正常，掩盖了问题。
+
+**修复**: `modules/gateway/mihomo.nix` 里 mkForce 的 caps 必须两个都给：
+
+```nix
+AmbientCapabilities = lib.mkForce [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" ];
+CapabilityBoundingSet = lib.mkForce [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" ];
+```
+
+**定位方法**: 客户端做 A/B —— 特权端口 UDP（NTP 123）失败、高端口 UDP（STUN 3478）成功，
+即可锁定。`journalctl -u mihomo | grep listenLocalConn` 是该问题的指纹。
+`grep CapAmb /proc/$(pgrep -x mihomo)/status` 应为 `1400`（bit 10 + bit 12）。
+
 ### 排查流程（从上到下）
 
 1. **确认基础设施**:
@@ -134,6 +162,15 @@ RestrictAddressFamilies = lib.mkForce [
 | 不设 `src_valid_mark` | rp_filter=0 时不需要 |
 | 用 networkd 而非 sysctl 禁 rp_filter | sysctl `default` 只影响新建接口，对已存在接口无效 |
 | DNS 劫持用 `dstnat` + `redirect` | 比 TPROXY 简单，DNS 只需改目标端口 |
+| 关 `profile.store-fake-ip` | 首见域名要两次 bbolt Batch（各 10ms MaxBatchDelay + fsync），实测首次 A 查询 26ms → 0.2ms |
+| 开 `sniffer` + `parse-pure-ip` | 走 HTTPDNS 的 App（闲鱼/手Q）直接用 IP 建连，实测约 1/4 连接无域名，域名规则全失配 |
+| ip6 forward 用 `reject` 而非 `drop` | 静默丢包会让客户端 Happy Eyeballs 干等 1~3s 才回落 IPv4 |
+| DNS 劫持链首条 `iif lo return` | 本机 stub(127.0.0.53) 的查询也过 prerouting，被劫进 mihomo 会拿到 fake-ip，而本机没有到 fake-ip 的路由 → 网关自己拨不出去（订阅拉取失败） |
+| 网关自身用 resolved DoT，不用 mihomo | 既避开 fake-ip，又不让恢复路径依赖 mihomo 存活 |
+| `resolved` 必须开 `DNSStubListener` | 关掉时 resolv.conf 直接写上游 IP，glibc 绕过 resolved 明文查询，DoT 形同虚设 |
+| 上游 DNS 只用「IP 字面量 DoH」 | 无需 bootstrap（无明文预解析）、不可被 UDP 投毒；实测复用连接后 7ms，与明文 UDP 53 同速 |
+| `direct-nameserver` 单独配 | 直连域名（国内 CDN）不必绕订阅给的远端 DoH（28~40ms），且能拿到就近解析 |
+| TPROXY 失败时 fail-open（不加 forward drop） | 已实测：mihomo 停止时 nft_tproxy 找不到 socket → 规则不匹配 → 内核照常转发，客户端脱代理直连。**这是明确选择的可用性优先**，代价是 mihomo 挂掉期间流量明文经 ISP 出去 |
 
 ### IP_TRANSPARENT 确认
 
