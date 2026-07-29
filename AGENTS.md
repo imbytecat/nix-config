@@ -4,7 +4,7 @@
 
 - Nix flake for `awesome-macbook-air` (`aarch64-darwin`), `awesome-pc` (`x86_64-linux`), and `mihomo-gateway` (`x86_64-linux`, root-only gateway). Uses Lix.
 - Flake attr, host directory, and `networking.hostName` must match exactly; `just _guard` only compares `hostname -s` with the host argument.
-- Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. System-level `specialArgs` carry `sshKeys` and `username` only — no `system`, so a shared system module needing a platform branch uses `pkgs.stdenv.isDarwin`/`isLinux`. Home Manager additionally gets `system` via `extraSpecialArgs` (`home/default.nix` gates `imports` on it, where `pkgs` would recurse).
+- Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. System-level `specialArgs` carry `inputs`, `sshKeys`, and (daily hosts only) `username` — no `system`, so a shared system module needing a platform branch uses `pkgs.stdenv.isDarwin`/`isLinux`. `mkServer` deliberately does not pass `username`: nothing in the server closure needs one. Home Manager additionally gets `system` via `extraSpecialArgs` (`home/default.nix` gates `imports` on it, where `pkgs` would recurse).
 - Desktop hosts explicitly import a platform desktop role: Darwin hosts use `modules/desktop/darwin.nix`, NixOS desktops use `modules/desktop/nixos.nix`. Headless dev NixOS hosts use `mkNixos` without any desktop module. Servers use `mkServer` (→ `modules/nixos/server.nix`) and intentionally avoid Home Manager, catppuccin, fish, 1Password, docker, unfree, and desktop modules.
 
 ## Commands
@@ -62,7 +62,7 @@
 ## Mihomo Gateway
 
 - Read `.agents/skills/mihomo/SKILL.md` before changing `modules/gateway/*`.
-- Gateway imports only `modules/shared/nix.nix`, `modules/gateway`, and `hosts/mihomo-gateway`; keep it isolated from daily-user modules.
+- Gateway business config comes only from `modules/gateway` + `hosts/mihomo-gateway`; the generic closure (`modules/nixos/server.nix` → `base.nix` → `modules/shared/nix.nix`, plus disko) is pulled in by `mkServer`. Keep it isolated from daily-user modules.
 - Constants are plain attrs in `modules/gateway/constants.nix`, imported directly by `mihomo.nix` and `tproxy.nix`; do not turn them into NixOS options unless there is a real need.
 - Use `tproxy-port`, not `listeners`. Do not set `routing-mark` in Mihomo config; nftables only intercepts PREROUTING and Mihomo outbound must not be routed back into itself.
 - `rp_filter` must be disabled per-interface via networkd (`lo`, LAN interface patterns); sysctl `all/default` alone is insufficient.
@@ -73,7 +73,6 @@
 
 ## Conventions
 
-- Commit messages and in-file comments are zh-CN Conventional Commits: `feat(scope): 描述`, `fix(scope): 描述`, etc.
-- All Markdown docs in this repo (`README.md`, `AGENTS.md`) are written in zh-CN.
+- Commit messages and in-file comments are zh-CN Conventional Commits: `feat(scope): 描述`, `fix(scope): 描述`, etc. README and `.agents/skills/` are zh-CN; this file is English on purpose (it is agent-facing).
 - Comments are rare. Add only WHY/gotcha/cross-file coupling notes an agent would likely miss; do not label obvious packages or options.
 - If docs conflict with executable config (`flake.nix`, `justfile`, module imports), trust the executable source and update docs.

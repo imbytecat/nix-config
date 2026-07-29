@@ -31,8 +31,8 @@ tproxy-port: 7894      # TPROXY 监听端口
 mixed-port: 7890       # HTTP+SOCKS5 混合代理端口
 ```
 
-**注意**: 本项目不设置 `routing-mark`。因为 nftables 只有 PREROUTING 链（无 OUTPUT 链），
-Mihomo 出站流量不会被拦截。若设置 routing-mark，ip rule 会将出站流量路由回本机，导致死循环。
+**注意**: 本项目不设置 `routing-mark`。因为拦截规则只挂在 PREROUTING（没有 OUTPUT 链），
+Mihomo 自己的出站流量不会被拦截。若设置 routing-mark，ip rule 会把出站流量路由回本机，导致死循环。
 
 ## 常用模式
 
@@ -40,7 +40,8 @@ Mihomo 出站流量不会被拦截。若设置 routing-mark，ip rule 会将出�
 
 ```bash
 curl -fsSL "$URL" -o /tmp/config.yaml
-mihomo -t -f /tmp/config.yaml && mv /tmp/config.yaml /etc/mihomo/config.yaml
+# 注意本仓服务读的是 /var/lib/mihomo/config.yaml（/etc/mihomo 只放 env）
+mihomo -t -f /tmp/config.yaml && mv /tmp/config.yaml /var/lib/mihomo/config.yaml
 ```
 
 ### 强制注入 TPROXY 字段
@@ -147,7 +148,10 @@ curl -X POST -H "Authorization: Bearer $SECRET" http://<gw>:9090/configs/geo
 chown --reference="$stateDir" "$stateDir"/*.dat "$stateDir"/*.mmdb "$stateDir"/*.metadb
 ```
 
-**验证**: 手动 POST `/configs/geo` 返回 204 且三个文件 mtime 刷新。
+**验证**: 手动 POST `/configs/geo` 返回 204，且 state dir 里的 geo 数据库文件 mtime 刷新。
+
+**最终形态**: 现在订阅脚本的 `mihomo -t` 用**独立临时数据目录**（软链现有 geo 进去避免重下 24MB），
+root 根本不再往 state dir 写东西，属主问题从根上消失，`chown` 补丁也随之删掉。
 
 ### 排查流程（从上到下）
 
@@ -174,7 +178,7 @@ chown --reference="$stateDir" "$stateDir"/*.dat "$stateDir"/*.mmdb "$stateDir"/*
 
 5. **验证 rp_filter**:
    ```bash
-   sysctl net.ipv4.conf.{all,default,ens18,lo}.rp_filter
+   sysctl net.ipv4.conf.{all,default,lo}.rp_filter net.ipv4.conf.<lan-if>.rp_filter
    # 有效值 = max(all, 接口)，任何接口 >0 都会导致 TPROXY 丢包
    ```
 
@@ -202,7 +206,7 @@ chown --reference="$stateDir" "$stateDir"/*.dat "$stateDir"/*.mmdb "$stateDir"/*
 
 ### IP_TRANSPARENT 确认
 
-mihomo 源码 `listener/tproxy/setsockopt_linux.go` 对 TCP 和 UDP 都设置了 `IP_TRANSPARENT`。`tproxy-port` 配置项和 `listeners` 配置项走同一代码路径。
+mihomo 源码 `listener/tproxy/setsockopt_linux.go` 对 TCP 和 UDP 都设置了 `IP_TRANSPARENT`。`tproxy-port` 配置项和 `listeners` 配置项走同一代码路径 —— 这是上游实现背景；本项目只用 `tproxy-port`，订阅里的 `listeners` 会被 sanitize 删掉。
 
 ## 查阅方法论
 

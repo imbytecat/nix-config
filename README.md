@@ -79,7 +79,8 @@ lsblk -o NAME,MODEL,SIZE,TYPE,SERIAL
 ls -l /dev/disk/by-id/
 ```
 
-然后直接运行本仓 `flake.lock` 锁定的官方 `disko-install`：
+然后运行 `disko-install`。Live 环境里没有本仓 checkout，所以走 GitHub 上**已推送**的那份
+（`#disko-install` 与 `#awesome-pc` 都取自远端，本地未推的 commit 不生效）：
 
 ```bash
 sudo nix --extra-experimental-features "nix-command flakes" \
