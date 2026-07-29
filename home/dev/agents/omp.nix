@@ -66,7 +66,7 @@ let
     # Anthropic 并使用其固定的 Haiku 搜索模型。
     providers.webSearch = "exa";
     modelRoles = {
-      default = "${catalog.ref "fable"}:max";
+      default = "${catalog.ref "opus"}:max";
       smol = catalog.ref "luna";
       slow = "${catalog.ref "sol"}:xhigh";
       designer = catalog.ref "kimi";
