@@ -61,6 +61,16 @@ in
     "dialout"
   ];
 
+  # KDE 的「打印机」面板即 print-manager，被 plasma6 模块 gate 在本开关后，开了才出现。
+  services.printing.enable = true;
+
+  # 免驱网络打印机（IPP Everywhere）靠 mDNS 发现，需放行 UDP 5353。
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
   environment.systemPackages = with pkgs; [
     android-studio
     brave
