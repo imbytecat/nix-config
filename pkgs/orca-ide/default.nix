@@ -34,14 +34,20 @@
   libnotify,
   libpulseaudio,
   libsecret,
+  libx11,
+  libxcb,
+  libxcomposite,
+  libxdamage,
+  libxext,
+  libxfixes,
   libxkbcommon,
+  libxrandr,
   nspr,
   nss,
   pango,
   pipewire,
   systemdLibs,
   wayland,
-  xorg,
 }:
 
 let
@@ -85,18 +91,18 @@ stdenv.mkDerivation {
     glib
     gtk3
     libgbm
+    libx11
+    libxcb
+    libxcomposite
+    libxdamage
+    libxext
+    libxfixes
     libxkbcommon
+    libxrandr
     nspr
     nss
     pango
     systemdLibs
-    xorg.libX11
-    xorg.libXcomposite
-    xorg.libXdamage
-    xorg.libXext
-    xorg.libXfixes
-    xorg.libXrandr
-    xorg.libxcb
   ];
 
   # dlopen 的部分不在 DT_NEEDED 里，靠 autoPatchelfHook 追加 RUNPATH（dlopen 认调用者的 RUNPATH）：
