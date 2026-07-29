@@ -124,6 +124,23 @@ install host remote: (_valid host) (_valid_remote remote)
       --target-host "root@{{ remote }}" \
       --build-on remote
 
+# 装完机只剩这一步：网关先以 fallback 直连模式跑着，推了 env 才变代理网关。
+# 不落盘到仓库、不进 nix store；systemd.paths 监听到 env 变化会自动重新拉订阅。
+[doc('把订阅凭据从 1Password 推到网关（hosts/<host>/env.tpl 定义引用）')]
+[group('remote')]
+gateway-env host remote: (_valid host) (_valid_remote remote)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    umask 077
+    tpl="./hosts/{{ host }}/env.tpl"
+    [ -f "$tpl" ] || { echo "no $tpl"; exit 1; }
+    tmp="$(mktemp -d)"
+    trap 'rm -rf "$tmp"' EXIT
+    op inject --in-file "$tpl" --out-file "$tmp/env"
+    scp -q "$tmp/env" "root@{{ remote }}:/etc/mihomo/env"
+    ssh "root@{{ remote }}" chmod 600 /etc/mihomo/env
+    echo "pushed; watch: ssh root@{{ remote }} journalctl -fu mihomo-subscribe"
+
 [doc('远程更新（同架构，本机构建后 SCP 推送）')]
 [linux]
 [group('remote')]
