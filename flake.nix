@@ -93,6 +93,14 @@
       inputs.disko.follows = "disko";
     };
 
+    # `nix fmt` 与 `nix flake check` 的格式化入口（配置见 ./treefmt.nix）。
+    # 没有它时 formatter 是裸 nixfmt（只读 stdin），`nix fmt` 直接不可用，
+    # 只能靠 justfile 手动拼文件列表。
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -137,6 +145,8 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+      pkgsFor = system: import nixpkgs { inherit system; };
+      treefmtFor = system: inputs.treefmt-nix.lib.evalModule (pkgsFor system) ./treefmt.nix;
     in
     {
       darwinConfigurations = {
@@ -191,22 +201,51 @@
       devShells = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = pkgsFor system;
         in
         {
           default = pkgs.mkShell {
-            packages = with pkgs; [
-              just
-              nixfmt
-              nixd
-              statix
-              nvd
+            packages = [
+              pkgs.just
+              pkgs.nixd
+              pkgs.statix
+              pkgs.deadnix
+              pkgs.nvd
+              pkgs.nix-tree
+              (treefmtFor system).config.build.wrapper
             ];
           };
         }
       );
 
-      # `nix fmt` 入口
-      formatter = forAllSystems (system: (import nixpkgs { inherit system; }).nixfmt);
+      # `nix flake check` 除了 eval 各 host，还跑格式化与 lint —— 一条命令覆盖全部门禁
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          formatting = (treefmtFor system).config.build.check inputs.self;
+
+          lint =
+            pkgs.runCommand "lint"
+              {
+                nativeBuildInputs = [
+                  pkgs.statix
+                  pkgs.deadnix
+                ];
+              }
+              ''
+                cd ${inputs.self}
+                statix check
+                # hardware-configuration.nix 是 nixos-generate-config 生成的，不由我们维护
+                deadnix --fail --exclude ./hosts/awesome-pc/hardware-configuration.nix
+                touch $out
+              '';
+        }
+      );
+
+      # `nix fmt` 入口：treefmt 包装器，直接 `nix fmt` 就能格式化整个仓库
+      formatter = forAllSystems (system: (treefmtFor system).config.build.wrapper);
     };
 }

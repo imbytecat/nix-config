@@ -202,8 +202,14 @@ gc:
 repl:
     nix repl -f flake:nixpkgs
 
-[doc('用 nix fmt 格式化所有 .nix 文件')]
+[doc('格式化整个仓库（treefmt）')]
 [group('nix')]
 fmt:
-    nix fmt -- $(find . -name '*.nix' -not -path './result/*' -not -path './.git/*')
+    nix fmt
+
+[doc('lint：statix 反模式 + deadnix 死代码')]
+[group('check')]
+lint:
+    statix check
+    deadnix --fail --exclude ./hosts/awesome-pc/hardware-configuration.nix
 

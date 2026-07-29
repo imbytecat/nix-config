@@ -13,13 +13,13 @@
 - Build without activating: `just build <host>`. Compare current generation: `just diff <host>` (auto-builds first). Hunt cache misses: `just dry <host>`.
 - Checks: `just fmt`, `just eval`, `just check`. `just eval` only covers current-platform hosts, but eval-only cross-checks work from Linux too: `nix eval .#darwinConfigurations.<host>.system.drvPath` (building/activating Darwin still needs a Mac). Run evals sequentially — parallel `nix eval` can die on a busy eval-cache SQLite.
 - Flake evals only see git-tracked files. `git add` new `.nix` files before any `nix eval`/`just build`, or you get "No such file or directory" against the store copy of the repo.
-- Bare `nix fmt` fails (the formatter is plain nixfmt reading stdin); always go through `just fmt`, which passes the file list.
-- `statix check` has pre-existing warnings (empty patterns, repeated keys, `nix.registry` merge hint in `modules/shared/nix.nix`); don't treat them as regressions of your change.
+- `nix fmt` formats the whole repo via treefmt (config in `treefmt.nix`, currently nixfmt only); `just fmt` is just an alias. Do not go back to hand-assembling a file list.
+- `nix flake check` (= `just check`) evaluates every host **and** runs `checks.formatting` (treefmt) + `checks.lint` (statix + deadnix). Both are expected to be clean — a warning is a regression, not background noise. `just lint` runs the linters alone.
 - NixOS install/update: 首装优先从另一台机器运行 `just install <host> <remote>`（nixos-anywhere, `--build-on remote`）；Live 本机备用路径直接运行本仓 `packages.x86_64-linux.disko-install`，显式传 `--flake`、`--disk` 和 `--write-efi-boot-entries`；之后用 `just deploy <host> <remote>` / `just deploy-boot <host> <remote>`。
 - `disko-install` **忽略** flake 里的 `device`，强制 CLI `--disk <name> <path>`（见上游 install-cli.nix）。`awesome-pc` 默认 by-id 在 `hosts/awesome-pc/disko.nix`；Live 对不上时只替换 CLI 设备路径。本地安装使用已提交的 hardware config；`nixos-anywhere` 会在调用端工作树生成 hardware config。
 - `just install` deliberately passes **no** substituters/keys/experimental-features: nixos-anywhere defaults to `machineSubstituters=y`, which evals the target's `nix.settings.{substituters,trusted-public-keys}` and appends them to the installer's `~/.config/nix/nix.conf`, and it already puts `--extra-experimental-features 'nix-command flakes'` on every nix invocation (`src/nixos-anywhere.sh`). Do not re-add a hand-written cache list there — it silently drifts from `nix.settings`. Only `--no-substitute-on-destination` / `--no-use-machine-substituters` turn that off; `--option` does not.
 - `.vscode/settings.json` is committed and static: nixd `options` mounts nixos + nix-darwin + home-manager option sets side by side (representative hosts `awesome-pc` / `awesome-macbook-air`; option *declarations* come from imported modules, so same-class hosts share them). No generation step.
-- `nix develop` provides repo tools (`just`, `nixfmt`, `nixd`, `statix`, `nvd`) without relying on the host HM profile.
+- `nix develop` provides repo tools (`just`, `nixd`, `statix`, `deadnix`, `nvd`, `nix-tree`, treefmt wrapper) without relying on the host HM profile.
 
 ## Where Things Go
 

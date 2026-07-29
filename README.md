@@ -248,13 +248,14 @@ just up <input>              # 更新单个输入
 just show                    # 列出 flake 输出
 just history                 # profile 历史
 just gc                      # GC（删 7 天前 generation）
-just fmt                     # nix fmt 格式化所有 .nix
+just fmt                     # treefmt 格式化整个仓库（等价于裸跑 nix fmt）
+just lint                    # statix + deadnix
 just repl                    # 带 nixpkgs 的 nix repl
 ```
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
 
-仓库带 `.envrc`（`use flake`），`home/shell/tools.nix` 已把 `~/nix-config` 加进 direnv whitelist，`cd` 进来即自动激活 dev shell，拿到 `just / nixfmt / nixd / statix / nvd`，结果缓存到 `.direnv/`，flake.lock 不变则不重算。
+仓库带 `.envrc`（`use flake`），`home/shell/tools.nix` 已把 `~/nix-config` 加进 direnv whitelist，`cd` 进来即自动激活 dev shell，拿到 `just / nixd / statix / deadnix / nvd / nix-tree / treefmt`，结果缓存到 `.direnv/`，flake.lock 不变则不重算。
 
 裸机克隆后 direnv 还没装齐之前先手动一次：
 
