@@ -75,6 +75,7 @@ in
     cherry-studio
     dbeaver-bin
     discord
+    freerdp
     obs-studio
     orca-ide
     qq
