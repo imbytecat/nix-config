@@ -19,11 +19,57 @@ let
     mixed-port = mixedPort;
     find-process-mode = "off";
     ipv6 = false;
-    profile.store-fake-ip = true;
+    # store-fake-ip 会在首次见到某域名时做两次 bbolt Batch 提交（各含 10ms
+    # MaxBatchDelay + fsync），实测把首次 A 查询从 0.1ms 拖到 26ms。
+    # 只为跨重启保留映射不值这个代价（fake-ip TTL 默认 1s，客户端很快重查）。
+    profile.store-fake-ip = false;
+
+    # CDN 多 IP 时并发拨号取最快，直连/代理都受益
+    tcp-concurrent = true;
+    unified-delay = true;
+
+    # 闲鱼/手Q 等走 HTTPDNS 的 App 会直接用 IP 建连（实测约 1/4 连接无域名），
+    # 域名规则全部失配只能落到 GEOIP/MATCH。嗅探 TLS SNI/HTTP Host 恢复域名，
+    # 仅用于规则匹配（override-destination=false，不改实际目标）。
+    sniffer = {
+      enable = true;
+      force-dns-mapping = true;
+      parse-pure-ip = true;
+      override-destination = false;
+      sniff = {
+        HTTP.ports = [
+          80
+          "8080-8880"
+        ];
+        TLS.ports = [
+          443
+          8443
+        ];
+        QUIC.ports = [
+          443
+          8443
+        ];
+      };
+    };
     dns = {
       enable = true;
       listen = "0.0.0.0:${toString dnsPort}";
       ipv6 = false;
+      # 直连出口的域名解析。用「IP 字面量 DoH」：无需 bootstrap、全程加密、不可被
+      # UDP 投毒；实测复用连接后 7ms，与明文 UDP 53 同速（明文会把直连域名清单
+      # 暴露给链路并可被伪造应答，禁用）。订阅自带的单个 DoH 实测 28~40ms。
+      # 被代理的域名不走这里（由节点侧解析），因此不存在国内 DNS 污染问题。
+      direct-nameserver = [
+        "https://223.5.5.5/dns-query"
+        "https://120.53.53.53/dns-query"
+      ];
+
+      # 解析「DNS 服务器自身域名」用的 bootstrap。订阅给的是明文 114/223/119，
+      # 会在链路上暴露上游 DoH 端点域名，这里同样换成 IP 字面量 DoH。
+      default-nameserver = [
+        "https://223.5.5.5/dns-query"
+        "https://120.53.53.53/dns-query"
+      ];
     };
   };
 
@@ -32,15 +78,8 @@ let
     log-level = "info";
     dns = baseConfig.dns // {
       enhanced-mode = "redir-host";
-      default-nameserver = [
-        "114.114.114.114"
-        "223.5.5.5"
-        "119.29.29.29"
-      ];
-      nameserver = [
-        "https://dns.alidns.com/dns-query"
-        "https://doh.pub/dns-query"
-      ];
+      # 与 baseConfig 一致：只用 IP 字面量 DoH，全程无明文 DNS、无 bootstrap 依赖
+      nameserver = baseConfig.dns.default-nameserver;
     };
   };
 
@@ -50,6 +89,9 @@ let
 
   subscribeScript = pkgs.writeShellScript "mihomo-subscribe" ''
     set -euo pipefail
+
+    # 配置里有全部节点凭据和 API secret，任何中间产物都不许比 0600 宽
+    umask 077
 
     if [ -z "''${CONFIG_URL:-}" ]; then
       echo "CONFIG_URL not set in ${envFile}"
@@ -107,7 +149,7 @@ let
     fi
 
     if [ -f "${configFile}" ]; then
-      cp -f "${configFile}" "${configFile}.bak"
+      install -m 0600 "${configFile}" "${configFile}.bak"
     fi
     mv -f "$tmp" "${configFile}"
 
@@ -123,7 +165,9 @@ in
 
   systemd.tmpfiles.rules = [
     "d /etc/mihomo 0750 root root -"
-    "C ${configFile} - - - - ${fallbackConfigYaml}"
+    # 含订阅 URL 与 API secret，手工创建时容易留成 0644
+    "z ${envFile} 0600 root root -"
+    "C ${configFile} 0600 root root - ${fallbackConfigYaml}"
   ];
 
   systemd.services.mihomo-subscribe = {
@@ -178,8 +222,19 @@ in
       Restart = "on-failure";
       RestartSec = "5s";
 
-      AmbientCapabilities = lib.mkForce [ "CAP_NET_ADMIN" ];
-      CapabilityBoundingSet = lib.mkForce [ "CAP_NET_ADMIN" ];
+      # CAP_NET_BIND_SERVICE 必需：TPROXY UDP 回程 (listener/tproxy/packet.go
+      # createOrGetLocalConn) 会新建 socket 并 bind 到「原始目标 addr:port」来伪造回包源地址。
+      # DynamicUser 下 bind <1024 端口需要该 capability，否则 EACCES →
+      # "listenLocalConn failed with error: permission denied, packet loss"
+      # 后果：所有目标端口 <1024 的 UDP 回包被丢弃（QUIC/443、NTP/123）。
+      AmbientCapabilities = lib.mkForce [
+        "CAP_NET_ADMIN"
+        "CAP_NET_BIND_SERVICE"
+      ];
+      CapabilityBoundingSet = lib.mkForce [
+        "CAP_NET_ADMIN"
+        "CAP_NET_BIND_SERVICE"
+      ];
       PrivateUsers = lib.mkForce false;
 
       # 上游默认只允许 AF_INET{,6}；Go net/route.FetchRIB（UDP DIRECT dialer）需要

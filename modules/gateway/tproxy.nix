@@ -23,6 +23,9 @@ in
     "net.ipv6.conf.all.forwarding" = 0;
     "net.ipv6.conf.default.forwarding" = 0;
 
+    # 代理连接常长时间空闲后突发（图片/视频），默认会把 cwnd 退回慢启动
+    "net.ipv4.tcp_slow_start_after_idle" = 0;
+
     "net.core.default_qdisc" = "fq";
     "net.ipv4.tcp_congestion_control" = "bbr";
   };
@@ -44,13 +47,21 @@ in
       table inet mihomo-dns {
         chain prerouting {
           type nat hook prerouting priority dstnat; policy accept;
+
+          # 本机自身的 DNS（走 127.0.0.53 stub）也会过 prerouting，
+          # 劫进 mihomo 会拿到 fake-ip，导致网关自己拨不出去 —— 必须放行
+          iif lo return
           meta l4proto { tcp, udp } th dport 53 redirect to :${toString dnsPort}
         }
       }
 
       table ip6 mihomo {
         chain forward {
-          type filter hook forward priority filter; policy drop;
+          type filter hook forward priority filter; policy accept;
+
+          # 静默 drop 会让客户端 Happy Eyeballs 干等 1~3s 才回落 IPv4；
+          # 显式 reject 让它立刻失败
+          reject with icmpv6 type admin-prohibited
         }
       }
     '';
