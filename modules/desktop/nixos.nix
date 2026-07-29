@@ -79,6 +79,7 @@ in
     obs-studio
     orca-ide
     qq
+    remmina
     snipaste
     spotify
     telegram-desktop
