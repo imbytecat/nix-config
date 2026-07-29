@@ -4,8 +4,14 @@
   # 首次 bootstrap 时让 nix 也走这些 cache（系统 nix.settings 在 switch 后才生效）。
   # 与 modules/shared/nix.nix 的 nix.settings 有意重复且无法单源（nixConfig 不能 import）：
   # 改缓存/公钥两处都要动。这里是 bootstrap 子集，稳态真源在 nix.settings。
+  # 三条 bootstrap 路径都吃这里：Live ISO 的 `nix run --accept-flake-config`、
+  # `nix run .#nixos-anywhere`（装网关时本机往往正没代理）、以及 .envrc 的 direnv。
+  # 注意 nixos-anywhere 另有 machineSubstituters：它会把目标 host 的 nix.settings
+  # 喂给 installer，所以 justfile 里不需要再抄一份。
   nixConfig = {
     extra-substituters = [
+      # cache.nixos.org 的国内镜像，签名同为 cache.nixos.org-1（默认已信任，无需配公钥）
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://nix-community.cachix.org"
       "https://nixpkgs-unfree.cachix.org"
       "https://cache.numtide.com"

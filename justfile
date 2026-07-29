@@ -112,16 +112,14 @@ install host remote: (_valid host) (_valid_remote remote)
     if [ -f "$hardware_config" ]; then
       hardware_args+=(--generate-hardware-config nixos-generate-config "$hardware_config")
     fi
-    nix_options=(
-      # 目标机是自己 build（--build-on remote），首装时它还没有本仓的 nix.settings，
-      # 故这里显式带上国内镜像，否则只能从 cache.nixos.org 拉整个系统闭包
-      --option extra-substituters "https://mirrors.ustc.edu.cn/nix-channels/store https://nix-community.cachix.org https://nixpkgs-unfree.cachix.org https://cache.numtide.com https://catppuccin.cachix.org"
-      --option extra-trusted-public-keys "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU="
-      --option always-allow-substitutes true
-    )
+    # 不用手写 substituters / 公钥 / experimental-features：nixos-anywhere 默认
+    # machineSubstituters=y，会 eval 目标 host 的 nix.settings.{substituters,
+    # trusted-public-keys} 写进 installer 的 ~/.config/nix/nix.conf；flake 特性它自己
+    # 每条 nix 命令都带 --extra-experimental-features。真源就是 modules/shared/nix.nix
+    # 加 hosts/<host> 里的 mkBefore 镜像，别在这里再抄一份。
     nix run .#nixos-anywhere -- \
       "${hardware_args[@]}" \
-      "${nix_options[@]}" \
+      --option always-allow-substitutes true \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
       --build-on remote
