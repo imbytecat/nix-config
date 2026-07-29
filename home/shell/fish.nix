@@ -41,7 +41,6 @@ in
     };
 
     shellAliases = {
-      # ls/la/lt 来自 programs.eza
       ll = "eza -lh";
       lla = "eza -lah --time-style=long-iso";
 

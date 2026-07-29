@@ -1,7 +1,6 @@
 default:
     @just --list
 
-# ─── Helpers (private) ────────────────────────────────────
 
 # 拦 host 名 shell 元字符 / 异常 attrpath（{{quote()}} 保证不被注入到下游脚本）
 _valid host:
@@ -21,7 +20,6 @@ _guard host: (_valid host)
       exit 1
     fi
 
-# ─── Build ────────────────────────────────────────────────
 
 [doc('构建 {{host}} 配置（不激活，产 result/）')]
 [macos]
@@ -60,7 +58,6 @@ boot host: (_guard host)
 rollback:
     sudo nixos-rebuild switch --rollback
 
-# ─── Check / Diagnose ─────────────────────────────────────
 
 [doc('eval 全部 darwinConfigurations 的 system derivation（跨平台需 remote builder）')]
 [macos]
@@ -80,7 +77,6 @@ eval:
 check:
     nix flake check --show-trace
 
-# 列出哪些 derivation 要本地编译、哪些走 binary cache，定位 cache miss 元凶
 [doc('dry-run 看 {{host}} 配置会编译/下载什么（含 home-manager closure，仅本平台 host）')]
 [macos]
 [group('check')]
@@ -98,13 +94,11 @@ dry host: (_valid host)
       ".#nixosConfigurations.{{ host }}.config.system.build.toplevel" 2>&1 \
       | sed -E 's|/nix/store/[a-z0-9]{32}-||g'
 
-# 自动 build 保证 result/ 跟参数对得上，再做差异比较
 [doc('对比本机 /run/current-system 与 {{host}} 配置 build 结果（自动 build，hostname 不匹配会拒绝）')]
 [group('check')]
 diff host: (_guard host) (build host)
     nvd diff /run/current-system result/
 
-# ─── Install / Remote ─────────────────────────────────────
 
 # 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，目标机数据全部丢失
 # 装完 SSH host key 会变，记得 `ssh-keygen -R <remote>`
@@ -177,7 +171,6 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --use-substitutes \
       --no-reexec
 
-# ─── Flake / Nix ──────────────────────────────────────────
 
 [doc('更新所有 flake 输入')]
 [group('nix')]
@@ -199,7 +192,6 @@ show:
 history:
     nix profile history --profile /nix/var/nix/profiles/system
 
-# 比 -d 更安全：只删 7 天前的 generation，不会一次清光所有历史
 [doc('GC：删除 7 天前的 generation 与未引用 store 对象')]
 [group('nix')]
 gc:

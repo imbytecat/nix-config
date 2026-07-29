@@ -11,18 +11,12 @@ in
 {
   fonts = {
     packages = with pkgs; [
-      # ── CJK 正文/界面 ──
-      noto-fonts-cjk-sans # 思源黑体 (Noto Sans CJK)
-      noto-fonts-cjk-serif # 思源宋体 (Noto Serif CJK)
-      # ── 彩色 emoji ──
+      noto-fonts-cjk-sans
+      noto-fonts-cjk-serif
       noto-fonts-color-emoji
-      # ── 中英混排等宽：更纱黑体，CJK 与西文 2:1 对齐，编辑器/终端排版利器 ──
       sarasa-gothic
-      # ── 中文阅读/文档：霞鹜文楷，温润楷体风 ──
       lxgw-wenkai
-      # ── 西文 UI sans ──
       inter
-      # ── WPS/Office 文档保真：真 Windows 中文/西文具名字体 ──
       ttf-ms-win10
     ];
 

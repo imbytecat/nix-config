@@ -42,10 +42,8 @@ let
   orca-ide = pkgs.callPackage ../../pkgs/orca-ide { };
 in
 {
-  # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
   imports = [ ./fonts.nix ];
 
-  # ── DE: KDE Plasma 6 (Wayland-only) + SDDM ──────────────────
   # 不开 services.xserver.enable：不提供 X11 session，XWayland 由 Plasma 自带
   services.displayManager.sddm = {
     enable = true;
@@ -64,14 +62,12 @@ in
     "dialout"
   ];
 
-  # ── 桌面应用（与 desktop/darwin.nix 各自独立演化，互不迁就）──
   environment.systemPackages = with pkgs; [
     android-studio
     brave
     cherry-studio
     dbeaver-bin
     discord
-    # freecad
     obs-studio
     orca-ide
     qq
@@ -93,7 +89,6 @@ in
     polkitPolicyOwners = [ username ];
   };
 
-  # ── Logitech 外设（替代 macOS 的 G HUB）──────────────────────
   # hardware.logitech.wireless：Unifying/Bolt/Lightspeed 接收器管理（Solaar）
   # PRO X2 SUPERSTRIKE 走 Solaar 即可；libratbag 未收录该鼠标，故不装 piper/ratbagd
   hardware.logitech.wireless = {
@@ -101,7 +96,6 @@ in
     enableGraphical = true;
   };
 
-  # ── 蓝牙: BlueZ 协议栈；GUI 由 Plasma 6 自带的 bluedevil 托盘提供 ──
   # 与 Logitech 同属桌面外设。硬件已识别(hci0)但 NixOS 默认不起 BlueZ，
   # 需显式开才有 bluetooth.service / bluetoothctl / KDE 蓝牙面板。
   hardware.bluetooth = {
@@ -109,7 +103,6 @@ in
     powerOnBoot = true;
   };
 
-  # ── 输入法: Rime + 万象拼音(rime-wanxiang)；Plasma 6 走 Wayland 故开 waylandFrontend ──
   # override rimeDataPkgs 整个替换默认 rime-data：rime-wanxiang 出方案+词库，rime-wanxiang-grammar
   # 补上 nixpkgs 不打包的 LTS 语法模型（整句预测，万象核心）。octagram 已随 nixpkgs librime 默认编入，
   # 靠 FallbackResourceResolver 从共享目录加载 .gram。需用户侧 default.custom.yaml __include +
@@ -130,7 +123,6 @@ in
     };
   };
 
-  # ── CapsLock 中英切换（类 macOS）: keyd 在 evdev 层重映射，Wayland/X/SDDM 全覆盖 ──
   # 单击=Hangul（fcitx5 唯一触发键，见 home/desktop/fcitx5.nix；Ctrl+Space 还给应用），
   # 按住=Ctrl，Shift+CapsLock=真大写锁定。选 Hangul 而非 F13：xkb 基础表自带 <HNGL>→Hangul
   # keysym 且无程序占用，而 evdev 规则把 F13 映成 XF86Tools；evdev 层不产生 caps LED/大写状态。

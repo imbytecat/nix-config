@@ -5,7 +5,7 @@
 
 {
   fonts.packages = with pkgs; [
-    maple-mono.NF-CN-unhinted # 主力编码字：等宽 + 连字 + 中文 + Nerd 图标
-    nerd-fonts.symbols-only # 仅图标，给其它字体补 Nerd 符号兜底
+    maple-mono.NF-CN-unhinted
+    nerd-fonts.symbols-only
   ];
 }
