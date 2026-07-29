@@ -125,6 +125,30 @@ CapabilityBoundingSet = lib.mkForce [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" ];
 即可锁定。`journalctl -u mihomo | grep listenLocalConn` 是该问题的指纹。
 `grep CapAmb /proc/$(pgrep -x mihomo)/status` 应为 `1400`（bit 10 + bit 12）。
 
+### geo 数据库属主陷阱（已踩坑并修复）
+
+**症状**: `geo-auto-update: true` + `geo-update-interval: 24`，但 `geoip.metadb`/`GeoSite.dat`
+的 mtime 一直停在装机那天（实测停了 3 个月）。日志里没有任何显眼报错，除非手动触发：
+```
+curl -X POST -H "Authorization: Bearer $SECRET" http://<gw>:9090/configs/geo
+# {"message":"can't save GeoSite database file: open /var/lib/private/mihomo/GeoSite.dat: permission denied"}
+```
+
+**根因**: 订阅脚本里的 `mihomo -t -f "$tmp" -d "$stateDir"` 是 **root** 跑的，会把 geo
+数据落成 `root:root 0644`；mihomo 本体是 `DynamicUser`，更新时对同名文件 `open(O_WRONLY)`
+直接 EACCES（目录可写救不了，它不是 rename 而是原地写）。
+
+**后果**: GEOIP/GEOSITE 判定长期用陈旧库。纯 IP 连接全靠 `GEOIP,CN,DIRECT` 兜底，
+库一旧就把新增的国内 IP 段判成境外 → 国内流量走代理出国。
+
+**修复**: 校验之后把属主对回 state dir 当前的 DynamicUser（UID 是动态的，用 `--reference`）：
+
+```sh
+chown --reference="$stateDir" "$stateDir"/*.dat "$stateDir"/*.mmdb "$stateDir"/*.metadb
+```
+
+**验证**: 手动 POST `/configs/geo` 返回 204 且三个文件 mtime 刷新。
+
 ### 排查流程（从上到下）
 
 1. **确认基础设施**:
@@ -171,6 +195,10 @@ CapabilityBoundingSet = lib.mkForce [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" ];
 | 上游 DNS 只用「IP 字面量 DoH」 | 无需 bootstrap（无明文预解析）、不可被 UDP 投毒；实测复用连接后 7ms，与明文 UDP 53 同速 |
 | `direct-nameserver` 单独配 | 直连域名（国内 CDN）不必绕订阅给的远端 DoH（28~40ms），且能拿到就近解析 |
 | TPROXY 失败时 fail-open（不加 forward drop） | 已实测：mihomo 停止时 nft_tproxy 找不到 socket → 规则不匹配 → 内核照常转发，客户端脱代理直连。**这是明确选择的可用性优先**，代价是 mihomo 挂掉期间流量明文经 ISP 出去 |
+| dashboard 用 `services.mihomo.webui` | 订阅的 `external-ui-url` 会让 mihomo 运行时从 GitHub 下载解压进 state dir：国内不可靠、内容不固定，还挂在 API 端口对外服务。改指 store 里 pin 住的 zashboard |
+| 订阅 sanitize 覆盖全部监听/API 字段 | 订阅是外部输入。`external-controller-unix`/`-pipe` 和 `external-doh-server` 都**不校验 secret**，能开监听或放权限的字段一律 del |
+| 换配置后校验 `is-active` 并回滚 `.bak` | `mihomo -t` 只查静态语法；端口占用、节点字段组合非法只在运行时暴露。无人值守必须能自己退回上一份 |
+| nft 关键规则常驻 `counter` | 本文排查流程第 2 步就要计数器，事后加要改规则、丢现场 |
 
 ### IP_TRANSPARENT 确认
 
