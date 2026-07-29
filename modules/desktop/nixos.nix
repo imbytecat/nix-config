@@ -38,7 +38,6 @@ let
   # 万象 LTS 语法模型（.gram）；nixpkgs 不含，自己 fetchurl（见 pkgs/rime-wanxiang-grammar）
   rime-wanxiang-grammar = pkgs.callPackage ../../pkgs/rime-wanxiang-grammar { };
 
-  # Orca ADE（AppImage 重打包，见 pkgs/orca-ide）
   orca-ide = pkgs.callPackage ../../pkgs/orca-ide { };
 in
 {
