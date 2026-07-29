@@ -124,8 +124,8 @@ in
         source "${envCache}"
       end
 
-      if test -f ~/.config/fish/local.fish
-        source ~/.config/fish/local.fish
+      if test -f "${config.xdg.configHome}/fish/local.fish"
+        source "${config.xdg.configHome}/fish/local.fish"
       end
     '';
   };

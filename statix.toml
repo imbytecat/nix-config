@@ -1,0 +1,4 @@
+# repeated_keys 与 NixOS 模块的惯常写法直接冲突：把 programs.git / programs.delta 各写一条
+# 顶层绑定比塞进一个大嵌套 attrset 更好读，社区也普遍这么写。关掉它，剩下的告警就都是真问题，
+# `just check` 从此有意义。
+disabled = ["repeated_keys"]

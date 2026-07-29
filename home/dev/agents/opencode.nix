@@ -23,7 +23,7 @@ let
     inherit (m) name reasoning;
     modalities = { inherit (m) input output; };
     limit = {
-      context = m.context;
+      inherit (m) context;
       output = m.maxOutput;
     };
   };
@@ -70,8 +70,8 @@ let
     experimental = {
       disable_paste_summary = true;
     };
-    model = (ref "opus");
-    small_model = (ref "luna");
+    model = ref "opus";
+    small_model = ref "luna";
     compaction = {
       "auto" = true;
       "prune" = true;
@@ -91,75 +91,75 @@ let
     disabled_hooks = [ "auto-update-checker" ];
     agents = {
       sisyphus = {
-        model = (ref "fable");
+        model = ref "fable";
         variant = "max";
       };
       hephaestus = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "medium";
       };
       oracle = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "xhigh";
       };
       librarian = {
-        model = (ref "grok");
+        model = ref "grok";
       };
       explore = {
-        model = (ref "grok");
+        model = ref "grok";
       };
       multimodal-looker = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "low";
       };
       prometheus = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "high";
       };
       metis = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "medium";
       };
       momus = {
-        model = (ref "terra");
+        model = ref "terra";
         variant = "high";
       };
       atlas = {
-        model = (ref "grok");
+        model = ref "grok";
       };
       sisyphus-junior = {
-        model = (ref "grok");
+        model = ref "grok";
       };
     };
     categories = {
       visual-engineering = {
-        model = (ref "kimi");
+        model = ref "kimi";
       };
       ultrabrain = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "xhigh";
       };
       deep = {
-        model = (ref "terra");
+        model = ref "terra";
         variant = "xhigh";
       };
       artistry = {
-        model = (ref "gemini");
+        model = ref "gemini";
         variant = "high";
       };
       quick = {
-        model = (ref "grok");
+        model = ref "grok";
       };
       unspecified-low = {
-        model = (ref "luna");
+        model = ref "luna";
         variant = "xhigh";
       };
       unspecified-high = {
-        model = (ref "sol");
+        model = ref "sol";
         variant = "high";
       };
       writing = {
-        model = (ref "kimi");
+        model = ref "kimi";
       };
     };
     experimental = {
