@@ -40,7 +40,7 @@ in
           meta mark ${toString routingMark} return
           ip daddr { 127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 240.0.0.0/4 } return
           fib daddr type { local, broadcast, multicast } return
-          meta l4proto { tcp, udp } tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
+          meta l4proto { tcp, udp } counter tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
         }
       }
 
@@ -51,7 +51,7 @@ in
           # 本机自身的 DNS（走 127.0.0.53 stub）也会过 prerouting，
           # 劫进 mihomo 会拿到 fake-ip，导致网关自己拨不出去 —— 必须放行
           iif lo return
-          meta l4proto { tcp, udp } th dport 53 redirect to :${toString dnsPort}
+          meta l4proto { tcp, udp } th dport 53 counter redirect to :${toString dnsPort}
         }
       }
 
@@ -61,7 +61,7 @@ in
 
           # 静默 drop 会让客户端 Happy Eyeballs 干等 1~3s 才回落 IPv4；
           # 显式 reject 让它立刻失败
-          reject with icmpv6 type admin-prohibited
+          counter reject with icmpv6 type admin-prohibited
         }
       }
     '';

@@ -103,6 +103,9 @@ let
       exit 1
     fi
 
+    # 进程被 SIGKILL / 断电时 trap 不会跑，历史残留过一个 5 月的临时文件（含节点凭据）
+    rm -f "${stateDir}"/.mihomo-config.*.yaml
+
     tmp="$(mktemp -p "${stateDir}" .mihomo-config.XXXXXX.yaml)"
 
     cleanup() {
@@ -116,10 +119,14 @@ let
       -o "$tmp" "$CONFIG_URL"
 
     echo "Sanitizing subscription..."
+    # 订阅是外部输入：凡是能开监听、开 API、放权限的字段一律删掉，
+    # 只保留本模块显式给的那套。external-controller-unix/pipe 与 external-doh-server
+    # 都绕过 secret 校验，必须清。
     yq -i '
       del(.routing-mark) |
       del(.tun) |
       del(.listeners) |
+      del(.tunnels) |
       del(.port) |
       del(.socks-port) |
       del(.redir-port) |
@@ -127,7 +134,19 @@ let
       del(.tproxy-port) |
       del(.allow-lan) |
       del(.bind-address) |
+      del(.lan-allowed-ips) |
+      del(.lan-disallowed-ips) |
+      del(.authentication) |
+      del(.skip-auth-prefixes) |
       del(.external-controller) |
+      del(.external-controller-tls) |
+      del(.external-controller-unix) |
+      del(.external-controller-pipe) |
+      del(.external-doh-server) |
+      del(.external-ui) |
+      del(.external-ui-name) |
+      del(.external-ui-url) |
+      del(.tls) |
       del(.secret)
     ' "$tmp"
 
@@ -143,6 +162,12 @@ let
     fi
     echo "$output"
 
+    # 上面这次校验是 root 跑的，会把 geo 数据落成 root 所有；mihomo 是 DynamicUser，
+    # 之后 geo-auto-update 写这些文件会 EACCES（实测静默失败 3 个月，GEOIP 库一直陈旧，
+    # 导致纯 IP 连接的国内外判断出错）。属主对齐到 state dir 当前的 DynamicUser。
+    chown --reference="${stateDir}" \
+      "${stateDir}"/*.dat "${stateDir}"/*.mmdb "${stateDir}"/*.metadb 2>/dev/null || true
+
     if [ -f "${configFile}" ] && [ "$(sha256sum < "$tmp")" = "$(sha256sum < "${configFile}")" ]; then
       echo "No changes; skip restart"
       exit 0
@@ -155,12 +180,30 @@ let
 
     echo "Configuration updated; restarting mihomo"
     systemctl restart mihomo
+
+    # -t 只能查静态语法，起不来的原因（端口占用、节点字段组合非法）只有运行时才暴露。
+    # 无人值守场景必须能自己退回上一份可用配置。留 3s 让启动期崩溃浮出水面
+    # （Restart=on-failure 会把状态打成 activating (auto-restart)，is-active 返回非 0）。
+    sleep 3
+    if ! systemctl is-active --quiet mihomo; then
+      echo "mihomo failed to start with new config"
+      if [ -f "${configFile}.bak" ]; then
+        echo "Rolling back to previous configuration"
+        install -m 0600 "${configFile}.bak" "${configFile}"
+        systemctl restart mihomo
+      fi
+      exit 1
+    fi
   '';
 in
 {
   services.mihomo = {
     enable = true;
     configFile = configFile;
+    # 订阅里带的是 external-ui-url，会让 mihomo 在运行时从 GitHub 现下 dashboard
+    # 解压进 state dir（国内不可靠、内容不固定、还挂在 API 端口上对外服务）。
+    # 改用 nixpkgs 里 pin 住的 zashboard，由 -ext-ui 指向 store 路径。
+    webui = pkgs.zashboard;
   };
 
   systemd.tmpfiles.rules = [
