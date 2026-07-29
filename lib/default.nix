@@ -46,7 +46,8 @@ in
       };
       modules = [
         ../modules/shared
-        ../modules/nixos
+        ../modules/nixos/base.nix
+        ../modules/nixos/dev.nix
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
         (homeManagerConfig { inherit username system; })
@@ -55,9 +56,9 @@ in
       ++ extraModules;
     };
 
-  # 远程 NixOS 服务器 builder：仅复用 modules/shared/nix.nix，不导入
-  # modules/shared/default.nix / modules/nixos / home-manager / catppuccin，
-  # 避免日用模块（fish / 1password / docker）污染服务器。自动拉 disko。
+  # 远程 NixOS 服务器 builder：modules/nixos/server.nix（= base + 无头角色）+ disko。
+  # 不导入 modules/shared/default.nix（fish / 1password）、modules/nixos/dev.nix、
+  # home-manager、catppuccin，避免日用模块污染服务器闭包。
   mkServer =
     {
       hostname,
@@ -71,7 +72,7 @@ in
         username = "root";
       };
       modules = [
-        ../modules/shared/nix.nix
+        ../modules/nixos/server.nix
         inputs.disko.nixosModules.disko
         { networking.hostName = hostname; }
       ]

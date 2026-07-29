@@ -10,9 +10,6 @@
     ./hardware-configuration.nix
   ];
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # pinned overlay 用该 flake 锁定的 nixpkgs revision 构建，命中 binary cache（attic.xuyh0120.win）。
   # 选非 LTO 变体；感觉不到差异删这两行退默认内核。
   nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];

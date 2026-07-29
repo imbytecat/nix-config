@@ -109,9 +109,10 @@ just switch awesome-pc
 
 单臂透明代理网关，**只做代理一件事**，不是日用 NixOS。模块隔离：
 
-- 只共享 `modules/shared/nix.nix`（Lix + nix.settings + flake registry/nixPath）
-- 不导入 `modules/shared/default.nix`（fish/1password/openssh）、`modules/nixos/`、home-manager、catppuccin
-- 单用户 root，硬化 SSH（`PermitRootLogin = "prohibit-password"` + `PasswordAuthentication = false`），授权钥匙复用 `lib/default.nix` 的 `sshKeys`
+- 走 `modules/nixos/server.nix`（= `base.nix` + 无头角色：SSH 硬化 / root-only / `nix.gc` / generation 上限 / zram / 关 fontconfig）
+- 不导入 `modules/shared/default.nix`（fish/1password）、`modules/nixos/dev.nix`（unfree/overlay/docker/catppuccin）、home-manager，闭包里没有任何日用组件
+- 授权钥匙复用 `lib/default.nix` 的 `sshKeys`；网关业务全部在 `modules/gateway/`，机器独有事实（disko / virtio / 镜像源）在 `hosts/mihomo-gateway/`
+- 从零装机不依赖 GitHub：`just install` 用 lock 住的 nixos-anywhere + 国内镜像 substituter；开机即带一份构建期已校验的 fallback 配置（`mode: direct` + IP 字面量 DoH），此时 LAN 已经能上网，之后把订阅链接写进 `/etc/mihomo/env` 即自动拉取生效
 
 **首次部署**（在任一日用机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
 
@@ -169,7 +170,7 @@ EOF"
 
 ### 加新无头开发 NixOS 机
 
-日用但不带桌面（SSH remote dev）：用 `mkNixos`，`extraModules` **不加** `./modules/desktop/nixos.nix` 即可。base（`modules/nixos`）已含 docker、nix-ld、用户、locale，home-manager 全量生效，SSH 上去 shell/git/nvim 体验与桌面机一致。
+日用但不带桌面（SSH remote dev）：用 `mkNixos`，`extraModules` **不加** `./modules/desktop/nixos.nix` 即可。`modules/nixos/base.nix` + `dev.nix` 已含 locale、docker、nix-ld、用户，home-manager 全量生效，SSH 上去 shell/git/nvim 体验与桌面机一致。
 
 ```nix
 <host> = mylib.mkNixos {
@@ -196,7 +197,7 @@ modules/
   │   ├── darwin.nix           #   macOS GUI（brew casks + MAS）
   │   └── nixos.nix            #   NixOS GUI（Plasma 6 + 桌面应用 + fcitx5/rime + 罗技外设）
   ├── darwin/                  # macOS 模块
-  ├── nixos/                   # NixOS 日用 base（含无头开发所需：docker/nix-ld/用户）
+  ├── nixos/                   # NixOS 阶梯：base.nix → dev.nix（日用）/ server.nix（无头服务器）
   ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
   └── shared/                  # 跨平台共享 (fonts/nix/fish/openssh/1password)
 home/                          # Home Manager 配置（只用于日用机，跨平台 ~100% 共享）
@@ -212,9 +213,11 @@ overlays/ + pkgs/              # 自定义包
 | 场景 | 组成 | 示例 |
 |------|------|------|
 | Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | MacBook Air |
-| NixOS 桌面 | `hosts/*` → `modules/{shared,nixos}` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
-| NixOS 无头开发 | `hosts/*` → `modules/{shared,nixos}` → `home/*`（不加 desktop） | （预留） |
-| NixOS 服务器 | `hosts/<host>` + `modules/<purpose>` + `modules/shared/nix.nix`（mkServer，无 HM） | mihomo-gateway |
+| NixOS 桌面 | `hosts/*` → `modules/shared` + `modules/nixos/{base,dev}.nix` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
+| NixOS 无头开发 | 同上去掉 `modules/desktop/nixos.nix` | （预留） |
+| NixOS 服务器 | `hosts/<host>` + `modules/<purpose>` + `modules/nixos/server.nix`（mkServer，无 HM） | mihomo-gateway |
+
+`modules/nixos/` 是一条阶梯：`base.nix`（所有 NixOS 主机都成立的事实）→ 上面二选一叠 `dev.nix`（日用开发）或 `server.nix`（无头服务器）→ 桌面再叠 `modules/desktop/nixos.nix`。判据：一个事实只要有一种角色不需要，就不许放进 `base.nix`。
 
 共享边界：`home/`（shell/git/nvim/AI 工具链）跨平台共享，SSH 到任何一台日用机体验一致；GUI 应用列表按平台分开演化——brew/MAS 与 nixpkgs 的包名、机制、可用性差异太大，强行对齐得不偿失。
 
