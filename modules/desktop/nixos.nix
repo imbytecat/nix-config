@@ -37,6 +37,9 @@ let
 
   # 万象 LTS 语法模型（.gram）；nixpkgs 不含，自己 fetchurl（见 pkgs/rime-wanxiang-grammar）
   rime-wanxiang-grammar = pkgs.callPackage ../../pkgs/rime-wanxiang-grammar { };
+
+  # Orca ADE（AppImage 重打包，见 pkgs/orca-ide）
+  orca-ide = pkgs.callPackage ../../pkgs/orca-ide { };
 in
 {
   # 桌面显示字体（CJK/emoji/UI + fontconfig）独立成块，仅 NixOS 桌面生效
@@ -70,6 +73,7 @@ in
     discord
     # freecad
     obs-studio
+    orca-ide
     qq
     snipaste
     spotify
