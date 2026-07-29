@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   ...
@@ -11,6 +12,9 @@ let
   stateDir = "/var/lib/mihomo";
   configFile = "${stateDir}/config.yaml";
   envFile = "/etc/mihomo/env";
+
+  # 换镜像只此一处；testingcf 是 jsdelivr 的国内可用边缘
+  geoMirror = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release";
 
   baseConfig = {
     allow-lan = true;
@@ -33,10 +37,10 @@ let
     # 不让订阅决定从哪拉 —— 订阅一旦换成 raw.githubusercontent 国内就取不到。
     # 实测从零 24MB / 8s 拉齐 asn+mmdb+geosite。
     geox-url = {
-      asn = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb";
-      mmdb = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb";
-      geoip = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat";
-      geosite = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat";
+      asn = "${geoMirror}/GeoLite2-ASN.mmdb";
+      mmdb = "${geoMirror}/country.mmdb";
+      geoip = "${geoMirror}/geoip.dat";
+      geosite = "${geoMirror}/geosite.dat";
     };
 
     # 闲鱼/手Q 等走 HTTPDNS 的 App 会直接用 IP 建连（实测约 1/4 连接无域名），
@@ -245,16 +249,32 @@ in
     ];
     wants = [ "network-online.target" ];
     unitConfig.ConditionPathExists = envFile;
-    path = with pkgs; [
-      curl
-      yq-go
-      mihomo
+    # 校验用的二进制必须与实际运行的同一个，否则换 package 后 -t 通过不代表能起来
+    path = [
+      pkgs.curl
+      pkgs.yq-go
+      config.services.mihomo.package
     ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = subscribeScript;
       EnvironmentFile = [ "-${envFile}" ];
+
+      # 这个单元以 root 解析订阅（外部输入）里的 YAML，能收的沙箱都收上
+      ProtectSystem = "strict";
       ReadWritePaths = [ stateDir ];
+      ProtectHome = true;
+      PrivateTmp = true;
+      PrivateDevices = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictNamespaces = true;
+      RestrictRealtime = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      NoNewPrivileges = true;
+      SystemCallArchitectures = "native";
     };
   };
 
