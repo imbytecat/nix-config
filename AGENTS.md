@@ -51,7 +51,8 @@
 
 ## Home Manager / Shell
 
-- Prefer HM `programs.<name>` modules over `home.packages` when a module exists. Use current APIs: `programs.git.settings.*`, `programs.delta.*`, `programs.ssh.settings."*"`, and `programs.ssh.enableDefaultConfig = false`. Two checked exceptions that stay raw packages on purpose: `gh` (the module writes `~/.config/gh/config.yml` unconditionally, which makes `gh config set`/`gh alias` fail against a read-only store symlink) and `devenv` (its only added value is a fish `hook` that auto-enters/exits project shells on `cd`, which fights the direnv setup this repo already uses).
+- Prefer HM `programs.<name>` modules over `home.packages` when a module exists. Use current APIs: `programs.git.settings.*`, `programs.delta.*`, `programs.ssh.settings."*"`, and `programs.ssh.enableDefaultConfig = false`. One checked exception stays a raw package on purpose: `devenv` — the module's only added value is a fish `hook` that auto-enters/exits project shells on `cd`, which fights the direnv setup this repo already uses.
+- `programs.gh` owns `~/.config/gh/config.yml`, so `gh alias set`/`gh config set` will fail against the read-only symlink — declare them in `programs.gh.settings` instead. Auth is `GH_TOKEN` from op-env, not the keyring: GitHub's API cannot authenticate with an SSH key (`--git-protocol ssh` only affects git transport), and the keyring token was the last thing forcing an interactive `gh auth login` on a fresh machine.
 - Do not set HM `programs.*.enableFishIntegration = true`; HM inherits shell integration by default. Only set `false` when deliberately disabling it.
 - Static PATH entries go in `home.sessionPath`, not `fish_add_path` in `interactiveShellInit`.
 - Fish functions belong in `programs.fish.functions`; do not put function definitions back into `interactiveShellInit`.
