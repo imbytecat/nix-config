@@ -113,7 +113,7 @@ just switch awesome-pc
 - 走 `modules/nixos/server.nix`（= `base.nix` + 无头角色：SSH 硬化 / root-only / `nix.gc` / generation 上限 / zram / 关 fontconfig）
 - 不导入 `modules/shared/default.nix`（fish/1password）、`modules/nixos/dev.nix`（unfree/overlay/docker/catppuccin）、home-manager，闭包里没有任何日用组件
 - 授权钥匙复用 `lib/default.nix` 的 `sshKeys`；网关业务全部在 `modules/gateway/`，机器独有事实（disko / virtio / 镜像源）在 `hosts/mihomo-gateway/`
-- 从零装机不依赖 GitHub：`just install` 用 lock 住的 nixos-anywhere + 国内镜像 substituter；开机即带一份构建期已校验的 fallback 配置（`mode: direct` + IP 字面量 DoH），此时 LAN 已经能上网，之后把订阅链接写进 `/etc/mihomo/env` 即自动拉取生效
+- 目标机装机不依赖 GitHub：`just install` 用 lock 住的 nixos-anywhere + 国内镜像 substituter（发起端仍需本仓 checkout 与 flake.lock）；开机即带一份构建期已校验的 fallback 配置（`mode: direct` + IP 字面量 DoH），此时 LAN 已经能上网，之后把订阅链接写进 `/etc/mihomo/env` 即自动拉取生效
 
 **首次部署**（在任一日用机跑，目标机已用 NixOS installer 启动并允许 root SSH）：
 
@@ -200,7 +200,7 @@ modules/
   ├── darwin/                  # macOS 模块
   ├── nixos/                   # NixOS 阶梯：base.nix → dev.nix（日用）/ server.nix（无头服务器）
   ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
-  └── shared/                  # 跨平台共享 (fonts/nix/fish/openssh/1password)
+  └── shared/                  # 跨平台共享 (fonts/nix/fish/1password；SSH 基线在 nixos/base.nix)
 home/                          # Home Manager 配置（只用于日用机，跨平台 ~100% 共享）
   ├── dev/                     # 开发工具
   └── shell/                   # Shell 配置

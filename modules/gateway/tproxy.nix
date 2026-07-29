@@ -40,7 +40,11 @@ in
           meta mark ${toString routingMark} return
           ip daddr { 127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 240.0.0.0/4 } return
           fib daddr type { local, broadcast, multicast } return
-          meta l4proto { tcp, udp } counter tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
+          # 53 显式排除：让它落到下面 mihomo-dns 的 dstnat redirect。
+          # 不排除也能工作（mangle 先跑、nat 后改写，实测回包 sport=1053），
+          # 但那依赖 TPROXY 与 NAT 的改写次序，不是可依赖的契约
+          meta l4proto { tcp, udp } th dport != 53 counter \
+            tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
         }
       }
 

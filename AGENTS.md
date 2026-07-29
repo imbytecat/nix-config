@@ -3,7 +3,7 @@
 ## Repo Shape
 
 - Nix flake for `awesome-macbook-air` (`aarch64-darwin`), `awesome-pc` (`x86_64-linux`), and `mihomo-gateway` (`x86_64-linux`, root-only gateway). Uses Lix.
-- Flake attr, host directory, and `networking.hostName` must match exactly; `just _guard` only compares `hostname -s` with the host argument.
+- Flake attr, host directory, and `networking.hostName` must match exactly; `just _guard` calls `_valid` first, then compares `hostname -s` with the host argument.
 - Builders live in `lib/default.nix`: `mkDarwin`, `mkNixos`, `mkServer`. System-level `specialArgs` carry `inputs`, `sshKeys`, and (daily hosts only) `username` — no `system`, so a shared system module needing a platform branch uses `pkgs.stdenv.isDarwin`/`isLinux`. `mkServer` deliberately does not pass `username`: nothing in the server closure needs one. Home Manager additionally gets `system` via `extraSpecialArgs` (`home/default.nix` gates `imports` on it, where `pkgs` would recurse).
 - Desktop hosts explicitly import a platform desktop role: Darwin hosts use `modules/desktop/darwin.nix`, NixOS desktops use `modules/desktop/nixos.nix`. Headless dev NixOS hosts use `mkNixos` without any desktop module. Servers use `mkServer` (→ `modules/nixos/server.nix`) and intentionally avoid Home Manager, catppuccin, fish, 1Password, docker, unfree, and desktop modules.
 
@@ -23,7 +23,7 @@
 
 ## Where Things Go
 
-- `modules/shared/`: cross-platform system basics only (`nix.nix`, fonts, fish, openssh, 1Password CLI). Do not duplicate these in platform modules.
+- `modules/shared/`: cross-platform system basics only (`nix.nix`, fonts, fish, 1Password CLI). `services.openssh.enable` is NOT here — it lives in `modules/nixos/base.nix` and `modules/darwin/default.nix` separately. Do not duplicate these in platform modules.
 - `modules/darwin/default.nix`: Darwin system settings, nix-homebrew setup, taps, brews, activation. Shared GUI casks/MAS do not go here.
 - `modules/nixos/` is a ladder, compose it in `lib/default.nix`, never sideways-import: `base.nix` (every NixOS host: locale default, timezone, `services.openssh.enable`, systemd-boot) → `dev.nix` (daily driver: unfree + overlays, catppuccin, user, docker, nix-ld, tailscale, base packages) → `modules/desktop/nixos.nix` (GUI). `server.nix` is the headless sibling of `dev.nix` (imports `base.nix`; SSH hardening, root-only, `nix.gc`/`optimise`, `configurationLimit`, zram, no fontconfig). A fact belongs in `base.nix` only if all three roles need it; anything role-shaped goes in `dev.nix`/`server.nix`, anything machine-shaped goes in `hosts/<host>/`. Do not put GUI apps in any of them.
 - `modules/desktop/darwin.nix` / `modules/desktop/nixos.nix`: platform desktop roles, split on purpose — GUI app lists evolve independently per platform (brew/MAS vs nixpkgs), do not try to keep them aligned. `nixos.nix` also owns DE (Plasma 6 Wayland-only + SDDM), NetworkManager, fcitx5/rime, Bluetooth, and Logitech peripherals (`hardware.logitech.wireless` = Solaar only; piper/ratbagd are intentionally not installed). GPU drivers are hardware, they stay in `hosts/<host>/`. Single-host casks still go in `hosts/<host>/default.nix` (for example `thaw`).
@@ -51,7 +51,7 @@
 
 ## Home Manager / Shell
 
-- Prefer HM `programs.<name>` modules over `home.packages` when a module exists. Use current APIs: `programs.git.settings.*`, `programs.delta.*`, `programs.ssh.settings."*"`, and `programs.ssh.enableDefaultConfig = false`.
+- Prefer HM `programs.<name>` modules over `home.packages` when a module exists. Use current APIs: `programs.git.settings.*`, `programs.delta.*`, `programs.ssh.settings."*"`, and `programs.ssh.enableDefaultConfig = false`. Two checked exceptions that stay raw packages on purpose: `gh` (the module writes `~/.config/gh/config.yml` unconditionally, which makes `gh config set`/`gh alias` fail against a read-only store symlink) and `devenv` (its only added value is a fish `hook` that auto-enters/exits project shells on `cd`, which fights the direnv setup this repo already uses).
 - Do not set HM `programs.*.enableFishIntegration = true`; HM inherits shell integration by default. Only set `false` when deliberately disabling it.
 - Static PATH entries go in `home.sessionPath`, not `fish_add_path` in `interactiveShellInit`.
 - Fish functions belong in `programs.fish.functions`; do not put function definitions back into `interactiveShellInit`.
@@ -70,7 +70,12 @@
 - IPv6 forwarding is intentionally blocked by sysctl plus an `ip6` nftables forward chain that `reject`s (fast client fallback instead of a silent 1–3s stall). Do not re-enable casually.
 - `firewall.enable = false` is intentional; nftables rules are owned by `modules/gateway/tproxy.nix`.
 - `/etc/mihomo/env` (`CONFIG_URL` + `SECRET`) is written **by hand on the box, on purpose**. Do not add a nix/agenix/sops-nix/`op inject`+scp path for it — this was proposed and explicitly rejected. Everything else is declarative; this one file is not.
-- Subscription flow: systemd `EnvironmentFile=` → sanitize every listener/API key out of the subscription → `mihomo -t` in an **isolated temp dir** (never the state dir: root would leave geo/cache.db root-owned and break `geo-auto-update`) → swap config → restart → `is-active` check → roll back to `.bak` on failure. `systemctl restart` must keep `|| true`, otherwise `set -e` makes the rollback unreachable.
+- Subscription flow: systemd `EnvironmentFile=` → sanitize every listener/API key out of the subscription → `mihomo -t` in an **isolated temp dir** (never the state dir: root would leave geo/cache.db root-owned and break `geo-auto-update`) → swap config → restart → `wait_healthy` → roll back to `.bak` on failure. Two non-obvious requirements: `systemctl restart` must keep `|| true` (otherwise `set -e` makes the rollback unreachable), and the health check must poll for ~10s rather than sleep once — with `RestartSec=5s` a single early `is-active` can catch a crash-looping unit mid-`activating` and call it success.
+- DNS is explicitly excluded from the TPROXY rule (`th dport != 53`) so it is handled only by the `mihomo-dns` dstnat redirect. Without the exclusion it still works — mangle runs before dstnat and the NAT rewrite wins — but that is an implementation detail of TPROXY/NAT ordering, not a contract.
+- `Restart = "always"` + `startLimitIntervalSec = 0` are deliberate: the gateway is a single point of failure, and systemd's default 5-starts-per-10s limit would park a crash-looping Mihomo in `failed` forever while the nftables rules keep blackholing the whole LAN. **Do not add fail-open** (tearing down the tables via `ExecStopPost`): sending every LAN packet unproxied and in plaintext through the GFW is worse than a loud outage.
+- `external-controller = "0.0.0.0:9090"` is intentional and must not be narrowed to loopback: this is a single-armed gateway with no WAN interface, so the wildcard is the LAN address, the API requires `SECRET`, and the zashboard UI is used from the desktop over the LAN. Audits keep flagging this; it is a considered decision.
+- No socket-buffer sysctl tuning (`net.core.rmem_max` etc.): the running kernel already provides a 4 MiB ceiling and the subscription's outbounds are ss/vless, so quic-go never runs locally and never asks for its 7 MiB. Revisit only after switching to hysteria2/tuic nodes, and only with a real warning in the journal as evidence.
+- No `flock` in the subscription script: systemd already serialises jobs for a single unit, so the timer, the path unit and a manual `systemctl start` cannot overlap.
 - Threat model is asymmetric and deliberate: **only the gateway is hardened** (it faces the GFW — encrypted-only DNS, no plaintext upstream, sanitized external input, sandboxed units). Daily hosts optimize for convenience; passwordless sudo, no lock-screen password, `LSQuarantine = false`, broad `mise` trust and Homebrew auto-upgrade on Darwin are accepted trade-offs, not oversights. Do not "harden" them.
 
 ## Conventions

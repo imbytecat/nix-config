@@ -210,16 +210,24 @@ let
     fi
     mv -f "$tmp" "${configFile}"
 
+    # -t 只能查静态语法，起不来的原因（端口占用、节点字段组合非法）只有运行时才暴露，
+    # 无人值守场景必须能自己退回上一份可用配置。
+    # RestartSec=5s 意味着两次崩溃至少隔 5s，所以 10 次 1s 轮询必然撞得见
+    # activating (auto-restart) 或 failed —— 单次 sleep 3 会漏掉第 3 秒之后才崩的配置。
+    wait_healthy() {
+      for _ in $(seq 10); do
+        systemctl is-active --quiet mihomo || return 1
+        sleep 1
+      done
+      return 0
+    }
+
     echo "Configuration updated; restarting mihomo"
     # `|| true` 是必须的：起不来时 systemctl 自己返回非 0，set -e 会在这里直接结束脚本，
-    # 下面的回滚就成了死代码，坏配置留在盘上。失败与否统一由 is-active 判定。
+    # 下面的回滚就成了死代码，坏配置留在盘上。失败与否统一由 wait_healthy 判定。
     systemctl restart mihomo || true
 
-    # -t 只能查静态语法，起不来的原因（端口占用、节点字段组合非法）只有运行时才暴露。
-    # 无人值守场景必须能自己退回上一份可用配置。留 3s 让启动期崩溃浮出水面
-    # （Restart=on-failure 会把状态打成 activating (auto-restart)，is-active 返回非 0）。
-    sleep 3
-    if systemctl is-active --quiet mihomo; then
+    if wait_healthy; then
       exit 0
     fi
 
@@ -231,8 +239,7 @@ let
     echo "Rolling back to previous configuration"
     install -m 0600 "${configFile}.bak" "${configFile}"
     systemctl restart mihomo || true
-    sleep 3
-    if systemctl is-active --quiet mihomo; then
+    if wait_healthy; then
       echo "Rolled back; mihomo running on previous configuration"
     else
       echo "Rollback failed too; mihomo is down"
@@ -322,8 +329,14 @@ in
     wants = [ "nftables.service" ];
     requires = [ "nftables.service" ];
 
+    # 网关是单点：mihomo 死了而 nftables 规则还在，整个 LAN 立刻黑洞。
+    # 默认的 5 次/10s 限流会让它彻底进 failed 再也不试 —— 关掉窗口改成永远重试。
+    # 不做 fail-open（崩溃时撤规则放直连）：那会让全部流量明文裸奔过 GFW，
+    # 对这台机器来说比一个显眼的断网更糟。
+    startLimitIntervalSec = 0;
+
     serviceConfig = {
-      Restart = "on-failure";
+      Restart = "always";
       RestartSec = "5s";
 
       # CAP_NET_BIND_SERVICE 必需：TPROXY UDP 回程 (listener/tproxy/packet.go

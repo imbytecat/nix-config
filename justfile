@@ -72,7 +72,7 @@ eval:
     @nix eval .#nixosConfigurations.awesome-pc.config.system.build.toplevel > /dev/null && echo "awesome-pc: ok"
     @nix eval .#nixosConfigurations.mihomo-gateway.config.system.build.toplevel > /dev/null && echo "mihomo-gateway: ok"
 
-[doc('nix flake check —— 完整 flake 健全性检查（darwin 跑会触发 NixOS host eval，需要 Linux remote builder，否则用 just eval 检查本平台）')]
+[doc('nix flake check —— 格式 + lint + 三台 host 的 eval（在 Linux 上跑才全覆盖：host eval 挂在 x86_64-linux 上，darwin 只跑得到 formatting/lint，用 just eval 补）')]
 [group('check')]
 check:
     nix flake check --show-trace
@@ -187,7 +187,7 @@ up input: (_valid input)
 show:
     nix flake show
 
-[doc('查看 system profile 历史 generation（NixOS 本机）')]
+[doc('查看本机 system profile 的历史 generation')]
 [group('nix')]
 history:
     nix profile history --profile /nix/var/nix/profiles/system

@@ -142,16 +142,13 @@ curl -X POST -H "Authorization: Bearer $SECRET" http://<gw>:9090/configs/geo
 **后果**: GEOIP/GEOSITE 判定长期用陈旧库。纯 IP 连接全靠 `GEOIP,CN,DIRECT` 兜底，
 库一旧就把新增的国内 IP 段判成境外 → 国内流量走代理出国。
 
-**修复**: 校验之后把属主对回 state dir 当前的 DynamicUser（UID 是动态的，用 `--reference`）：
+**修复**：订阅脚本的 `mihomo -t` 用**独立临时数据目录**（把现有 geo 软链进去，避免重下 24MB），
+root 根本不往 state dir 写东西，属主问题从根上消失。
 
-```sh
-chown --reference="$stateDir" "$stateDir"/*.dat "$stateDir"/*.mmdb "$stateDir"/*.metadb
-```
+曾用过 `chown --reference="$stateDir"` 把属主对回动态 UID 的补丁，已随之删除 —— 别再写回来，
+正确做法是让 root 压根不碰 state dir。
 
-**验证**: 手动 POST `/configs/geo` 返回 204，且 state dir 里的 geo 数据库文件 mtime 刷新。
-
-**最终形态**: 现在订阅脚本的 `mihomo -t` 用**独立临时数据目录**（软链现有 geo 进去避免重下 24MB），
-root 根本不再往 state dir 写东西，属主问题从根上消失，`chown` 补丁也随之删掉。
+**验证**：手动 POST `/configs/geo` 返回 204，且 state dir 里 geo 数据库文件的 mtime 刷新。
 
 ### 排查流程（从上到下）
 

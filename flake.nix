@@ -37,6 +37,11 @@
 
     # pnpm CVE 连坐：pin 到标记前最后一个有 hydra cache 的 revision，overlay 从此 inherit
     # cherry-studio（vue-language-server 已在上游摆脱 insecure pnpm，2026-07 移回主 nixpkgs）。
+    # 退出条件不是「上游收录了 cherry-studio」—— 主线现在就有，但仍在用受影响的
+    # pnpm_10_29_2。要删这个 pin，先确认主线包已换掉 pnpm 且 cache 命中：
+    #   nix eval --raw nixpkgs#cherry-studio.version
+    #   nix-store -q --tree $(nix eval --raw nixpkgs#cherry-studio.drvPath) | grep -c pnpm-10.29.2
+    #   nix build --dry-run nixpkgs#cherry-studio   # 看是 fetch 还是 build
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
 
     # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com。
@@ -188,12 +193,13 @@
         };
       };
 
-      packages.x86_64-linux = {
+      # 两个都是安装工具，上游对 darwin 也出包：MacBook 上跑 `just install` 才有得用
+      packages = forAllSystems (system: {
         # Live 本机安装直接运行本仓锁定的官方 disko-install
-        inherit (inputs.disko.packages.x86_64-linux) disko-install;
+        inherit (inputs.disko.packages.${system}) disko-install;
         # 远程首装（just install）走 lock 住的这份，不再 `nix run github:`
-        inherit (inputs.nixos-anywhere.packages.x86_64-linux) nixos-anywhere;
-      };
+        inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
+      });
 
       overlays.default = import ./overlays { inherit inputs; };
 
@@ -218,11 +224,21 @@
         }
       );
 
-      # `nix flake check` 除了 eval 各 host，还跑格式化与 lint —— 一条命令覆盖全部门禁
+      # `nix flake check` 是唯一门禁：格式 + lint + 三台 host 的 eval
       checks = forAllSystems (
         system:
         let
           pkgs = pkgsFor system;
+
+          # 只强制求值，不构建。算出 drvPath 就意味着整个 host 配置 eval 过了，
+          # 而 Darwin 的系统闭包在 Linux 上根本构建不了。
+          # unsafeDiscardOutputDependency 是必须的：drvPath 直接插进 builder 会带上
+          # "derivation deep" 上下文，nix 会去把整个系统闭包真的构建出来。
+          evalOnly =
+            name: drvPath:
+            pkgs.runCommand "eval-${name}" { } ''
+              echo ${builtins.unsafeDiscardOutputDependency drvPath} > $out
+            '';
         in
         {
           formatting = (treefmtFor system).config.build.check inputs.self;
@@ -242,6 +258,11 @@
                 deadnix --fail --exclude ./hosts/awesome-pc/hardware-configuration.nix
                 touch $out
               '';
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          eval-awesome-macbook-air = evalOnly "awesome-macbook-air" inputs.self.darwinConfigurations.awesome-macbook-air.system.drvPath;
+          eval-awesome-pc = evalOnly "awesome-pc" inputs.self.nixosConfigurations.awesome-pc.config.system.build.toplevel.drvPath;
+          eval-mihomo-gateway = evalOnly "mihomo-gateway" inputs.self.nixosConfigurations.mihomo-gateway.config.system.build.toplevel.drvPath;
         }
       );
 
