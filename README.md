@@ -1,6 +1,6 @@
 # Nix Config
 
-nix-darwin + NixOS + Home Manager + Flakes 声明式管理两台 Mac + 一台 NixOS PC + 一台单臂透明代理网关。
+nix-darwin + NixOS + Home Manager + Flakes 声明式管理一台 NixOS PC + 一台 Mac + 一台单臂透明代理网关。
 
 Linux 为主、macOS 为辅：NixOS PC 是主力桌面，GUI 应用列表按平台分开维护（`modules/desktop/{darwin,nixos}.nix`），CLI/开发环境（`home/`）跨平台完全共享，SSH 到任何一台机器 shell/git/nvim 体验一致。
 
