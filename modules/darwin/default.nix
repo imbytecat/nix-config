@@ -28,6 +28,12 @@
 
   system.primaryUser = username;
 
+  # NixOS 侧在 modules/nixos/base.nix，这里是 Darwin 自己那份（原来混在 modules/shared）
+  services.openssh.enable = true;
+
+  # 日用机的普通用户要能用 flake nixConfig 里的 cache（见 modules/shared/nix.nix）
+  nix.settings.trusted-users = [ username ];
+
   security.sudo.extraConfig = ''
     ${username} ALL=(ALL) NOPASSWD:ALL
   '';

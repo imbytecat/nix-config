@@ -15,6 +15,9 @@
   nixpkgs.config.allowUnfree = true;
   nixpkgs.overlays = [ inputs.self.overlays.default ];
 
+  # 日用机的普通用户要能用 flake nixConfig 里的 cache（服务器没有普通用户，见 shared/nix.nix）
+  nix.settings.trusted-users = [ username ];
+
   # 系统层 Catppuccin：flavor 与 home 层（home/default.nix）保持一致。autoEnable 显式写出
   # 而非留默认——upstream 26.11 起把 autoEnable 当作 port 总开关、enable 变全局 kill switch，
   # 不显式设就会 warn；写全后 sddm / tty / fcitx5 / fish 等 system port 才真正上主题。

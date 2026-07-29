@@ -1,6 +1,5 @@
 {
   pkgs,
-  username,
   inputs,
   ...
 }:
@@ -37,10 +36,8 @@
     # "ignoring untrusted flake configuration" warning。本仓自管自家 flake,安全可控
     accept-flake-config = true;
     warn-dirty = false;
-    trusted-users = [
-      "root"
-      username
-    ];
+    # trusted-users 不在这里设：上游默认已含 root，服务器（root-only）无需再加；
+    # 日用机的普通用户由 modules/nixos/dev.nix 与 modules/darwin 各自追加。
   };
 
   nix.channel.enable = false;

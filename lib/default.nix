@@ -69,7 +69,6 @@ in
       inherit system;
       specialArgs = {
         inherit inputs sshKeys;
-        username = "root";
       };
       modules = [
         ../modules/nixos/server.nix
