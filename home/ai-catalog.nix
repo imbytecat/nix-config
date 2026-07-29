@@ -5,11 +5,13 @@
 # 放 home 根这个中性位置：home/shell 与 home/dev/agents 平等 import，避免 shell→dev/agents 方向依赖。
 let
   # 网关实体：端点（不含 /v1；各 adapter 自加 provider 版本后缀）与密钥 env 名。密钥永远走 env，
-  # 不落字面量。provider 家族名（anthropic/openai/google/furtherverse）是共享词汇，各处直接
+  # 不落字面量。env 名用 FURTHERVERSE_ 品牌前缀而非通用的 AI_GATEWAY_*：后者被 Vercel AI SDK 的
+  # gateway provider 自动读取，会把请求和密钥误路由到 Vercel。
+  # provider 家族名（anthropic/openai/google/furtherverse）是共享词汇，各处直接
   # 字面量书写保持一致；显示名/npm SDK 包名之类 adapter 细节写死在各自 adapter，不进这里。
   gateway = {
     endpoint = "https://ai-gateway.furtherverse.net";
-    apiKeyEnv = "AI_GATEWAY_API_KEY";
+    apiKeyEnv = "FURTHERVERSE_API_KEY";
   };
 
   # 模型规格表：providers.<family>.<nick>，家族名只在这一层出现（模型节点不再重复 provider 字段）。
