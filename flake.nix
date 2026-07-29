@@ -79,6 +79,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # 首装工具也 pin 进 lock：`nix run github:...` 每次都要现取 GitHub，而首装的典型场景
+    # 恰恰是「网关本身还没起来/正在重装」，本机没代理。pin 后走 flake.lock + binary cache。
+    nixos-anywhere = {
+      url = "github:nix-community/nixos-anywhere";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.disko.follows = "disko";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -164,8 +172,12 @@
         };
       };
 
-      # Live 本机安装直接运行本仓锁定的官方 disko-install。
-      packages.x86_64-linux.disko-install = inputs.disko.packages.x86_64-linux.disko-install;
+      packages.x86_64-linux = {
+        # Live 本机安装直接运行本仓锁定的官方 disko-install
+        inherit (inputs.disko.packages.x86_64-linux) disko-install;
+        # 远程首装（just install）走 lock 住的这份，不再 `nix run github:`
+        inherit (inputs.nixos-anywhere.packages.x86_64-linux) nixos-anywhere;
+      };
 
       overlays.default = import ./overlays { inherit inputs; };
 

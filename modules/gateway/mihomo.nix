@@ -28,6 +28,17 @@ let
     tcp-concurrent = true;
     unified-delay = true;
 
+    # geo 数据不进 store：它是滚动数据，pin 进 store 只会变陈旧，而 mihomo 自己有
+    # 24h 自动更新（属主问题见 subscribeScript 里的 chown）。这里只把镜像源钉死，
+    # 不让订阅决定从哪拉 —— 订阅一旦换成 raw.githubusercontent 国内就取不到。
+    # 实测从零 24MB / 8s 拉齐 asn+mmdb+geosite。
+    geox-url = {
+      asn = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb";
+      mmdb = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb";
+      geoip = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat";
+      geosite = "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat";
+    };
+
     # 闲鱼/手Q 等走 HTTPDNS 的 App 会直接用 IP 建连（实测约 1/4 连接无域名），
     # 域名规则全部失配只能落到 GEOIP/MATCH。嗅探 TLS SNI/HTTP Host 恢复域名，
     # 仅用于规则匹配（override-destination=false，不改实际目标）。
@@ -85,7 +96,19 @@ let
 
   yamlFormat = pkgs.formats.yaml { };
   baseConfigYaml = yamlFormat.generate "base-config.yaml" baseConfig;
-  fallbackConfigYaml = yamlFormat.generate "fallback.yaml" fallbackConfig;
+  # fallback 是「机器刚装好、还没有订阅」时唯一的配置：它挂了就等于 LAN 没有 DNS
+  # （53 被劫到 mihomo 的 1053），整个网关不可用。它无 rules 因而不碰 geo，
+  # 实测 0ms 且零网络，所以直接在构建期断言，坏配置根本进不了 store。
+  fallbackConfigYaml =
+    pkgs.runCommand "mihomo-fallback.yaml"
+      {
+        src = yamlFormat.generate "fallback.yaml" fallbackConfig;
+        nativeBuildInputs = [ pkgs.mihomo ];
+      }
+      ''
+        mihomo -t -f "$src" -d "$(mktemp -d)"
+        cp "$src" "$out"
+      '';
 
   subscribeScript = pkgs.writeShellScript "mihomo-subscribe" ''
     set -euo pipefail
