@@ -46,7 +46,7 @@ let
     };
   };
 
-  # 与 codex 同款默认模型（openai/sol + high thinking）；smol 对齐 opencode small_model（luna）。
+  # 与 codex 同款默认模型（openai/sol + high thinking）；smol 用 luna。
   # config.yml 是 `omp config set` / `/settings` 的写入目标，这里声明式接管后运行时改动会失败，
   # 与本仓其余 agent 配置同一取舍：改配置走 nix，不走 TUI。
   # setup 向导也因此必须在这里关掉：向导完成时要写 setupVersion 回 config.yml，只读 symlink 写

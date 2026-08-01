@@ -7,7 +7,7 @@
 
 let
   # AI 网关端点 / 密钥 env 名的唯一真源（见 home/ai-catalog.nix）；本模板是端点值与 key 变量名的
-  # 定义处，codex/opencode 从同一 catalog 消费，改名/换端点只此一处。
+  # 定义处，codex/omp 从同一 catalog 消费，改名/换端点只此一处。
   catalog = import ../ai-catalog.nix;
 
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";

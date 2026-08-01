@@ -5,7 +5,6 @@
     ./claude-code.nix
     ./codex.nix
     ./omp.nix
-    ./opencode.nix
   ];
 
   # 上游推荐直接吃 packages（不 follows nixpkgs，命中 cache.numtide.com）

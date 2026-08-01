@@ -44,7 +44,7 @@
     #   nix build --dry-run nixpkgs#cherry-studio   # 看是 fetch 还是 build
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
 
-    # AI coding agents (opencode, skills, ...)，每天构建并 push 到 cache.numtide.com。
+    # AI coding agents (codex, claude-code, omp, skills, ...)，每天构建并 push 到 cache.numtide.com。
     # 消费方式：inputs.llm-agents.packages.${system}.*（上游推荐；已无 overlays 输出）。
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了。
     llm-agents.url = "github:numtide/llm-agents.nix";
