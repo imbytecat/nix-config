@@ -12,11 +12,11 @@
 
 stdenvNoCC.mkDerivation {
   pname = "rime-wanxiang-grammar";
-  version = "LTS"; # 上游覆盖式发布，无稳定版本号；hash pin 于 2026-07（如失配即重新 prefetch）
+  version = "LTS"; # 上游覆盖式发布，无稳定版本号；hash pin 于 2026-08（如失配即重新 prefetch）
 
   src = fetchurl {
     url = "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram";
-    hash = "sha256-e7d0vWSlUiUaPLs8x212vTBuV6xssnbVJpMeK3G/yUo=";
+    hash = "sha256-mdab7x5ErrKP9+6Eg5ClfFoQTTsdH0gns+jRR14aCvU=";
   };
 
   dontUnpack = true;
