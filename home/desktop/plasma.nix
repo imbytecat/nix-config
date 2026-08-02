@@ -16,8 +16,11 @@ in
     enable = true;
     configFile.kwinrc.Wayland.InputMethod = "/run/current-system/sw/share/applications/fcitx5-wayland-launcher.desktop";
 
-    # awesome-pc 保持后台任务常驻；显示器仍按 Plasma 的既有 DPMS 时间自动熄灭。
-    powerdevil.AC.autoSuspend.action = lib.mkIf awesomePc "nothing";
+    # awesome-pc 保持后台任务常驻，只熄屏（10 分钟，与之前的 Plasma 默认一致）。
+    powerdevil.AC = lib.mkIf awesomePc {
+      autoSuspend.action = "nothing";
+      turnOffDisplay.idleTimeout = 600;
+    };
 
     # 只熄屏不锁屏：熄屏由 powerdevil 负责，kscreenlocker 的自动锁屏这一路单独关掉，
     # 否则默认 5 分钟会在熄屏前先锁上。
