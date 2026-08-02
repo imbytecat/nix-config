@@ -18,6 +18,13 @@ in
 
     # awesome-pc 保持后台任务常驻；显示器仍按 Plasma 的既有 DPMS 时间自动熄灭。
     powerdevil.AC.autoSuspend.action = lib.mkIf awesomePc "nothing";
+
+    # 只熄屏不锁屏：熄屏由 powerdevil 负责，kscreenlocker 的自动锁屏这一路单独关掉，
+    # 否则默认 5 分钟会在熄屏前先锁上。
+    kscreenlocker = lib.mkIf awesomePc {
+      autoLock = false;
+      lockOnResume = false;
+    };
   };
 
   # Konsole 声明式外观：字体钉 Maple Mono NF CN（与 modules/desktop/fonts.nix monospace 首选一致），
