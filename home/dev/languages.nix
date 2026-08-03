@@ -6,6 +6,7 @@
     go
     nodejs
     python3
+    typst
 
     uv
 
