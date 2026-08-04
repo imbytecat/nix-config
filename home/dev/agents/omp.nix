@@ -75,8 +75,11 @@ let
     };
     # ponytail 走它自带的 pi extension（package.json 的 legacy `pi.extensions` 键，omp 的
     # loader 认）：before_agent_start 每轮把 ruleset 拼进 system prompt，注册 /ponytail 档位
-    # 与 /ponytail-* 命令，skills/ 由 omp-plugins provider 一并挂上 —— 不用手铺 skill link，
-    # 也不用把上游那份没有 frontmatter 的 rule 包一层。
+    # 与 /ponytail-* 命令，skills/ 也由 omp-plugins provider 一并挂上 —— 不用把上游那份没有
+    # frontmatter 的 rule 再包一层。skills.nix 那份 ~/.agents/skills link 是给 Codex 的，
+    # 同一个 realpath，omp 侧按 realpath 去重，不会撞名。
+    # /ponytail-help 与 /ponytail-gain 是 sendAlias("/skill:ponytail-*")，所以那两个 skill
+    # 必须留着，别当成纯展示卡片删掉。
     extensions = [ "${inputs.ponytail}" ];
   };
 
@@ -100,5 +103,9 @@ in
     ".omp/agent/models.yml".source = yamlFormat.generate "omp-models.yml" ompModels;
     ".omp/agent/config.yml".source = yamlFormat.generate "omp-config.yml" ompConfig;
     ".omp/agent/rules/caveman.md".source = cavemanRule;
+    # 上面那条 rule 广告了 `/caveman <档位>`，omp 里没有对应命令就是句空话：铺上游那份档位命令
+    # 到 native 命令目录（~/.omp/agent/commands/*.md）。commit/review 不铺 —— 同名 skill 已经
+    # 通过 /skill:<name> 给了更完整的版本；stats/init 依赖 Claude Code 的 hook 与写仓库规则文件。
+    ".omp/agent/commands/caveman.md".source = "${inputs.caveman}/commands/caveman.md";
   };
 }
