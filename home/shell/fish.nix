@@ -24,9 +24,6 @@ in
     # gh 的 API 认证只能用 token（SSH key 只管 git 传输层）。放这里而不是留在
     # keyring：keyring 那份是新机器上唯一还要 `gh auth login` 交互的东西。
     set -gx GH_TOKEN "{{ op://Developer/GitHub CLI Token/credential }}"
-
-    set -gx ANTHROPIC_BASE_URL "${catalog.gateway.endpoint}"
-    set -gx ANTHROPIC_AUTH_TOKEN "{{ op://Developer/AI Gateway API/credential }}"
   '';
 
   home.sessionPath = [

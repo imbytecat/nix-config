@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./claude-code.nix
     ./codex.nix
     ./omp.nix
   ];

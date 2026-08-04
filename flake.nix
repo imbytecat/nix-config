@@ -44,15 +44,15 @@
     #   nix build --dry-run nixpkgs#cherry-studio   # 看是 fetch 还是 build
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/49a4bd0573c376468dd7996ddb6f9fa31d8c4d97";
 
-    # AI coding agents (codex, claude-code, omp, skills, ...)，每天构建并 push 到 cache.numtide.com。
+    # AI coding agents (codex, omp, skills, ...)，每天构建并 push 到 cache.numtide.com。
     # 消费方式：inputs.llm-agents.packages.${system}.*（上游推荐；已无 overlays 输出）。
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了。
     llm-agents.url = "github:numtide/llm-agents.nix";
 
     # ponytail:「懒惰资深工程师」规则集，本身不是 flake —— 内容只有 markdown（1 条 rule +
-    # 6 个 skill）加三个 node lifecycle hook。官方 `/plugin marketplace add` 会往
-    # ~/.claude/plugins 那种地方写可变状态，这里改成 pin 进 flake.lock，由各 agent 模块
-    # 自己挂（见 home/dev/agents/）。
+    # 6 个 skill）加几个 node lifecycle hook（hook 那层这里没用上）。官方安装命令一律往
+    # agent 的可变状态目录里 clone，这里改成 pin 进 flake.lock，由 codex/omp 各自挂
+    # （见 home/dev/agents/）。
     ponytail = {
       url = "github:DietrichGebert/ponytail";
       flake = false;
