@@ -79,6 +79,19 @@ let
     # 也不用把上游那份没有 frontmatter 的 rule 包一层。
     extensions = [ "${inputs.ponytail}" ];
   };
+
+  # caveman 没有 pi extension，只能自己接：给上游那份 activate 规则包上 frontmatter 当
+  # always-apply 灌进去（omp 分桶要求 alwaysApply / description / condition 至少有一个）。
+  # skills 不用重复铺 —— codex.nix 已 link 到 ~/.codex/skills，omp 的 codex provider 会扫。
+  # 临时关说 "normal mode"，永久关删这条 rule。
+  cavemanRule = pkgs.writeText "caveman-rule.md" ''
+    ---
+    description: Caveman speech mode — terse replies, technical substance and code byte-exact
+    alwaysApply: true
+    ---
+
+    ${builtins.readFile "${inputs.caveman}/src/rules/caveman-activate.md"}
+  '';
 in
 {
   home.packages = [ inputs.llm-agents.packages.${system}.omp ];
@@ -86,5 +99,6 @@ in
   home.file = {
     ".omp/agent/models.yml".source = yamlFormat.generate "omp-models.yml" ompModels;
     ".omp/agent/config.yml".source = yamlFormat.generate "omp-config.yml" ompConfig;
+    ".omp/agent/rules/caveman.md".source = cavemanRule;
   };
 }

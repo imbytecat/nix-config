@@ -102,6 +102,22 @@
         "type": "github"
       }
     },
+    "caveman": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785851092,
+        "narHash": "sha256-zYWuv/uPEV5W9AGsmivYuGb4bDAGlVngZ94GbAGcz3M=",
+        "owner": "JuliusBrussee",
+        "repo": "caveman",
+        "rev": "ec83e5bace4c20484d704dea21e12fc4eb94e9aa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JuliusBrussee",
+        "repo": "caveman",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -610,6 +626,7 @@
         "catppuccin": "catppuccin",
         "catppuccin-konsole": "catppuccin-konsole",
         "catppuccin-starship": "catppuccin-starship",
+        "caveman": "caveman",
         "disko": "disko",
         "home-manager": "home-manager",
         "homebrew-cask": "homebrew-cask",

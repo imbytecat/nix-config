@@ -58,6 +58,14 @@
       flake = false;
     };
 
+    # caveman：ponytail 的另一半（ponytail 管「写多少代码」，caveman 管「说多少话」，
+    # 官方 FAQ 互相推荐）。同样不是 flake，而且没有 pi adapter —— 只有 skills/ 与一份
+    # 没 frontmatter 的 rule，见 home/dev/agents/。
+    caveman = {
+      url = "github:JuliusBrussee/caveman";
+      flake = false;
+    };
+
     # CachyOS 内核（awesome-pc 桌面）。release 分支 = Hydra CI 通过且已推 binary cache 的版本。
     # 故意不 follows nixpkgs：kernel patch 需匹配 nixpkgs 内核版本，且 pinned overlay 要自带 revision 才命中 cache。
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
