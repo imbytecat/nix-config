@@ -2,6 +2,7 @@
   imports = [
     ./fonts.nix
     ./nix.nix
+    ./gc.nix
   ];
 
   # 只放跨平台且与角色无关的日用组件。SSH 不在这里：NixOS 由 modules/nixos/base.nix

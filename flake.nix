@@ -208,6 +208,7 @@
           username = "imbytecat";
           extraModules = [
             inputs.disko.nixosModules.disko
+            ./modules/nixos/boot/systemd-boot.nix
             ./modules/desktop/nixos.nix
             ./hosts/awesome-pc
           ];
@@ -221,6 +222,7 @@
           hostname = "mihomo-gateway";
           system = "x86_64-linux";
           extraModules = [
+            ./modules/nixos/boot/systemd-boot.nix
             ./modules/gateway
             ./hosts/mihomo-gateway
           ];
@@ -229,7 +231,10 @@
         ovh-ks-5 = mylib.mkServer {
           hostname = "ovh-ks-5";
           system = "x86_64-linux";
-          extraModules = [ ./hosts/ovh-ks-5 ];
+          extraModules = [
+            ./modules/nixos/boot/grub-raid.nix
+            ./hosts/ovh-ks-5
+          ];
         };
       };
 

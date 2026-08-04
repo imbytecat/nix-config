@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -9,23 +9,10 @@
   system.stateVersion = "25.11";
 
   boot = {
-    loader = {
-      systemd-boot.enable = lib.mkForce false;
-      grub = {
-        enable = true;
-        efiSupport = true;
-        efiInstallAsRemovable = true;
-        devices = [
-          "/dev/nvme0n1"
-          "/dev/nvme1n1"
-        ];
-        configurationLimit = 10;
-      };
-      efi = {
-        canTouchEfiVariables = lib.mkForce false;
-        efiSysMountPoint = "/boot/efi";
-      };
-    };
+    loader.grub.devices = [
+      "/dev/nvme0n1"
+      "/dev/nvme1n1"
+    ];
     swraid.mdadmConf = "PROGRAM ${pkgs.util-linux}/bin/logger";
   };
 

@@ -31,7 +31,6 @@
     curl
     git
     ghostty.terminfo
-    docker-compose
     pciutils
     usbutils
     lsof

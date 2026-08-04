@@ -1,6 +1,6 @@
 # 只放这台机器独有的事实：磁盘、虚拟化平台、镜像源、stateVersion。
-# 无头服务器通用基线（SSH 硬化 / root-only / GC / generation 上限 / zram / 无 fontconfig）
-# 在 modules/nixos/server.nix；网关业务在 modules/gateway/。
+# 无头服务器通用基线（SSH 硬化 / root-only / optimise / zram / 无 fontconfig）在
+# modules/nixos/server.nix；GC 在 modules/shared/gc.nix，bootloader 显式组合，网关业务在 modules/gateway/。
 {
   lib,
   ...

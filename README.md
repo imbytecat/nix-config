@@ -152,7 +152,8 @@ docker compose version
 
 单臂透明代理网关，**只做代理一件事**，不是日用 NixOS。模块隔离：
 
-- 走 `modules/nixos/server.nix`（= `base.nix` + 无头角色：SSH 硬化 / root-only / `nix.gc` / generation 上限 / zram / 关 fontconfig）
+- 走 `modules/nixos/server.nix`（= `base.nix` + 无头角色：SSH 硬化 / root-only / optimise / 关 fontconfig）
+- GC 由跨平台 `modules/shared/gc.nix` 统一负责；bootloader 由 `modules/nixos/boot/systemd-boot.nix` 显式组合
 - 不导入 `modules/shared/default.nix`（fish/1password）、`modules/nixos/dev.nix`（unfree/overlay/docker/catppuccin）、home-manager，闭包里没有任何日用组件
 - 授权钥匙复用 `lib/default.nix` 的 `sshKeys`；网关业务全部在 `modules/gateway/`，机器独有事实（disko / virtio / 镜像源）在 `hosts/mihomo-gateway/`
 - 目标机装机不依赖 GitHub：`just install` 用 lock 住的 nixos-anywhere + 国内镜像 substituter（发起端仍需本仓 checkout 与 flake.lock）；开机即带一份构建期已校验的 fallback 配置（`mode: direct` + IP 字面量 DoH），此时 LAN 已经能上网，之后把订阅链接写进 `/etc/mihomo/env` 即自动拉取生效
@@ -194,16 +195,18 @@ EOF"
 
 `mkServer` builder 通用，加新机器时：
 
-1. 需要独立业务模块时写 `modules/<purpose>/`
-2. 写 `hosts/<host>/default.nix` 与 `disko.nix`
-3. 裸机再加入并 import `hardware-configuration.nix`；文件必须先被 git 跟踪，`just install` 才会让 nixos-anywhere 在调用端工作树生成并纳入 flake
-4. 在 `flake.nix` 添加：
+1. 选择 `modules/nixos/boot/systemd-boot.nix`；双盘 RAID 启动用 `grub-raid.nix`
+2. 需要独立业务模块时写 `modules/<purpose>/`
+3. 写 `hosts/<host>/default.nix` 与 `disko.nix`
+4. 裸机再加入并 import `hardware-configuration.nix`；文件必须先被 git 跟踪，`just install` 才会让 nixos-anywhere 在调用端工作树生成并纳入 flake
+5. 在 `flake.nix` 添加：
 
 ```nix
 <host> = mylib.mkServer {
   hostname = "<host>";
   system = "x86_64-linux";  # 或 aarch64-linux（ARM VPS）
   extraModules = [
+    ./modules/nixos/boot/systemd-boot.nix
     ./modules/<purpose>
     ./hosts/<host>
   ];
@@ -214,7 +217,7 @@ EOF"
 
 ### 加新无头开发 NixOS 机
 
-日用但不带桌面（SSH remote dev）：用 `mkNixos`，`extraModules` **不加** `./modules/desktop/nixos.nix` 即可。`modules/nixos/base.nix` + `dev.nix` 已含 locale、docker、nix-ld、用户，home-manager 全量生效，SSH 上去 shell/git/nvim 体验与桌面机一致。
+日用但不带桌面（SSH remote dev）：用 `mkNixos`，显式加入 boot 模块，`extraModules` **不加** `./modules/desktop/nixos.nix` 即可。`modules/nixos/base.nix` + `dev.nix` 已含 locale、docker、nix-ld、用户，home-manager 全量生效，SSH 上去 shell/git/nvim 体验与桌面机一致。
 
 ```nix
 <host> = mylib.mkNixos {
@@ -223,6 +226,7 @@ EOF"
   username = "imbytecat";
   extraModules = [
     inputs.disko.nixosModules.disko  # 如走 nixos-anywhere 首装
+    ./modules/nixos/boot/systemd-boot.nix
     ./hosts/<host>
   ];
 };
@@ -243,8 +247,9 @@ modules/
   │   └── nixos.nix            #   NixOS GUI（Plasma 6 + 桌面应用 + fcitx5/rime + 罗技外设）
   ├── darwin/                  # macOS 模块
   ├── nixos/                   # NixOS 阶梯：base.nix → dev.nix（日用）/ server.nix（无头服务器）
+  │   └── boot/                # 显式 boot adapter：systemd-boot / RAID GRUB
   ├── gateway/                 # 网关模块 (mihomo + tproxy + 单臂 networking)
-  └── shared/                  # 跨平台共享 (fonts/nix/fish/1password；SSH 基线在 nixos/base.nix)
+  └── shared/                  # 跨平台共享 (gc/nix/fonts/fish/1password；SSH 基线在 nixos/base.nix)
 home/                          # Home Manager 配置（只用于日用机，跨平台 ~100% 共享）
   ├── dev/                     # 开发工具
   └── shell/                   # Shell 配置
@@ -258,11 +263,13 @@ overlays/ + pkgs/              # 自定义包
 | 场景 | 组成 | 示例 |
 |------|------|------|
 | Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | MacBook Air |
-| NixOS 桌面 | `hosts/*` → `modules/shared` + `modules/nixos/{base,dev}.nix` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
+| NixOS 桌面 | `hosts/*` + `boot/systemd-boot.nix` → `modules/shared` + `modules/nixos/{base,dev}.nix` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
 | NixOS 无头开发 | 同上去掉 `modules/desktop/nixos.nix` | （预留） |
-| NixOS 服务器 | `hosts/<host>` + 可选 `modules/<purpose>` + `modules/nixos/server.nix`（mkServer，无 HM） | mihomo-gateway、ovh-ks-5 |
+| NixOS 服务器 | `hosts/<host>` + `boot/<adapter>` + 可选 `modules/<purpose>` + `modules/nixos/server.nix`（mkServer，无 HM） | mihomo-gateway、ovh-ks-5 |
 
-`modules/nixos/` 是一条阶梯：`base.nix`（所有 NixOS 主机都成立的事实）→ 上面二选一叠 `dev.nix`（日用开发）或 `server.nix`（无头服务器）→ 桌面再叠 `modules/desktop/nixos.nix`。判据：一个事实只要有一种角色不需要，就不许放进 `base.nix`。
+`modules/nixos/` 是一条阶梯：`base.nix`（所有 NixOS 主机都成立的 locale、SSH、zram 等事实）→ 上面二选一叠 `dev.nix`（日用开发）或 `server.nix`（无头服务器）→ 桌面再叠 `modules/desktop/nixos.nix`。bootloader 是机器启动策略，不属于角色基线，因此从 `base.nix` 拆出并在每个 host 的 flake 组合中显式选择。
+
+所有系统都导入 `modules/shared/gc.nix`：每周自动执行 `nix-collect-garbage --delete-older-than 30d`；Linux 用 systemd timer，Darwin 用 launchd calendar interval。
 
 共享边界：`home/`（shell/git/nvim/AI 工具链）跨平台共享，SSH 到任何一台日用机体验一致；GUI 应用列表按平台分开演化——brew/MAS 与 nixpkgs 的包名、机制、可用性差异太大，强行对齐得不偿失。
 

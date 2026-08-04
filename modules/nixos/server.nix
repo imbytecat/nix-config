@@ -19,15 +19,7 @@
     openssh.authorizedKeys.keys = sshKeys;
   };
 
-  # 无人值守长跑：不回收 store 等于等着根分区被撑满；generation 不设上限迟早塞满 ESP
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
+  # 无人值守长跑：定期合并重复 store path，GC 由跨平台 modules/shared/gc.nix 统一负责
   nix.optimise.automatic = true;
-  boot.loader.systemd-boot.configurationLimit = 10;
 
-  # 服务器多是小内存 VM 且不休眠：压缩内存兜一层 OOM，不占磁盘
-  zramSwap.enable = true;
 }
