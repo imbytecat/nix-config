@@ -62,9 +62,11 @@ let
       light = "light-catppuccin";
     };
     symbolPreset = "nerd";
-    # web_search 钉死 Exa（fish op-env 已注入 EXA_API_KEY），避免 auto 优先命中
-    # Anthropic 并使用其固定的 Haiku 搜索模型。
-    providers.webSearch = "exa";
+    # web_search 把 Exa 排到链首（fish op-env 已注入 EXA_API_KEY），避免 auto 优先命中
+    # Anthropic 并使用其固定的 Haiku 搜索模型。只是优先级、不是排他：Exa 失败仍会顺着
+    # 内置顺序回退到 anthropic 等，要真正禁用得用 providers.webSearchExclude。
+    # 旧的 providers.webSearch 枚举已被上游移除，只靠 legacy 迁移塞进本列表头部。
+    providers.webSearchOrder = [ "exa" ];
     modelRoles = {
       default = "${catalog.ref "opus"}:max";
       smol = catalog.ref "luna";
