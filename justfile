@@ -71,8 +71,9 @@ eval:
 eval:
     @nix eval .#nixosConfigurations.awesome-pc.config.system.build.toplevel > /dev/null && echo "awesome-pc: ok"
     @nix eval .#nixosConfigurations.mihomo-gateway.config.system.build.toplevel > /dev/null && echo "mihomo-gateway: ok"
+    @nix eval .#nixosConfigurations.ovh-ks-5.config.system.build.toplevel > /dev/null && echo "ovh-ks-5: ok"
 
-[doc('nix flake check —— 格式 + lint + 三台 host 的 eval（在 Linux 上跑才全覆盖：host eval 挂在 x86_64-linux 上，darwin 只跑得到 formatting/lint，用 just eval 补）')]
+[doc('nix flake check —— 格式 + lint + 四台 host 的 eval（在 Linux 上跑才全覆盖：host eval 挂在 x86_64-linux 上，darwin 只跑得到 formatting/lint，用 just eval 补）')]
 [group('check')]
 check:
     nix flake check --show-trace

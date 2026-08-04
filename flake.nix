@@ -225,6 +225,12 @@
             ./hosts/mihomo-gateway
           ];
         };
+
+        ovh-ks-5 = mylib.mkServer {
+          hostname = "ovh-ks-5";
+          system = "x86_64-linux";
+          extraModules = [ ./hosts/ovh-ks-5 ];
+        };
       };
 
       # 两个都是安装工具，上游对 darwin 也出包：MacBook 上跑 `just install` 才有得用
@@ -258,7 +264,7 @@
         }
       );
 
-      # `nix flake check` 是唯一门禁：格式 + lint + 三台 host 的 eval
+      # `nix flake check` 是唯一门禁：格式 + lint + 四台 host 的 eval
       checks = forAllSystems (
         system:
         let
@@ -297,6 +303,7 @@
           eval-awesome-macbook-air = evalOnly "awesome-macbook-air" inputs.self.darwinConfigurations.awesome-macbook-air.system.drvPath;
           eval-awesome-pc = evalOnly "awesome-pc" inputs.self.nixosConfigurations.awesome-pc.config.system.build.toplevel.drvPath;
           eval-mihomo-gateway = evalOnly "mihomo-gateway" inputs.self.nixosConfigurations.mihomo-gateway.config.system.build.toplevel.drvPath;
+          eval-ovh-ks-5 = evalOnly "ovh-ks-5" inputs.self.nixosConfigurations.ovh-ks-5.config.system.build.toplevel.drvPath;
         }
       );
 
