@@ -19,8 +19,15 @@
                 type = "EF02";
               };
               ESP = {
-                size = "1G";
+                size = "512M";
                 type = "EF00";
+                content = {
+                  type = "mdraid";
+                  name = "efi";
+                };
+              };
+              boot = {
+                size = "2G";
                 content = {
                   type = "mdraid";
                   name = "boot";
@@ -38,15 +45,25 @@
         });
 
     mdadm = {
-      boot = {
+      efi = {
         type = "mdadm";
         level = 1;
         metadata = "1.0";
         content = {
           type = "filesystem";
           format = "vfat";
-          mountpoint = "/boot";
+          mountpoint = "/boot/efi";
           mountOptions = [ "umask=0077" ];
+        };
+      };
+      boot = {
+        type = "mdadm";
+        level = 1;
+        metadata = "1.2";
+        content = {
+          type = "filesystem";
+          format = "ext4";
+          mountpoint = "/boot";
         };
       };
       root = {

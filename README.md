@@ -114,7 +114,8 @@ just switch awesome-pc
 两块 NVMe（默认 `/dev/nvme0n1`、`/dev/nvme1n1`）由 `hosts/ovh-ks-5/disko.nix` 全盘重建：
 
 - 每盘 1 MiB BIOS boot 分区，兼容 Legacy BIOS
-- 两个 1 GiB ESP 组成 RAID1（metadata 1.0），挂载 `/boot`
+- 两个 512 MiB ESP 组成 RAID1（metadata 1.0），挂载 `/boot/efi`
+- 两个 2 GiB ext4 分区组成 RAID1（metadata 1.2），挂载 `/boot`
 - 剩余空间组成 ext4 RAID1（metadata 1.2），挂载 `/`
 - GRUB 同时支持 UEFI removable path 和 Legacy BIOS；主 IPv4 走 DHCP
 

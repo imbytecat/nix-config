@@ -23,7 +23,7 @@
       };
       efi = {
         canTouchEfiVariables = lib.mkForce false;
-        efiSysMountPoint = "/boot";
+        efiSysMountPoint = "/boot/efi";
       };
     };
     swraid.mdadmConf = "PROGRAM ${pkgs.util-linux}/bin/logger";
