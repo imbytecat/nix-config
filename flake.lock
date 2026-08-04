@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "agent-browser": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785714801,
+        "narHash": "sha256-hQKr6s8gqaDm4AVbQomd1TMZcowOGCVNF5DnuIm/fCs=",
+        "owner": "vercel-labs",
+        "repo": "agent-browser",
+        "rev": "01c1147da66940c034a5ccea497447e52c2f6dfe",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vercel-labs",
+        "repo": "agent-browser",
+        "type": "github"
+      }
+    },
     "brew-src": {
       "flake": false,
       "locked": {
@@ -623,6 +639,7 @@
     },
     "root": {
       "inputs": {
+        "agent-browser": "agent-browser",
         "catppuccin": "catppuccin",
         "catppuccin-konsole": "catppuccin-konsole",
         "catppuccin-starship": "catppuccin-starship",

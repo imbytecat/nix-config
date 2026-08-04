@@ -66,6 +66,13 @@
       flake = false;
     };
 
+    # agent-browser 的 discovery stub；详细 workflow 由已安装 CLI 按自身版本动态提供，
+    # 这里只 pin 通用入口 skill，避免说明与 llm-agents 提供的 CLI 版本脱节。
+    agent-browser = {
+      url = "github:vercel-labs/agent-browser";
+      flake = false;
+    };
+
     # CachyOS 内核（awesome-pc 桌面）。release 分支 = Hydra CI 通过且已推 binary cache 的版本。
     # 故意不 follows nixpkgs：kernel patch 需匹配 nixpkgs 内核版本，且 pinned overlay 要自带 revision 才命中 cache。
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";

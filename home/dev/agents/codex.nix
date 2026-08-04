@@ -1,5 +1,4 @@
 {
-  lib,
   inputs,
   system,
   ...
@@ -7,25 +6,15 @@
 
 let
   catalog = import ../../ai-catalog.nix;
-
-  # HM 的 skills 只收「一个目录」或「name → 源」的 attrset，挂两个仓库就得自己合。
-  skillsIn =
-    dir:
-    lib.mapAttrs (name: _: "${dir}/${name}") (
-      lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir)
-    );
 in
 {
   programs.codex = {
     enable = true;
     package = inputs.llm-agents.packages.${system}.codex;
 
-    # 不用 HM 的 `plugins`：它把插件 link 进 ~/.codex/plugins/cache/… 后仍要 codex 自己
-    # 落盘安装（`codex plugin add` 会往那个 store symlink 里写，直接 EROFS），marketplace
-    # 里只会留一条 "not installed"。skills 这条路是纯 symlink，codex 顺着链接读到仓库根的
-    # .codex-plugin/plugin.json，照样按 `<plugin>:<skill>` 命名空间挂载。
-    # 这两份 link 同时也是 omp 的 skill 来源（它的 codex provider 扫 ~/.codex/skills）。
-    skills = skillsIn "${inputs.ponytail}/skills" // skillsIn "${inputs.caveman}/skills";
+    # 不用 HM 的 `plugins`：它把插件 link 进 ~/.codex/plugins/cache/… 后，Codex 仍要
+    # 往里面落盘安装，store symlink 会直接 EROFS。纯说明型 skill 统一由 skills.nix 铺到
+    # 官方跨 agent 目录 ~/.agents/skills；需要可写状态的 plugin 继续交给 CLI。
 
     settings = {
       model_provider = "furtherverse";

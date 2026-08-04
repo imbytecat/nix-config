@@ -82,7 +82,7 @@ let
 
   # caveman 没有 pi extension，只能自己接：给上游那份 activate 规则包上 frontmatter 当
   # always-apply 灌进去（omp 分桶要求 alwaysApply / description / condition 至少有一个）。
-  # skills 不用重复铺 —— codex.nix 已 link 到 ~/.codex/skills，omp 的 codex provider 会扫。
+  # skills.nix 已 link 到 ~/.agents/skills，omp 的 agents provider 会扫，不用再铺第二份。
   # 临时关说 "normal mode"，永久关删这条 rule。
   cavemanRule = pkgs.writeText "caveman-rule.md" ''
     ---
