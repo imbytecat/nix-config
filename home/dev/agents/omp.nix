@@ -73,40 +73,18 @@ let
       slow = "${catalog.ref "sol"}:xhigh";
       designer = catalog.ref "kimi";
     };
+    # ponytail 走它自带的 pi extension（package.json 的 legacy `pi.extensions` 键，omp 的
+    # loader 认）：before_agent_start 每轮把 ruleset 拼进 system prompt，注册 /ponytail 档位
+    # 与 /ponytail-* 命令，skills/ 由 omp-plugins provider 一并挂上 —— 不用手铺 skill link，
+    # 也不用把上游那份没有 frontmatter 的 rule 包一层。
+    extensions = [ "${inputs.ponytail}" ];
   };
-
-  # ponytail 在 omp 这边没有 adapter（claude-code / codex 各自走 HM 模块的 plugins 选项）：
-  # skills 逐个 link 进原生目录即可，rule 得自己补 frontmatter —— 上游那份不带 frontmatter，
-  # 而 omp 分桶要求 alwaysApply / description / condition 至少有一个，否则整条被静默丢弃
-  # （既不注入也读不到 rule://）。删掉 alwaysApply 那行就退回 rulebook，由模型自己决定读不读。
-  ponytailSkills = lib.listToAttrs (
-    map
-      (name: {
-        name = ".omp/agent/skills/${name}";
-        value.source = "${inputs.ponytail}/skills/${name}";
-      })
-      (
-        lib.attrNames (
-          lib.filterAttrs (_: type: type == "directory") (builtins.readDir "${inputs.ponytail}/skills")
-        )
-      )
-  );
-
-  ponytailRule = pkgs.writeText "ponytail-rule.md" ''
-    ---
-    description: Lazy senior dev ladder — ask whether the code needs to exist before writing it
-    alwaysApply: true
-    ---
-
-    ${builtins.readFile "${inputs.ponytail}/.agents/rules/ponytail.md"}
-  '';
 in
 {
   home.packages = [ inputs.llm-agents.packages.${system}.omp ];
 
-  home.file = ponytailSkills // {
+  home.file = {
     ".omp/agent/models.yml".source = yamlFormat.generate "omp-models.yml" ompModels;
     ".omp/agent/config.yml".source = yamlFormat.generate "omp-config.yml" ompConfig;
-    ".omp/agent/rules/ponytail.md".source = ponytailRule;
   };
 }
