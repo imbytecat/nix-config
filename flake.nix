@@ -49,6 +49,15 @@
     # 故意不 follows nixpkgs，否则 binary cache 就 miss 了。
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    # ponytail:「懒惰资深工程师」规则集，本身不是 flake —— 内容只有 markdown（1 条 rule +
+    # 6 个 skill）加三个 node lifecycle hook。官方 `/plugin marketplace add` 会往
+    # ~/.claude/plugins 那种地方写可变状态，这里改成 pin 进 flake.lock，由各 agent 模块
+    # 自己挂（见 home/dev/agents/）。
+    ponytail = {
+      url = "github:DietrichGebert/ponytail";
+      flake = false;
+    };
+
     # CachyOS 内核（awesome-pc 桌面）。release 分支 = Hydra CI 通过且已推 binary cache 的版本。
     # 故意不 follows nixpkgs：kernel patch 需匹配 nixpkgs 内核版本，且 pinned overlay 要自带 revision 才命中 cache。
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
