@@ -73,6 +73,16 @@
       flake = false;
     };
 
+    # mattpocock/skills：一整套「真工程」流程 skill（grilling → spec → tickets → tdd →
+    # code-review 等）。同样不是 flake，只有 markdown（skills/{engineering,productivity}/<name>/
+    # SKILL.md，比 ponytail/caveman 多一层分类目录）。官方两条安装路径都不用：Claude Code
+    # plugin 是 Claude 专属，`skills add mattpocock/skills` 把可编辑副本拷进每个仓库（可变、
+    # 不 pin）。这里按 read-only 订阅语义 pin 进 flake.lock，见 home/dev/agents/skills.nix。
+    mattpocock-skills = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
+
     # CachyOS 内核（awesome-pc 桌面）。release 分支 = Hydra CI 通过且已推 binary cache 的版本。
     # 故意不 follows nixpkgs：kernel patch 需匹配 nixpkgs 内核版本，且 pinned overlay 要自带 revision 才命中 cache。
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";

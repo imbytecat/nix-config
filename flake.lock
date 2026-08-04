@@ -355,6 +355,22 @@
         "type": "github"
       }
     },
+    "mattpocock-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785230297,
+        "narHash": "sha256-dQtG6usJWlg/FqTajrjcs8GSdymH92WsgLiUaCfvKPA=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "2ab958093e83e0ec752e6c1c5932da465bf23e0c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "nix-cachyos-kernel": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -652,6 +668,7 @@
         "homebrew-imbytecat": "homebrew-imbytecat",
         "lazyvim": "lazyvim",
         "llm-agents": "llm-agents",
+        "mattpocock-skills": "mattpocock-skills",
         "nix-cachyos-kernel": "nix-cachyos-kernel",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
