@@ -1,12 +1,14 @@
 { lib, pkgs, ... }:
 
 {
-  imports = [ ./disko.nix ];
+  imports = [
+    ./disko.nix
+    ./hardware-configuration.nix
+  ];
 
   system.stateVersion = "25.11";
 
   boot = {
-    initrd.availableKernelModules = [ "nvme" ];
     loader = {
       systemd-boot.enable = lib.mkForce false;
       grub = {

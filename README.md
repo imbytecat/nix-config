@@ -1,8 +1,8 @@
 # Nix Config
 
-nix-darwin + NixOS + Home Manager + Flakes 声明式管理一台 NixOS PC + 一台 Mac + 一台单臂透明代理网关。
+nix-darwin + NixOS + Home Manager + Flakes 声明式管理一台 NixOS PC、一台 Mac、一个单臂透明代理网关和一台 OVH Docker 服务器。
 
-Linux 为主、macOS 为辅：NixOS PC 是主力桌面，GUI 应用列表按平台分开维护（`modules/desktop/{darwin,nixos}.nix`），CLI/开发环境（`home/`）跨平台完全共享，SSH 到任何一台机器 shell/git/nvim 体验一致。
+Linux 为主、macOS 为辅：NixOS PC 是主力桌面，GUI 应用列表按平台分开维护（`modules/desktop/{darwin,nixos}.nix`），CLI/开发环境（`home/`）跨平台完全共享。服务器走 root-only 的最小闭包，业务按机器显式添加。
 
 ## 设备
 
@@ -13,6 +13,7 @@ flake 目标、目录、`networking.hostName` 三者完全一致 —— 改任�
 | PC | x86_64-linux | `awesome-pc` | **主力桌面**。实体机，systemd-boot + Plasma 6 Wayland + AMD GPU |
 | MacBook Air | aarch64-darwin | `awesome-macbook-air` | 外出 + Xcode/Flutter 构建机，带刘海 |
 | Mihomo Gateway | x86_64-linux | `mihomo-gateway` | 单臂透明代理，root-only，**不走** home-manager / fish / 1password / catppuccin |
+| OVH KS-5 | x86_64-linux | `ovh-ks-5` | Xeon E3-1270 v6，2 × NVMe RAID1，root-only，只装 Docker + Compose |
 
 ## 快速开始
 
@@ -106,6 +107,46 @@ just switch awesome-pc
 
 桌面角色在 `modules/desktop/nixos.nix`，AMD GPU 和 CachyOS 内核等硬件配置在 `hosts/awesome-pc/default.nix`。
 
+### OVH KS-5
+
+`ovh-ks-5` 是 root-only Docker 服务器，不导入 Home Manager、桌面、fish、1Password、catppuccin 或日用开发工具。Docker 包已自带 Compose 插件，使用 `docker compose`。
+
+两块 NVMe（默认 `/dev/nvme0n1`、`/dev/nvme1n1`）由 `hosts/ovh-ks-5/disko.nix` 全盘重建：
+
+- 每盘 1 MiB BIOS boot 分区，兼容 Legacy BIOS
+- 两个 1 GiB ESP 组成 RAID1（metadata 1.0），挂载 `/boot`
+- 剩余空间组成 ext4 RAID1（metadata 1.2），挂载 `/`
+- GRUB 同时支持 UEFI removable path 和 Legacy BIOS；主 IPv4 走 DHCP
+
+先在 OVH 控制台切到 Rescue 模式，确认以 UEFI 启动且磁盘名无误：
+
+```bash
+ssh root@<server-ip> \
+  'test -d /sys/firmware/efi && echo UEFI; lsblk -d -o NAME,SIZE,MODEL,SERIAL'
+```
+
+确认后从持有本仓的机器安装；此操作会清空两块 NVMe：
+
+```bash
+just install ovh-ks-5 <server-ip>
+```
+
+仓库预置的 `hosts/ovh-ks-5/hardware-configuration.nix` 是首次扫描入口。`just install` 会让 nixos-anywhere 用目标机的真实 `nixos-generate-config` 结果覆盖它；安装完成后检查并提交：
+
+```bash
+git add hosts/ovh-ks-5/hardware-configuration.nix
+git commit -m "fix(ovh): 更新 hardware-configuration"
+```
+
+重启后验证：
+
+```bash
+ssh-keygen -R <server-ip>
+ssh root@<server-ip>
+cat /proc/mdstat
+docker compose version
+```
+
 ### Mihomo Gateway
 
 单臂透明代理网关，**只做代理一件事**，不是日用 NixOS。模块隔离：
@@ -150,11 +191,12 @@ EOF"
 
 ### 加新远程 NixOS 服务器
 
-`mkServer` builder 通用，加新机器三步走：
+`mkServer` builder 通用，加新机器时：
 
-1. 写 `modules/<purpose>/`（服务相关 NixOS 配置，如 mihomo + tproxy）
-2. 写 `hosts/<host>/{default,disko}.nix`（boot/openssh/timezone/disko 等 host-level 配置）
-3. 在 `flake.nix` 添加：
+1. 需要独立业务模块时写 `modules/<purpose>/`
+2. 写 `hosts/<host>/default.nix` 与 `disko.nix`
+3. 裸机再加入并 import `hardware-configuration.nix`；文件必须先被 git 跟踪，`just install` 才会让 nixos-anywhere 在调用端工作树生成并纳入 flake
+4. 在 `flake.nix` 添加：
 
 ```nix
 <host> = mylib.mkServer {
@@ -167,7 +209,7 @@ EOF"
 };
 ```
 
-部署：`just install <host> <remote>`（首装），之后 `just deploy <host> <remote>`（更新）。
+无独立业务模块时直接省略 `./modules/<purpose>`。部署：`just install <host> <remote>`（首装），之后 `just deploy <host> <remote>`（更新）。
 
 ### 加新无头开发 NixOS 机
 
@@ -192,7 +234,8 @@ flake.nix                      # 入口
 hosts/                         # 主机特定配置（目录名 == flake 目标 == hostname）
   ├── awesome-macbook-air/     # 日用 Darwin
   ├── awesome-pc/              # 日用 NixOS
-  └── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
+  ├── mihomo-gateway/          # 单臂透明代理网关 (default.nix + disko.nix)
+  └── ovh-ks-5/                # OVH Docker 裸机 (default.nix + disko.nix + hardware-configuration.nix)
 modules/
   ├── desktop/                 # 平台桌面角色，故意分开维护、互不迁就
   │   ├── darwin.nix           #   macOS GUI（brew casks + MAS）
@@ -216,7 +259,7 @@ overlays/ + pkgs/              # 自定义包
 | Darwin 桌面 | `hosts/*` → `modules/{shared,darwin}` + `modules/desktop/darwin.nix` → `home/*` | MacBook Air |
 | NixOS 桌面 | `hosts/*` → `modules/shared` + `modules/nixos/{base,dev}.nix` + `modules/desktop/nixos.nix` → `home/*` | awesome-pc |
 | NixOS 无头开发 | 同上去掉 `modules/desktop/nixos.nix` | （预留） |
-| NixOS 服务器 | `hosts/<host>` + `modules/<purpose>` + `modules/nixos/server.nix`（mkServer，无 HM） | mihomo-gateway |
+| NixOS 服务器 | `hosts/<host>` + 可选 `modules/<purpose>` + `modules/nixos/server.nix`（mkServer，无 HM） | mihomo-gateway、ovh-ks-5 |
 
 `modules/nixos/` 是一条阶梯：`base.nix`（所有 NixOS 主机都成立的事实）→ 上面二选一叠 `dev.nix`（日用开发）或 `server.nix`（无头服务器）→ 桌面再叠 `modules/desktop/nixos.nix`。判据：一个事实只要有一种角色不需要，就不许放进 `base.nix`。
 
