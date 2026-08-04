@@ -67,6 +67,7 @@ let
     # 内置顺序回退到 anthropic 等，要真正禁用得用 providers.webSearchExclude。
     # 旧的 providers.webSearch 枚举已被上游移除，只靠 legacy 迁移塞进本列表头部。
     providers.webSearchOrder = [ "exa" ];
+    compaction.thresholdPercent = 75;
     modelRoles = {
       default = "${catalog.ref "opus"}:max";
       smol = catalog.ref "luna";
