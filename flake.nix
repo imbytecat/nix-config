@@ -194,10 +194,21 @@
         };
       };
 
-      packages = forAllSystems (system: {
-        inherit (inputs.disko.packages.${system}) disko-install;
-        inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
-      });
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          inherit (inputs.disko.packages.${system}) disko-install;
+          inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
+
+          kexec-installer = pkgs.fetchurl {
+            url = "https://github.com/nix-community/nixos-images/releases/download/nixos-26.05/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz";
+            hash = "sha256-C1qrRT0xiICBBjGkLMNN5iBEKtbosigS2+a6x/Z9hFw=";
+          };
+        }
+      );
 
       overlays.default = import ./overlays { inherit inputs; };
 
@@ -247,8 +258,10 @@
               ''
                 cd ${inputs.self}
                 statix check
-                # hardware-configuration.nix 是 nixos-generate-config 生成的，不由我们维护
-                deadnix --fail --exclude ./hosts/awesome-pc/hardware-configuration.nix
+                # hardware-configuration.nix 由 nixos-generate-config 生成，不由我们维护
+                deadnix --fail --exclude \
+                  ./hosts/awesome-pc/hardware-configuration.nix \
+                  ./hosts/ovh-ks-5/hardware-configuration.nix
                 touch $out
               '';
         }

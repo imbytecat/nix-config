@@ -104,6 +104,8 @@ diff host: (_guard host) (build host)
 install host remote: (_valid host) (_valid_remote remote)
     #!/usr/bin/env bash
     set -euo pipefail
+    # 默认 25.11 kexec 会写出目标 6.18 内核无法读取的 mdraid superblock。
+    kexec_installer="$(nix build --no-link --print-out-paths .#kexec-installer)"
     hardware_config="./hosts/{{ host }}/hardware-configuration.nix"
     hardware_args=()
     if [ -f "$hardware_config" ]; then
@@ -112,6 +114,7 @@ install host remote: (_valid host) (_valid_remote remote)
     # nixos-anywhere 会转发目标 host 的 nix.settings 并自动启用 flakes；勿在此复制。
     nix run .#nixos-anywhere -- \
       "${hardware_args[@]}" \
+      --kexec "$kexec_installer" \
       --option always-allow-substitutes true \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
@@ -202,5 +205,7 @@ fmt:
 [group('check')]
 lint:
     statix check
-    deadnix --fail --exclude ./hosts/awesome-pc/hardware-configuration.nix
+    deadnix --fail --exclude \
+      ./hosts/awesome-pc/hardware-configuration.nix \
+      ./hosts/ovh-ks-5/hardware-configuration.nix
 
