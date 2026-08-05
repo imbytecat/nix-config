@@ -304,7 +304,7 @@ just lint                    # actionlint + statix + deadnix
 just repl                    # 带 nixpkgs 的 nix repl
 ```
 
-GitHub Actions 每周运行同一更新与检查流程，通过后创建/刷新 PR；Rime、字体和 kexec 镜像只报告上游状态，仍需人工确认。
+GitHub Actions 每周运行同一更新与检查流程，通过后创建/刷新 PR 并自动 squash 合并；Rime、字体和 kexec 镜像只报告上游状态，仍需人工确认。
 
 `programs.nh.flake` 已指向 `~/nix-config`，所以也可直接：`nh os switch`、`nh home switch`、`nh clean all`，无需 `--flake` 参数。
 

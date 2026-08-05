@@ -56,6 +56,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create update pull request
+        id: pr
         uses: peter-evans/create-pull-request@v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -74,7 +75,13 @@ jobs:
             - Rime LTS 发布时间：`${{ steps.pins.outputs.rime }}`（仅提示）
             - nixos-images 最新版本：`${{ steps.pins.outputs.kexec }}`（仅提示）
 
-            Rime、字体和 kexec 镜像仍需人工确认后更新。
+            验证通过后自动 squash 合并；Rime、字体和 kexec 镜像仍需人工确认后更新。
+
+      - name: Merge verified update
+        if: steps.update.outcome == 'success' && steps.verify.outcome == 'success' && steps.pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ steps.pr.outputs.pull-request-number }}" --repo "${{ github.repository }}" --squash --delete-branch
 
       - name: Fail on update or verification error
         if: steps.update.outcome == 'failure' || steps.verify.outcome == 'failure'
