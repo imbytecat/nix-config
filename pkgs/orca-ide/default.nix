@@ -45,11 +45,11 @@
 
 let
   pname = "orca-ide";
-  version = "1.4.165";
+  version = "1.4.170";
 
   src = fetchurl {
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
-    hash = "sha256-bUfsREvJIArWRdM5n3MIffjec5Zd99HU0AQUKmZJj8s=";
+    hash = "sha256-7iIaZpuQAO5E1XCb3GnNiwS5RYKG6WNB6mcNykZrot0=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
@@ -120,9 +120,6 @@ stdenv.mkDerivation {
     install -Dm444 "${appimageContents}/usr/share/icons/hicolor/512x512/apps/${pname}.png" \
       "$out/share/icons/hicolor/512x512/apps/${pname}.png"
     rm -r "$out/lib/${pname}"/{AppRun,.DirIcon,${pname}.png,${pname}.desktop,usr}
-
-    # 删除无法满足 aarch64 loader 的外来预编译产物。
-    rm -r "$out/lib/${pname}/resources/node_modules/@parcel/watcher-linux-arm64-glibc"
 
     # 删除与 Release/pty.node 重复且会让 shrink-rpath 报错的 node-gyp 中间产物。
     rm -r "$out/lib/${pname}/resources/node_modules/node-pty/build/Release/obj.target"
