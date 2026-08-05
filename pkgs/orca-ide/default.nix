@@ -56,7 +56,7 @@ let
   appimageContents = appimageTools.extract { inherit pname version src; };
 in
 stdenv.mkDerivation {
-  inherit pname version;
+  inherit pname version src;
 
   dontUnpack = true;
   dontConfigure = true;

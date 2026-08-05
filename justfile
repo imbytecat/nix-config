@@ -170,7 +170,7 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
 [group('nix')]
 update:
     nix flake update
-    nix develop -c nix-update orca-ide --flake --system x86_64-linux --url https://github.com/stablyai/orca --use-github-releases --format
+    nix develop -c nix-update orca-ide --flake --system x86_64-linux --url https://github.com/stablyai/orca --use-github-releases
 
 [doc('更新单个 flake 输入')]
 [group('nix')]
