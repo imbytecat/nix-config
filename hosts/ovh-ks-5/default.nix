@@ -18,6 +18,8 @@
     swraid.mdadmConf = "PROGRAM ${pkgs.util-linux}/bin/logger";
   };
 
+  environment.systemPackages = [ pkgs.neovim ];
+
   networking.useDHCP = true;
   virtualisation.docker.enable = true;
 }
