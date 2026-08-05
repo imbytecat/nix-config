@@ -10,8 +10,7 @@ in
     ./skills.nix
   ];
 
-  # 上游推荐直接吃 packages（不 follows nixpkgs，命中 cache.numtide.com）
-  # agent-browser：wrapper 已自带 chromium env，开箱即用（跨平台）。
+  # 直接使用上游 packages，保留 cache.numtide.com 命中。
   home.packages = [
     agentPackages.skills
     agentPackages.agent-browser

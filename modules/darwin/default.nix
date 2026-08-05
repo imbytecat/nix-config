@@ -9,9 +9,7 @@
 {
   imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
-  # 声明式 pin Homebrew + tap 仓库到 flake input commit,brew update 不再悄悄漂移。
-  # autoMigrate=true: 新机器自动装 brew,已有 brew 接管;无需手工跑官方 install.sh。
-  # mutableTaps=false: tap 只能在 flake 改,`brew tap` 命令禁用。
+  # Brew/taps 由 flake pin；自动接管已有安装，禁止命令行新增 tap。
   nix-homebrew = {
     enable = true;
     user = username;
@@ -28,10 +26,8 @@
 
   system.primaryUser = username;
 
-  # NixOS 侧在 modules/nixos/base.nix，这里是 Darwin 自己那份（原来混在 modules/shared）
   services.openssh.enable = true;
 
-  # 日用机的普通用户要能用 flake nixConfig 里的 cache（见 modules/shared/nix.nix）
   nix.settings.trusted-users = [ username ];
 
   security.sudo.extraConfig = ''
@@ -42,8 +38,7 @@
 
   system.startup.chime = false;
 
-  # SMB 客户端调优（挂载时读取，改完需重挂共享）。仅留 Apple 官方推荐项（support.apple.com/en-us/102050）：
-  # protocol_vers_map=6 只用 SMB2/3、port445=no_netbios 禁 NetBIOS/SMB1、mc_prefer_wired 多通道优先有线。
+  # Apple 推荐：仅 SMB2/3、禁 NetBIOS、优先有线多通道；改后需重挂。
   environment.etc."nsmb.conf".text = ''
     [default]
     protocol_vers_map=6
@@ -88,35 +83,33 @@
     };
     CustomUserPreferences = {
       "ch.sudo.cyberduck" = {
-        "donate.reminder.date" = 253402300799000; # 极远的未来
+        "donate.reminder.date" = 253402300799000; # 禁用捐赠提醒
       };
       "com.apple.finder" = {
         WarnOnEmptyTrash = false;
       };
-      # 不在网络共享(SMB/NFS)上写 .DS_Store,减少 Finder 浏览/拷贝时的元数据往返
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
       };
       "NSGlobalDomain" = {
-        # CapsLock 切换中英输入法（0=切换大小写，1=切到 ABC）
+        # 1 = CapsLock 切到 ABC
         TISRomanSwitchState = 1;
         CGDisableCursorLocationMagnification = true;
-        "com.apple.mouse.linear" = true; # true=关闭鼠标加速度
+        "com.apple.mouse.linear" = true; # 关闭鼠标加速度
       };
-      # Raycast 接管 ⌘Space（下面 activation 会把 Spotlight 那两个快捷键关掉）
+      # Raycast 接管 ⌘Space。
       "com.raycast.macos".raycastGlobalHotkey = "Command-49";
     };
   };
 
-  # screensaver.idleTime 只读 per-host domain，用 -currentHost 兜底
+  # idleTime 只能写 per-host domain。
   system.activationScripts.postActivation.text = ''
     user_uid="$(id -u -- ${username})"
 
     launchctl asuser "$user_uid" sudo --user=${username} -- \
       defaults -currentHost write com.apple.screensaver idleTime -int 0
 
-    # 关 Spotlight 两个快捷键：64=⌘Space (Spotlight)、65=⌥⌘Space (Finder 搜索窗口)。
-    # 必须 -dict-add 改单个 key，整体写会覆盖系统默认的几百条快捷键映射。
+    # 仅改 64/65，避免覆盖整个系统快捷键字典。
     launchctl asuser "$user_uid" sudo --user=${username} -- \
       defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
     launchctl asuser "$user_uid" sudo --user=${username} -- \
@@ -130,8 +123,7 @@
     enableFishIntegration = true;
     greedyCasks = true;
 
-    # 列全 nix-homebrew 管的所有 tap，否则 cleanup="zap" 会 untap 符号链接的官方 tap。
-    # 非官方 tap 需 trusted=true（brew 6.0 HOMEBREW_REQUIRE_TAP_TRUST）；官方 tap 永远受信。
+    # cleanup=zap 要求列全受管 tap；非官方 tap 需 trusted。
     taps = [
       "homebrew/homebrew-core"
       "homebrew/homebrew-cask"
@@ -151,7 +143,7 @@
     ];
 
     onActivation = {
-      # nix-homebrew pin 了 brew 版本,关 autoUpdate 防止运行时 git pull 漂移
+      # brew 版本已 pin，禁止运行时更新。
       autoUpdate = false;
       upgrade = true;
       cleanup = "zap";

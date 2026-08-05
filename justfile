@@ -2,15 +2,12 @@ default:
     @just --list
 
 
-# 拦 host 名 shell 元字符 / 异常 attrpath（{{quote()}} 保证不被注入到下游脚本）
 _valid host:
     @bash -euc '[[ "$1" =~ ^[a-zA-Z0-9_-]+$ ]] || { echo "invalid host name: $1" >&2; exit 1; }' _ {{ quote(host) }}
 
-# remote 比 host 多允许点 (FQDN/IP) 与冒号 (IPv6-ish)
 _valid_remote remote:
     @bash -euc '[[ "$1" =~ ^[a-zA-Z0-9_.:-]+$ ]] || { echo "invalid remote: $1" >&2; exit 1; }' _ {{ quote(remote) }}
 
-# flake attr 与 hostname 现在一致，guard 直接拿 hostname -s 对比，无需 nix eval
 _guard host: (_valid host)
     #!/usr/bin/env bash
     set -euo pipefail
@@ -45,7 +42,6 @@ switch host: (_guard host)
 switch host: (_guard host)
     sudo nixos-rebuild switch --flake .#{{ host }}
 
-# 用于 kernel / dbus 实现 / initrd 等运行时切换不安全的更新
 [doc('用 {{host}} 配置注册下次启动 generation，不激活（hostname 不匹配会拒绝）')]
 [linux]
 [group('build')]
@@ -113,11 +109,7 @@ install host remote: (_valid host) (_valid_remote remote)
     if [ -f "$hardware_config" ]; then
       hardware_args+=(--generate-hardware-config nixos-generate-config "$hardware_config")
     fi
-    # 不用手写 substituters / 公钥 / experimental-features：nixos-anywhere 默认
-    # machineSubstituters=y，会 eval 目标 host 的 nix.settings.{substituters,
-    # trusted-public-keys} 写进 installer 的 ~/.config/nix/nix.conf；flake 特性它自己
-    # 每条 nix 命令都带 --extra-experimental-features。真源就是 modules/shared/nix.nix
-    # 加 hosts/<host> 里的 mkBefore 镜像，别在这里再抄一份。
+    # nixos-anywhere 会转发目标 host 的 nix.settings 并自动启用 flakes；勿在此复制。
     nix run .#nixos-anywhere -- \
       "${hardware_args[@]}" \
       --option always-allow-substitutes true \
@@ -135,7 +127,6 @@ deploy host remote: (_valid host) (_valid_remote remote)
       --sudo \
       --use-substitutes
 
-# 用于 kernel / dbus 实现 / initrd 等运行时切换不安全的更新
 [doc('远程更新（同架构，仅注册下次启动 generation）')]
 [linux]
 [group('remote')]
@@ -146,8 +137,7 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --sudo \
       --use-substitutes
 
-# --build-host == --target-host：目标机自己 build，避开本机跨架构编译
-# --no-reexec：macOS 无法 exec target 的 linux nixos-rebuild，显式跳过这一步
+# 跨架构让目标机 build，并跳过 macOS 无法执行的 Linux reexec。
 [doc('远程更新（跨架构，目标机自己 build）')]
 [macos]
 [group('remote')]

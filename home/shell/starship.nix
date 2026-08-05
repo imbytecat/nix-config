@@ -2,7 +2,7 @@
 
 {
   catppuccin = {
-    # 避开 catppuccin/nix 默认 starship port 的 IFD，同时保留 flake.lock 跟随 upstream 更新。
+    # 绕开默认 Starship port 的 IFD。
     sources.starship = inputs.catppuccin-starship + "/themes";
     starship.enable = true;
   };

@@ -1,6 +1,5 @@
-# 真 Windows 10 中文/西文具名字体，让 WPS 打开别人的文档按具名字体渲染不串版；思源/更纱只能
-# 兜底、对不上名字。非自由字体，仅本地办公显示（不商用）。两个上游互补：base(streetsamurai00mi)
-# 全套西文 + 宋体 + 微软雅黑，缺 SimHei/KaiTi/FangSong/DengXian；supplement(chillcicada) 补这四族。
+# Windows 10 具名字体保证 WPS/Office 文档不串版；非自由，仅本地显示。
+# base 缺 SimHei/KaiTi/FangSong/DengXian，supplement 补齐。
 {
   lib,
   stdenvNoCC,

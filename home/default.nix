@@ -14,9 +14,7 @@
     ./shell
     ./dev
   ]
-  # 桌面角色的 home 层：只在 Linux 导入（Darwin 无 Plasma），内部再按系统实际启用的
-  # DE 决定是否生效。换 DE / 加无头机时改 home/desktop，这里不动。
-  # 用 system（specialArg）判平台而非 pkgs.stdenv —— 后者依赖 config，用在 imports 会递归。
+  # imports 阶段用 specialArg system；pkgs 依赖 config 会递归。
   ++ lib.optionals (lib.hasSuffix "-linux" system) [ ./desktop ];
 
   catppuccin = {
@@ -50,7 +48,7 @@
 
     ffmpeg
     pandoc
-    libredwg # FreeCAD 导入/导出 DWG（提供 dwg2dxf 转换器）
+    libredwg # FreeCAD DWG
 
     trzsz-ssh
     tsshd
@@ -64,8 +62,7 @@
   programs.fastfetch.enable = true;
   programs.tealdeer = {
     enable = true;
-    # macOS 上 home-manager 的 tldr-update launchd agent bootstrap 会报 I/O error (code 5)
-    # 导致 switch 失败；关掉它，改用 tealdeer 内置的按需自动更新（HM 官方迁移建议）
+    # Darwin 的 tldr-update launchd 会以 code 5 失败，改用按需更新。
     enableAutoUpdates = false;
     settings.updates.auto_update = true;
   };

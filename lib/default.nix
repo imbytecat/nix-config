@@ -7,8 +7,7 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
   ];
 
-  # system 透传进 extraSpecialArgs：home 模块在 imports 里门控平台要用 specialArg
-  # （pkgs 来自 _module.args、依赖 config，用在 imports 会无限递归），故不能用 pkgs.stdenv。
+  # imports 阶段只能用 specialArg system；pkgs 依赖 config 会递归。
   homeManagerConfig =
     { username, system }:
     {
@@ -56,9 +55,7 @@ in
       ++ extraModules;
     };
 
-  # 远程 NixOS 服务器 builder：modules/nixos/server.nix（= base + 无头角色）+ disko。
-  # 不导入 modules/shared/default.nix（fish / 1password）、modules/nixos/dev.nix、
-  # home-manager、catppuccin，避免日用模块污染服务器闭包。
+  # 服务器只叠 server.nix 与 disko，避免日用和 Home Manager 闭包。
   mkServer =
     {
       hostname,
@@ -95,9 +92,7 @@ in
           ;
       };
       modules = [
-        # 显式注入 nixpkgs-unstable 实例化的 pkgs（aarch64-darwin 命中率高于 nixos-unstable）
-        # 不走 nix-darwin.inputs.nixpkgs.follows 是为了避免 nix-darwin 内部 lib 与
-        # modules/shared/nix.nix 的 nix.registry 设置冲突。参考 ryan4yin/nix-config。
+        # Darwin 显式用 nixpkgs-unstable，避免 nix-darwin lib 与 registry 设置冲突。
         {
           nixpkgs.pkgs = import inputs.nixpkgs-unstable {
             inherit system;

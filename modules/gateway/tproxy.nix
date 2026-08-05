@@ -13,17 +13,17 @@ in
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
 
-    # rp_filter 取 max(all, interface)；逐接口禁用见 networkd 配置
+    # rp_filter 取 max(all, interface)；逐接口禁用见 networkd。
     "net.ipv4.conf.all.rp_filter" = 0;
     "net.ipv4.conf.default.rp_filter" = 0;
     "net.ipv4.conf.all.send_redirects" = 0;
     "net.ipv4.conf.default.send_redirects" = 0;
 
-    # 阻断 IPv6 转发，防绕过代理
+    # 阻断 IPv6 转发，防止绕过代理。
     "net.ipv6.conf.all.forwarding" = 0;
     "net.ipv6.conf.default.forwarding" = 0;
 
-    # 代理连接常长时间空闲后突发（图片/视频），默认会把 cwnd 退回慢启动
+    # 保留空闲长连接的 cwnd，避免突发流量重新慢启动。
     "net.ipv4.tcp_slow_start_after_idle" = 0;
 
     "net.core.default_qdisc" = "fq";
@@ -40,23 +40,18 @@ in
           meta mark ${toString routingMark} return
           ip daddr { 127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 240.0.0.0/4 } return
           fib daddr type { local, broadcast, multicast } return
-          # 53 显式排除：让它落到下面 mihomo-dns 的 dstnat redirect。
-          # 不排除也能工作（mangle 先跑、nat 后改写，实测回包 sport=1053），
-          # 但那依赖 TPROXY 与 NAT 的改写次序，不是可依赖的契约
+          # DNS 留给 mihomo-dns dstnat；不依赖 TPROXY/NAT 的处理顺序。
           meta l4proto { tcp, udp } th dport != 53 counter \
             tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
         }
       }
 
-      # mihomo 的 dns.listen 是 0.0.0.0:1053（ipv6=false），所以这里必须是 ip 而不是
-      # inet：inet 会把 IPv6 的 53 也 redirect 到本机不存在的 v6 监听上，行为不清晰。
-      # IPv6 统一由下面的 forward reject 快速失败。
+      # 仅劫持 IPv4 DNS；IPv6 由下方 forward reject。
       table ip mihomo-dns {
         chain prerouting {
           type nat hook prerouting priority dstnat; policy accept;
 
-          # 本机自身的 DNS（走 127.0.0.53 stub）也会过 prerouting，
-          # 劫进 mihomo 会拿到 fake-ip，导致网关自己拨不出去 —— 必须放行
+          # 放行本机 stub，否则 fake-ip 会破坏网关自身解析。
           iif lo return
           meta l4proto { tcp, udp } th dport 53 counter redirect to :${toString dnsPort}
         }
@@ -66,8 +61,7 @@ in
         chain forward {
           type filter hook forward priority filter; policy accept;
 
-          # 静默 drop 会让客户端 Happy Eyeballs 干等 1~3s 才回落 IPv4；
-          # 显式 reject 让它立刻失败
+          # reject 让 Happy Eyeballs 立即回落 IPv4，避免 drop 等待 1–3 秒。
           counter reject with icmpv6 type admin-prohibited
         }
       }
@@ -88,7 +82,7 @@ in
     ];
     routes = [
       {
-        # 把打了 fwmark 的包投递回本机，由 mihomo TPROXY socket 接管
+        # fwmark 流量投递回 mihomo TPROXY socket。
         Destination = "0.0.0.0/0";
         Type = "local";
         Table = routingTable;

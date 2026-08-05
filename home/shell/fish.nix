@@ -6,23 +6,20 @@
 }:
 
 let
-  # AI 网关端点 / 密钥 env 名的唯一真源（见 home/ai-catalog.nix）；本模板是端点值与 key 变量名的
-  # 定义处，codex/omp 从同一 catalog 消费，改名/换端点只此一处。
   catalog = import ../ai-catalog.nix;
 
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
 in
 {
-  # 仅 op:// 引用，无真实密钥；放在 ~/.config/op 之外（op CLI 要求该目录 700）
+  # 只写 op:// 引用；避开 op CLI 要求 0700 的 ~/.config/op。
   xdg.configFile."op-env/env.tpl".text = ''
     set -gx ${catalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
     set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
     set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
 
-    # gh 的 API 认证只能用 token（SSH key 只管 git 传输层）。放这里而不是留在
-    # keyring：keyring 那份是新机器上唯一还要 `gh auth login` 交互的东西。
+    # GitHub API 必须用 token；SSH key 仅负责 git transport。
     set -gx GH_TOKEN "{{ op://Developer/GitHub CLI Token/credential }}"
   '';
 
@@ -50,7 +47,7 @@ in
     };
 
     functions = {
-      # 启动只加载缓存，手动 refresh 拉取；OP_SERVICE_ACCOUNT_TOKEN 在 ~/.config/fish/local.fish
+      # 启动只读缓存；token 由 local.fish 提供，refresh 手动拉取。
       op-env-refresh = {
         description = "Fetch secrets from 1Password and cache locally";
         body = ''
@@ -81,7 +78,7 @@ in
             echo "op-env: inject failed; old cache kept" >&2
             return 1
           end
-          # 记录旧变量名，确保被删除的密钥也从环境中移除
+          # 清除已从模板删除的旧变量。
           set -l old_vars
           if test -f "${envCache}"
             set old_vars (string match -rg 'set -gx (\S+)' < "${envCache}")

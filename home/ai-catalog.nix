@@ -1,23 +1,12 @@
-# AI 网关 + 模型目录：Furtherverse 网关实体（端点/密钥 env/身份）与跨 agent 引用的模型 ID /
-# 元数据的唯一真源。codex / omp / fish op-env 都是本目录的
-# adapter，各自渲染成 TOML / JSON / YAML / env。改这里，各 agent 配置自动一致（同
-# modules/gateway/constants.nix）。
-# 放 home 根这个中性位置：home/shell 与 home/dev/agents 平等 import，避免 shell→dev/agents 方向依赖。
+# AI 网关与模型元数据真源，置于 home 根供 Codex、OMP、op-env 共享。
 let
-  # 网关实体：端点（不含 /v1；各 adapter 自加 provider 版本后缀）与密钥 env 名。密钥永远走 env，
-  # 不落字面量。env 名用 FURTHERVERSE_ 品牌前缀而非通用的 AI_GATEWAY_*：后者被 Vercel AI SDK 的
-  # gateway provider 自动读取，会把请求和密钥误路由到 Vercel。
-  # provider 家族名（anthropic/openai/google/furtherverse）是共享词汇，各处直接
-  # 字面量书写保持一致；显示名/npm SDK 包名之类 adapter 细节写死在各自 adapter，不进这里。
+  # endpoint 不含 /v1；adapter 自加版本路径，密钥仅通过 env。
+  # 避免 AI_GATEWAY_*：Vercel AI SDK 会自动读取并误路由。
   gateway = {
     endpoint = "https://ai-gateway.furtherverse.net";
     apiKeyEnv = "FURTHERVERSE_API_KEY";
   };
 
-  # 模型规格表：providers.<family>.<nick>，家族名只在这一层出现（模型节点不再重复 provider 字段）。
-  # 每模型节点同一 schema。id 已确认（版本对，勿改）；name 为默认显示名可改；reasoning/input/
-  # output/context/maxOutput 为占位，首次 switch 前填真实值。新增模型照抄一节点即可；
-  # 扁平视图 models.<nick>（带 provider 字段）与 ref 由下方派生。
   providers = {
     anthropic = {
       fable = {
@@ -134,7 +123,6 @@ let
       };
     };
 
-    # 网关聚合的第三方模型
     furtherverse = {
       glm = {
         id = "glm-5.2";
@@ -173,7 +161,6 @@ let
     };
   };
 
-  # 扁平视图：models.<nick> = 节点 + provider 字段（nick 全局唯一，由上表保证）。
   models = builtins.foldl' (
     acc: family: acc // builtins.mapAttrs (_nick: m: m // { provider = family; }) providers.${family}
   ) { } (builtins.attrNames providers);
@@ -181,7 +168,5 @@ in
 {
   inherit gateway providers models;
 
-  # "provider/id" 限定名，omp 等按 provider/model 引用的 adapter 用：ref "opus"
-  # → "anthropic/claude-opus-4-8"。
   ref = nick: "${models.${nick}.provider}/${models.${nick}.id}";
 }
