@@ -166,10 +166,11 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --no-reexec
 
 
-[doc('更新所有 flake 输入')]
+[doc('更新可自动维护的依赖（flake 输入 + Orca）')]
 [group('nix')]
 update:
     nix flake update
+    nix develop -c nix-update orca-ide --flake --system x86_64-linux --url https://github.com/stablyai/orca --use-github-releases --format
 
 [doc('更新单个 flake 输入')]
 [group('nix')]
@@ -201,9 +202,10 @@ repl:
 fmt:
     nix fmt
 
-[doc('lint：statix 反模式 + deadnix 死代码')]
+[doc('lint：actionlint 工作流 + statix 反模式 + deadnix 死代码')]
 [group('check')]
 lint:
+    actionlint .github/workflows/*.yml
     statix check
     deadnix --fail --exclude \
       ./hosts/awesome-pc/hardware-configuration.nix \

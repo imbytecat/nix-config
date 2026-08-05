@@ -1,0 +1,81 @@
+name: Dependency update
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependency-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Install Lix
+        uses: samueldr/lix-gha-installer-action@v2026-06-15
+        with:
+          extra_nix_config: accept-flake-config = true
+
+      - name: Update dependencies
+        id: update
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: just update
+
+      - name: Verify update
+        id: verify
+        continue-on-error: true
+        run: |
+          nix build .#orca-ide
+          just check
+
+      - name: Inspect manual pins
+        id: pins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rime="$(gh api repos/amzxyz/RIME-LMDG/releases/tags/LTS --jq .published_at || echo unknown)"
+          kexec="$(gh api repos/nix-community/nixos-images/releases/latest --jq .tag_name || echo unknown)"
+          echo "rime=$rime" >> "$GITHUB_OUTPUT"
+          echo "kexec=$kexec" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Manual pins"
+            echo "- Rime LTS published: $rime"
+            echo "- nixos-images latest release: $kexec"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create update pull request
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/dependency-update
+          delete-branch: true
+          add-paths: |
+            flake.lock
+            pkgs/orca-ide/default.nix
+          commit-message: "chore(deps): 自动更新依赖"
+          title: "chore(deps): 自动更新依赖"
+          body: |
+            每周自动更新可安全维护的依赖。
+
+            - 更新步骤：`${{ steps.update.outcome }}`
+            - `nix build .#orca-ide` + `just check`：`${{ steps.verify.outcome }}`
+            - Rime LTS 发布时间：`${{ steps.pins.outputs.rime }}`（仅提示）
+            - nixos-images 最新版本：`${{ steps.pins.outputs.kexec }}`（仅提示）
+
+            Rime、字体和 kexec 镜像仍需人工确认后更新。
+
+      - name: Fail on update or verification error
+        if: steps.update.outcome == 'failure' || steps.verify.outcome == 'failure'
+        run: exit 1

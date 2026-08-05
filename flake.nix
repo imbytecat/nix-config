@@ -208,6 +208,9 @@
             hash = "sha256-C1qrRT0xiICBBjGkLMNN5iBEKtbosigS2+a6x/Z9hFw=";
           };
         }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          orca-ide = pkgs.callPackage ./pkgs/orca-ide { };
+        }
       );
 
       overlays.default = import ./overlays { inherit inputs; };
@@ -220,10 +223,12 @@
         {
           default = pkgs.mkShell {
             packages = [
+              pkgs.actionlint
               pkgs.just
               pkgs.nixd
               pkgs.statix
               pkgs.deadnix
+              pkgs.nix-update
               pkgs.nvd
               pkgs.nix-tree
               (treefmtFor system).config.build.wrapper
@@ -251,12 +256,14 @@
             pkgs.runCommand "lint"
               {
                 nativeBuildInputs = [
+                  pkgs.actionlint
                   pkgs.statix
                   pkgs.deadnix
                 ];
               }
               ''
                 cd ${inputs.self}
+                actionlint .github/workflows/*.yml
                 statix check
                 # hardware-configuration.nix 由 nixos-generate-config 生成，不由我们维护
                 deadnix --fail --exclude \

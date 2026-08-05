@@ -45,7 +45,7 @@
 
 let
   pname = "orca-ide";
-  version = "1.4.170";
+  version = "1.4.171";
 
   src = fetchurl {
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
