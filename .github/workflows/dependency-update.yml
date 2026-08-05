@@ -31,14 +31,14 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: just update
+        run: nix develop -c just update
 
       - name: Verify update
         id: verify
         continue-on-error: true
         run: |
           nix build .#orca-ide
-          just check
+          nix develop -c just check
 
       - name: Inspect manual pins
         id: pins

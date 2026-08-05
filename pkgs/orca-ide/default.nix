@@ -1,6 +1,6 @@
 # 上游 orca 是屏幕阅读器；此处将 Orca IDE AppImage 原生重打包。
 # 不用 wrapType2：bwrap user namespace 会令 SSH 配置显示为 nobody，git 与 sudo 失效。
-# 按 Electron IDE 惯例 extract + autoPatchelfHook；升级 version 后重新 prefetch hash。
+# src 名称必须带 version；否则 fetchurl 会复用旧 store path，nix-update 无法发现 hash 变化。
 {
   lib,
   stdenv,
@@ -48,8 +48,9 @@ let
   version = "1.4.171";
 
   src = fetchurl {
+    name = "${pname}-${version}.AppImage";
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
-    hash = "sha256-7iIaZpuQAO5E1XCb3GnNiwS5RYKG6WNB6mcNykZrot0=";
+    hash = "sha256-iTtwFrupvUvPp2PSfrjNafStodbuLcBzhZN7iy0HBak=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
