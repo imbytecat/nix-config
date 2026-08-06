@@ -9,7 +9,11 @@
 let
   yamlFormat = pkgs.formats.yaml { };
 
-  catalog = import ../../ai-catalog.nix;
+  catalog = import ../../../ai-catalog.nix;
+  bundles = import ../bundles { inherit inputs lib pkgs; };
+  ompBundles = map (bundle: bundle.omp) (builtins.filter (bundle: bundle ? omp) bundles);
+  bundleExtensions = lib.concatMap (bundle: bundle.extensions or [ ]) ompBundles;
+  bundleFiles = lib.foldl' (files: bundle: files // (bundle.files or { })) { } ompBundles;
 
   projectModel = m: {
     inherit (m) id name reasoning;
@@ -61,18 +65,9 @@ let
       default = "${catalog.ref "sol"}:xhigh";
       smol = catalog.ref "luna";
     };
-    extensions = [ "${inputs.ponytail}" ];
+    extensions = bundleExtensions;
   };
 
-  # caveman 无 extension，将 activate rule 包成 always-apply。
-  cavemanRule = pkgs.writeText "caveman-rule.md" ''
-    ---
-    description: Caveman speech mode — terse replies, technical substance and code byte-exact
-    alwaysApply: true
-    ---
-
-    ${builtins.readFile "${inputs.caveman}/src/rules/caveman-activate.md"}
-  '';
 in
 {
   home.packages = [ inputs.llm-agents.packages.${system}.omp ];
@@ -80,7 +75,6 @@ in
   home.file = {
     ".omp/agent/models.yml".source = yamlFormat.generate "omp-models.yml" ompModels;
     ".omp/agent/config.yml".source = yamlFormat.generate "omp-config.yml" ompConfig;
-    ".omp/agent/rules/caveman.md".source = cavemanRule;
-    ".omp/agent/commands/caveman.md".source = "${inputs.caveman}/commands/caveman.md";
-  };
+  }
+  // bundleFiles;
 }

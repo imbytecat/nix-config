@@ -93,6 +93,39 @@ Ponytail 自带 [`.agents/plugins/marketplace.json`](https://github.com/Dietrich
 3. **Codex + Ponytail：HM local marketplace + 实体 cache。** `programs.codex.plugins` 生成固定输入的 marketplace、enable state 与 cache；激活后把 cache symlink 复制成 Codex 0.146 可识别、下次 HM 激活可清理的真实目录。`hooks.state` 声明三个固定 trust hash，Node 由现有开发环境提供；hash 变化时 fail closed。
 4. **Codex + Caveman：skills + 最小 hook plugin。** skills 继续 symlink；用本地生成的 manifest 把上游 `.codex/hooks.json` 封装成 `caveman@home-manager`，避免把原有无 hooks 的 `plugins/caveman` manifest 误判成完整 lifecycle plugin。
 
+## 4. HM 原生机制与 adapter seam（结论）
+
+### 4.1 `programs.codex.plugins` 已覆盖什么
+
+Home Manager 的通用 Codex module 已负责三件事：从 plugin derivation/path 生成 `home-manager` marketplace、在 `config.toml` 启用 `<plugin>@home-manager`，并把源链接到 `CODEX_HOME/plugins/cache/home-manager/<name>/<version>`。实现见 [`default.nix`](https://github.com/nix-community/home-manager/blob/master/modules/programs/codex/default.nix) 与 [`lib.nix`](https://github.com/nix-community/home-manager/blob/master/modules/programs/codex/lib.nix)；其测试只断言 cache 是 symlink 和文件可经 symlink 读取，没有启动 Codex 验证 installed 状态（[`plugins.nix`](https://github.com/nix-community/home-manager/blob/master/tests/modules/programs/codex/plugins.nix)）。
+
+Codex 0.146 的实际约束更窄：同一份 config/marketplace 下，cache 根为 HM store symlink 时 `codex plugin list --json` 返回 `installed: []`；只把该 symlink 换成实体副本后，同一命令立即识别 `ponytail@home-manager`。因此 `materializeCodexPlugins` 不是重复 marketplace/enable 逻辑，而是 Home Manager link plumbing 与 Codex 0.146 installed detection 之间的 compatibility adapter。Codex 自身仍有未解决的 plugin symlink materialization 缺口（[openai/codex#24770](https://github.com/openai/codex/issues/24770)）；该 issue 主要讨论 plugin tree 内 symlink，不直接替代本仓对 cache 根 symlink 的实测。
+
+### 4.2 两条架构轴
+
+Ponytail 与 Caveman 不是「更大的 skill」，也不等于 Codex plugin 或 OMP extension。仓库统一称它们为 **behavior bundle（行为包）**：一个跨 agent 的行为产品，可包含默认规则、生命周期 hook、命令、状态和可选 skills。`plugin`、`extension`、`rule`、`hook`、`skill` 都只是各 host 的装载机制。
+
+代码按两条正交轴组织：
+
+| 目录 | 责任 |
+|---|---|
+| `home/dev/agents/bundles/` | 每个行为包独立拥有 pin-specific packaging、hook trust、OMP 投影与共享 skills；`default.nix` 是 plain-attr registry。 |
+| `home/dev/agents/adapters/` | 把 registry 投影到 Codex、OMP 和 `~/.agents/skills`；不重新定义 Ponytail/Caveman 语义。 |
+
+因此新增行为包只需新增一个 bundle 并注册；新增 agent 只需新增一个 adapter。实现没有引入 NixOS/Home Manager 自定义 option 或通用 plugin framework：registry 只是两个真实 bundle 与三个真实 adapter 之间的最小数据 seam。
+
+### 4.3 当前投影
+
+1. `bundles/ponytail.nix`：Codex 直接消费上游正式 plugin；OMP 直接引用仓库根 extension；skills 由两边 plugin 自带。
+2. `bundles/caveman.nix`：Codex 用最小 manifest 封装上游 `.codex/hooks.json`；OMP 使用 always-apply rule 与 `/caveman` command；可运行 skills 导出到共享目录。
+3. `adapters/codex-plugins.nix`：聚合 plugin source、trust hash 与 Codex 0.146 cache materialization。
+4. `adapters/omp.nix`：聚合 `extensions` 与 bundle-owned `home.file`。
+5. `adapters/skills.nix`：聚合 bundle skills 与 agent-browser、mattpocock 等 skill-only distribution。
+
+Caveman 上游若把 hook 纳入正式 plugin，删除 wrapper；Codex/HM 若原生识别 cache symlink，删除 activation。行为包边界不变，只有对应 adapter 数据缩减。
+
+搜索范围与负结果：Home Manager module/tests/issues、OpenAI Codex plugin/hooks issues、Ponytail/Caveman upstream，以及 GitHub 可索引公开 Nix configs；没有找到可直接复用并同时满足 pinned source、native lifecycle hook、Orca managed `CODEX_HOME` 和 declarative Home Manager 的实现。
+
 ## 一方证据索引
 
 - Ponytail pinned：[`package.json`](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/package.json)、[Pi extension](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/pi-extension/index.js)、[Codex manifest](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/.codex-plugin/plugin.json)、[Codex hooks](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/hooks/claude-codex-hooks.json)。
