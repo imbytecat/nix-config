@@ -10,18 +10,33 @@ let
 
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
+  teaTpl = "${config.xdg.configHome}/op-env/tea.yml.tpl";
+  teaConfig = "${config.xdg.configHome}/tea/config.yml";
 in
 {
-  # 只写 op:// 引用；避开 op CLI 要求 0700 的 ~/.config/op。
-  xdg.configFile."op-env/env.tpl".text = ''
-    set -gx ${catalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
+  # 模板只写 op:// 引用；真实密钥由 op-env-refresh 落到本机 0600 文件。
+  xdg.configFile = {
+    "op-env/env.tpl".text = ''
+      set -gx ${catalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
-    set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
-    set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
+      set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
+      set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
 
-    # GitHub API 必须用 token；SSH key 仅负责 git transport。
-    set -gx GH_TOKEN "{{ op://Developer/GitHub CLI Token/credential }}"
-  '';
+      # GitHub API 必须用 token；SSH key 仅负责 git transport。
+      set -gx GH_TOKEN "{{ op://Developer/GitHub CLI Token/credential }}"
+    '';
+
+    "op-env/tea.yml.tpl".text = ''
+      logins:
+        - name: furtherverse
+          url: https://git.furtherverse.com
+          token: "{{ op://Developer/Gitea CLI Token/credential }}"
+          default: true
+          ssh_host: git.furtherverse.net
+          version_check: true
+          user: imbytecat
+    '';
+  };
 
   home.sessionPath = [
     "$HOME/go/bin"
@@ -59,46 +74,65 @@ in
             echo "op-env: OP_SERVICE_ACCOUNT_TOKEN is not set" >&2
             return 1
           end
-          if not test -f "${envTpl}"
-            echo "op-env: template not found: ${envTpl}" >&2
-            return 1
+          for template in "${envTpl}" "${teaTpl}"
+            if not test -f "$template"
+              echo "op-env: template not found: $template" >&2
+              return 1
+            end
           end
+
           set -l cache_dir (path dirname "${envCache}")
-          if not mkdir -p "$cache_dir"; or not chmod 700 "$cache_dir"
-            echo "op-env: cannot prepare cache dir: $cache_dir" >&2
-            return 1
+          set -l tea_dir (path dirname "${teaConfig}")
+          for dir in "$cache_dir" "$tea_dir"
+            if not mkdir -p "$dir"; or not chmod 700 "$dir"
+              echo "op-env: cannot prepare directory: $dir" >&2
+              return 1
+            end
           end
-          set -l tmp (mktemp "$cache_dir/.tmp.XXXXXX")
+
+          set -l env_tmp (mktemp "$cache_dir/.tmp.XXXXXX")
           or begin
-            echo "op-env: mktemp failed" >&2
+            echo "op-env: mktemp failed: $cache_dir" >&2
             return 1
           end
-          if not op inject --in-file "${envTpl}" > "$tmp"
-            command rm -f "$tmp"
-            echo "op-env: inject failed; old cache kept" >&2
+          set -l tea_tmp (mktemp "$tea_dir/.tmp.XXXXXX")
+          or begin
+            command rm -f "$env_tmp"
+            echo "op-env: mktemp failed: $tea_dir" >&2
             return 1
           end
+
+          if not op inject --in-file "${envTpl}" > "$env_tmp"
+            command rm -f "$env_tmp" "$tea_tmp"
+            echo "op-env: env inject failed; old files kept" >&2
+            return 1
+          end
+          if not op inject --in-file "${teaTpl}" > "$tea_tmp"
+            command rm -f "$env_tmp" "$tea_tmp"
+            echo "op-env: tea inject failed; old files kept" >&2
+            return 1
+          end
+
           # 清除已从模板删除的旧变量。
           set -l old_vars
           if test -f "${envCache}"
             set old_vars (string match -rg 'set -gx (\S+)' < "${envCache}")
           end
-          if not mv "$tmp" "${envCache}"
-            command rm -f "$tmp"
-            echo "op-env: cannot replace cache file" >&2
+          if not mv "$env_tmp" "${envCache}"; or not mv "$tea_tmp" "${teaConfig}"
+            command rm -f "$env_tmp" "$tea_tmp"
+            echo "op-env: cannot replace cached files" >&2
             return 1
           end
           for var in $old_vars
             set -e $var
           end
           if not source "${envCache}"
-            echo "op-env: cache written but could not be sourced" >&2
+            echo "op-env: files written but env cache could not be sourced" >&2
             return 1
           end
           echo "op-env: refreshed"
         '';
       };
-
       op-env-clear = {
         description = "Clear cached secrets";
         body = ''
@@ -106,8 +140,8 @@ in
             for var in (string match -rg 'set -gx (\S+)' < "${envCache}")
               set -e $var
             end
-            command rm -f "${envCache}"
           end
+          command rm -f "${envCache}" "${teaConfig}"
           echo "op-env: cleared"
         '';
       };

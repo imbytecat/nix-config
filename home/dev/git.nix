@@ -1,6 +1,8 @@
-_:
+{ pkgs, ... }:
 
 {
+  home.packages = [ pkgs.tea ];
+
   # 仅用 GH_TOKEN；config.yml 是只读 store 链接，改动需声明在此。
   programs.gh = {
     enable = true;
