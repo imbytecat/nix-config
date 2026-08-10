@@ -170,7 +170,6 @@ Host storagebox
   Port <box-port>
   User <box-user>
   IdentityFile /root/.ssh/id_ed25519
-  IdentityFile /root/.ssh/id_rsa
   IdentitiesOnly yes
   StrictHostKeyChecking accept-new
   ServerAliveInterval 30
@@ -194,9 +193,11 @@ systemctl start restic-backups-stacks && restic-stacks snapshots
 
 `systemd` 单元里没有 `HOME`，但 OpenSSH 会回退到 `getpwuid` 拿到 `/root`，所以上面的 `~/.ssh/config` 对 restic 单元有效（已在 ks-5 上验证）。`restic-backups-stacks` 是 `Type=oneshot` 且 `TimeoutStartUSec=infinity`，大备份不会被 90s 默认超时掐掉。
 
-`/etc/restic/password` 和 `/root/.ssh/id_ed25519`（或退化用的 `id_rsa`）是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
+`/etc/restic/password` 和 `/root/.ssh/id_ed25519` 是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
 
-`ssh-ed25519` 从 OpenSSH 6.5（2014）起就是标准算法，DirectAdmin 的 sshd 支持它；"只能 RSA" 一般是**面板校验**挑食，不是服务端限制。真遇上面板拒收，绕过面板直接追加到 `~/.ssh/authorized_keys` 即可，sshd 不关心这行是谁写的。ks-5 上两把钥匙都已生成，装哪把都行；确认 ed25519 可用后删掉 `/root/.ssh/id_rsa*`，少一份要保管的凭据。
+只用 ed25519。`ssh-ed25519` 从 OpenSSH 6.5（2014）起就是标准算法，storagebox 的 sshd 在 `server-sig-algs` 里明确带它；"只能 RSA" 是面板校验挑食的传闻，不是服务端限制。真遇上面板拒收就绕过面板，直接把公钥追加到 `~/.ssh/authorized_keys`。
+
+链路实测（ks-5 → 德国 storagebox）：300 MiB 不可压数据 39s，约 7.7 MB/s；空仓库首跑连 `init` + `check` 花了 3m53s，几乎全是 SFTP 往返而不是带宽。首次搬入大量数据时可以临时加 `-o sftp.connections=8` 提并发。
 
 `createWrapper` 会生成 `restic-stacks` 命令（环境变量已注入），换机或炸机后的恢复：
 
