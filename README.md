@@ -160,27 +160,44 @@ docker compose version
 - 保留 14 天 / 8 周 / 12 月；每次跑 `restic check --read-data-subset=2%` 抽检，约 50 天覆盖整个仓库
 - restic 默认加密去重，所以每天全量 dump 只花增量空间
 
-仓库地址与凭据**手写在机器上**，同 `/etc/mihomo/env` 的取舍：
+异地仓库是 HostBrr Storagebox（DirectAdmin 账号，SSH/SFTP/rsync）。仓库地址与传输参数**手写在机器上**，同 `/etc/mihomo/env` 的取舍——本仓是公开仓库，主机名/用户名不进 git。`/root/.ssh/config` 里的 Host 别名是二者之间的接缝，`/etc/restic/repository` 只认别名：
 
 ```bash
-install -d -m 0700 /etc/restic
-echo 's3:https://<account>.r2.cloudflarestorage.com/<bucket>' > /etc/restic/repository
-head -c 32 /dev/urandom | base64 > /etc/restic/password
-cat > /etc/restic/env <<'EOF'
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
+# 传输参数：别名、真实主机、端口、用户都只写在这里
+cat >> /root/.ssh/config <<'EOF'
+Host storagebox
+  HostName <box-host>
+  Port <box-port>
+  User <box-user>
+  IdentityFile /root/.ssh/id_ed25519
+  IdentitiesOnly yes
+  StrictHostKeyChecking accept-new
+  ServerAliveInterval 30
+  ServerAliveCountMax 6
 EOF
+chmod 600 /root/.ssh/config
+
+# 首次把 ks-5 的 root 公钥装到 storage box（此处要输一次 box 密码）
+ssh-keygen -t ed25519 -N "" -C "restic@ovh-ks-5" -f /root/.ssh/id_ed25519   # 已存在则跳过
+ssh-copy-id storagebox
+
+install -d -m 0700 /etc/restic
+echo 'sftp:storagebox:restic/ovh-ks-5' > /etc/restic/repository
+head -c 32 /dev/urandom | base64 > /etc/restic/password
+: > /etc/restic/env          # sftp 不需要凭据环境变量，但 unit 要求该文件存在
 chmod 600 /etc/restic/password /etc/restic/env
-systemctl start restic-backups-stacks
+systemctl start restic-backups-stacks && restic-stacks snapshots
 ```
 
-`/etc/restic/password` 与凭据是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
+`systemd` 单元里没有 `HOME`，但 OpenSSH 会回退到 `getpwuid` 拿到 `/root`，所以上面的 `~/.ssh/config` 对 restic 单元有效（已在 ks-5 上验证）。`restic-backups-stacks` 是 `Type=oneshot` 且 `TimeoutStartUSec=infinity`，大备份不会被 90s 默认超时掐掉。
+
+`/etc/restic/password` 和 `/root/.ssh/id_ed25519` 是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
 
 `createWrapper` 会生成 `restic-stacks` 命令（环境变量已注入），换机或炸机后的恢复：
 
 ```bash
 just install ovh-ks-5 <new-ip>          # 系统本身由本仓重建
-# 补回 /etc/restic/{repository,password,env}
+# 补回 /root/.ssh/{config,id_ed25519} 与 /etc/restic/{repository,password,env}
 restic-stacks snapshots
 restic-stacks restore latest --target /
 cd /opt/stacks/<name> && docker compose up -d
