@@ -45,7 +45,7 @@ in
       chmod 700 ${dumpsDir}
 
       for id in $(${docker} ps -q); do
-        ${docker} exec "$id" sh -c 'command -v pg_dumpall >/dev/null 2>&1' || continue
+        ${docker} exec "$id" pg_isready -q 2>/dev/null || continue
         name=$(${docker} inspect -f '{{.Name}}' "$id" | tr -d /)
         user=$(${docker} exec "$id" printenv POSTGRES_USER 2>/dev/null || echo postgres)
         pass=$(${docker} exec "$id" printenv POSTGRES_PASSWORD 2>/dev/null || true)
