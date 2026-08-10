@@ -91,6 +91,12 @@ in
     polkitPolicyOwners = [ username ];
   };
 
+  # binfmt 让 ./xxx.AppImage 直接执行（单开 binfmt 无效，被 enable 门控）。
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+
   # Solaar 支持该鼠标；libratbag 不支持，故不装 piper。
   hardware.logitech.wireless = {
     enable = true;
