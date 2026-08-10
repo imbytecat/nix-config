@@ -203,9 +203,10 @@
           inherit (inputs.disko.packages.${system}) disko-install;
           inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
 
+          # release 分支资产会被上游重建并重新上传，hash 会随之变化，报 mismatch 就照 got 更新。
           kexec-installer = pkgs.fetchurl {
             url = "https://github.com/nix-community/nixos-images/releases/download/nixos-26.05/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz";
-            hash = "sha256-C1qrRT0xiICBBjGkLMNN5iBEKtbosigS2+a6x/Z9hFw=";
+            hash = "sha256-gjAujAoDnx+xkFhuOOsnfuFUuZXQIEtLVS12TgdOjAw=";
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
