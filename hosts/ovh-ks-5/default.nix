@@ -23,7 +23,9 @@
 
   # zstd 供手工回放 .dumps 里的 pg_dumpall 产物
   environment.systemPackages = [
+    pkgs.btop
     pkgs.neovim
+    pkgs.ouch
     pkgs.zstd
   ];
 
