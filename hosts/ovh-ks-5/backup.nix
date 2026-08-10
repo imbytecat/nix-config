@@ -13,13 +13,21 @@ in
   systemd.tmpfiles.rules = [ "d ${stacksDir} 0755 root root -" ];
 
   # 口径沿用 dockge 的"整棵目录打包"：所有 bind mount 都在 stacksDir 内，逻辑 dump 也写进去，
-  # 于是单个 snapshot 就是一台可搬走的机器。仓库地址与凭据是手写在机器上的
-  # /etc/restic/{repository,password,env}，同 /etc/mihomo/env 的取舍：唯一非声明式的一环。
+  # 于是单个 snapshot 就是一台可搬走的机器。
+  #
+  # 手写在机器上的只有 /etc/restic/{repository,password,env}（同 /etc/mihomo/env 的取舍）。
+  # repository 用 sftp://user@host:port//abs/path 整条 URL，端口也在里面，因此不需要
+  # /root/.ssh/config 别名——本仓公开，主机名/用户名/端口都不该进 git。
   services.restic.backups.stacks = {
     repositoryFile = "/etc/restic/repository";
     passwordFile = "/etc/restic/password";
     environmentFile = "/etc/restic/env";
     initialize = true;
+
+    # 空 known_hosts 的新机器上，默认的 StrictHostKeyChecking=ask 在单元里等于直接失败。
+    # accept-new 只在首连信任一次：真被中间人换掉主机密钥，publickey 认证会失败（签名绑定
+    # session id），结果是备份报错而不是数据外泄。
+    extraOptions = [ "sftp.args='-o StrictHostKeyChecking=accept-new'" ];
 
     paths = [
       stacksDir

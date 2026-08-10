@@ -160,38 +160,30 @@ docker compose version
 - 保留 14 天 / 8 周 / 12 月；每次跑 `restic check --read-data-subset=2%` 抽检，约 50 天覆盖整个仓库
 - restic 默认加密去重，所以每天全量 dump 只花增量空间
 
-异地仓库是 HostBrr Storagebox（DirectAdmin 账号，SSH/SFTP/rsync）。仓库地址与传输参数**手写在机器上**，同 `/etc/mihomo/env` 的取舍——本仓是公开仓库，主机名/用户名不进 git。`/root/.ssh/config` 里的 Host 别名是二者之间的接缝，`/etc/restic/repository` 只认别名：
+**为什么 PG 要额外 dump，文件级备份不够？** 因为"停机打包"和"运行中扫盘"是两件事。手工搬家时先 `docker compose down`，PG 干净关闭后数据目录本身自洽，直接打包搬走一定能用。但每天 04:00 的自动备份是**容器在跑**的：restic 逐个文件走几分钟，PG 同时在写，取到的不是某一瞬间而是一段时间的涂抹——`pg_control` 里的 checkpoint 指针来自 T0，某个 heap page 来自 T1，对应的 WAL 段可能已经被回收。这比崩溃更糟：真崩溃留下的是**某一瞬间**的状态，PG 重放 WAL 就能起来；涂抹出来的目录可能起不来，或者起来了但索引/页面已经错。
+
+PG 官方只承认三种文件级备份：服务停机、`pg_backup_start()`/`pg_backup_stop()` 配 WAL 归档、或者文件系统级原子快照（LVM/ZFS/btrfs）。这台是 ext4 on mdraid，**没有原子快照能力**，所以走逻辑 dump：`pg_dumpall` 在一个事务的 MVCC 快照里跑，天然是一瞬间，还能跨大版本恢复。
+
+数据目录的文件**仍然照常备份**（它就在 `/opt/stacks` 里），dump 只是额外的保险：恢复时先用数据目录，起不来才回放 dump。计划内搬家仍然推荐先 `docker compose down` 再手动跑一次备份，那份快照是字节级干净的。
+
+异地仓库是 HostBrr Storagebox（DirectAdmin 账号，SSH/SFTP/rsync）。本仓公开，主机名/用户名/端口都不进 git，**全部塞进 `/etc/restic/repository` 那一行 URL**——`sftp://user@host:port//abs/path` 形式带端口，因此不需要 `/root/.ssh/config` 别名，也不需要预热 `known_hosts`（`backup.nix` 里的 `sftp.args` 已给 `StrictHostKeyChecking=accept-new`）。新机器上要手写的只有三样：
 
 ```bash
-# 传输参数：别名、真实主机、端口、用户都只写在这里
-cat >> /root/.ssh/config <<'EOF'
-Host storagebox
-  HostName <box-host>
-  Port <box-port>
-  User <box-user>
-  IdentityFile /root/.ssh/id_ed25519
-  IdentitiesOnly yes
-  StrictHostKeyChecking accept-new
-  ServerAliveInterval 30
-  ServerAliveCountMax 6
-EOF
-chmod 600 /root/.ssh/config
+# 1. root 私钥（从 1Password 取回，或首次生成后把公钥装到 storagebox）
+ssh-keygen -t ed25519 -N "" -C "restic@ovh-ks-5" -f /root/.ssh/id_ed25519
+ssh-copy-id -p <box-port> <box-user>@<box-host>      # 只有这一步要输 box 密码
 
-# 先确认服务端接受哪种客户端公钥算法（不需要登录成功，看 EXT_INFO 即可）
-ssh -vv storagebox 2>&1 | grep -m1 server-sig-algs
-
-# 首次把 ks-5 的 root 公钥装到 storage box（此处要输一次 box 密码）
-ssh-copy-id storagebox
-
+# 2+3. 仓库 URL 与仓库密码
 install -d -m 0700 /etc/restic
-echo 'sftp:storagebox:restic/ovh-ks-5' > /etc/restic/repository
-head -c 32 /dev/urandom | base64 > /etc/restic/password
+echo 'sftp://<box-user>@<box-host>:<box-port>//home/<box-user>/restic/ovh-ks-5' > /etc/restic/repository
+head -c 32 /dev/urandom | base64 > /etc/restic/password   # 换机时改成从 1Password 取回原值
 : > /etc/restic/env          # sftp 不需要凭据环境变量，但 unit 要求该文件存在
 chmod 600 /etc/restic/password /etc/restic/env
+
 systemctl start restic-backups-stacks && restic-stacks snapshots
 ```
 
-`systemd` 单元里没有 `HOME`，但 OpenSSH 会回退到 `getpwuid` 拿到 `/root`，所以上面的 `~/.ssh/config` 对 restic 单元有效（已在 ks-5 上验证）。`restic-backups-stacks` 是 `Type=oneshot` 且 `TimeoutStartUSec=infinity`，大备份不会被 90s 默认超时掐掉。
+`restic-backups-stacks` 是 `Type=oneshot` 且 `TimeoutStartUSec=infinity`，大备份不会被 90s 默认超时掐掉。已在 ks-5 上删掉 `~/.ssh/config` 与 `known_hosts` 验证过：零 ssh 配置下备份成功、主机密钥被自动 pin、canary 文件从德国原样恢复。
 
 `/etc/restic/password` 和 `/root/.ssh/id_ed25519` 是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
 
@@ -203,7 +195,7 @@ systemctl start restic-backups-stacks && restic-stacks snapshots
 
 ```bash
 just install ovh-ks-5 <new-ip>          # 系统本身由本仓重建
-# 补回 /root/.ssh/{config,id_ed25519} 与 /etc/restic/{repository,password,env}
+# 补回 /root/.ssh/id_ed25519 与 /etc/restic/{repository,password,env}
 restic-stacks snapshots
 restic-stacks restore latest --target /
 cd /opt/stacks/<name> && docker compose up -d
