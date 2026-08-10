@@ -7,6 +7,7 @@
     settings."*" = {
       IdentityFile = "~/.ssh/id_ed25519";
       AddKeysToAgent = "yes";
+      StrictHostKeyChecking = "accept-new";
     };
   };
 
