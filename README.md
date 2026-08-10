@@ -148,6 +148,50 @@ cat /proc/mdstat
 docker compose version
 ```
 
+#### 备份与灾难恢复
+
+服务按 dockge 的口径放：一个栈一个目录 `/opt/stacks/<name>/`，持久化全部 bind mount 在该目录内。于是"整台机器"等价于"这棵目录树"。
+
+`hosts/ovh-ks-5/backup.nix` 用 `services.restic.backups.stacks` 每天 04:00 打一份快照：
+
+- `paths`：`/opt/stacks` + `/var/lib/docker/volumes`（named volume 也只是目录，两种写法都兜住）
+- 备份前遍历运行中的容器，凡是自带 `pg_dumpall` 的都导一份 `/opt/stacks/.dumps/<容器名>.sql.zst`，连 role 和密码一起带走。tar 活着的 PG 数据目录只是崩溃一致，逻辑 dump 才保证能恢复
+- 某个库导失败不会取消快照：留下 `FAILED-<名字>` 标记，快照照常落地，之后把 unit 标红。绿色的残缺备份比红色的完整失败危险
+- 保留 14 天 / 8 周 / 12 月；每次跑 `restic check --read-data-subset=2%` 抽检，约 50 天覆盖整个仓库
+- restic 默认加密去重，所以每天全量 dump 只花增量空间
+
+仓库地址与凭据**手写在机器上**，同 `/etc/mihomo/env` 的取舍：
+
+```bash
+install -d -m 0700 /etc/restic
+echo 's3:https://<account>.r2.cloudflarestorage.com/<bucket>' > /etc/restic/repository
+head -c 32 /dev/urandom | base64 > /etc/restic/password
+cat > /etc/restic/env <<'EOF'
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+EOF
+chmod 600 /etc/restic/password /etc/restic/env
+systemctl start restic-backups-stacks
+```
+
+`/etc/restic/password` 与凭据是唯一必须活过这台机器的东西，存 1Password。仓库必须在异地：RAID1 只挡单盘故障，挡不住整机、机房或误删。
+
+`createWrapper` 会生成 `restic-stacks` 命令（环境变量已注入），换机或炸机后的恢复：
+
+```bash
+just install ovh-ks-5 <new-ip>          # 系统本身由本仓重建
+# 补回 /etc/restic/{repository,password,env}
+restic-stacks snapshots
+restic-stacks restore latest --target /
+cd /opt/stacks/<name> && docker compose up -d
+```
+
+恢复出来的 PG 数据目录通常直接可用；若 PG 拒绝启动，清空该目录重建容器，再回放 dump：
+
+```bash
+zstd -dc /opt/stacks/.dumps/<容器名>.sql.zst | docker compose exec -T db psql -U postgres
+```
+
 ### Mihomo Gateway
 
 单臂透明代理网关，**只做代理一件事**，不是日用 NixOS。模块隔离：

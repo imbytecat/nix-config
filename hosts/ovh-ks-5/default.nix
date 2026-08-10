@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./backup.nix
     ./disko.nix
     ./hardware-configuration.nix
   ];
@@ -18,7 +19,11 @@
     swraid.mdadmConf = "PROGRAM ${pkgs.util-linux}/bin/logger";
   };
 
-  environment.systemPackages = [ pkgs.neovim ];
+  # zstd 供手工回放 .dumps 里的 pg_dumpall 产物
+  environment.systemPackages = [
+    pkgs.neovim
+    pkgs.zstd
+  ];
 
   networking.useDHCP = true;
   virtualisation.docker.enable = true;
