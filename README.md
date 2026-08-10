@@ -95,18 +95,23 @@ EOF"
 - `/etc/restic/repository`
 - `/etc/restic/password`
 
-`/etc/restic/repository` 使用 `sftp://user@host:port//abs/path`；另需创建空文件 `/etc/restic/env`。
+`/etc/restic/repository` 使用 `sftp://user@host:port//abs/path`。恢复已有仓库时先确认能读取历史；服务不会自动创建仓库，避免地址写错后静默备份到新仓库：
 
 ```bash
-systemctl start restic-backups-stacks
 restic-stacks snapshots
+systemctl start restic-backups-stacks
 ```
 
-重建机器后补回上述文件，再恢复：
+只有首次创建全新空仓库时手动运行 `restic-stacks init`。
+
+重建机器后补回上述文件，停止 Docker 再恢复 named volumes：
 
 ```bash
 just install ovh-ks-5 <new-ip>
+restic-stacks snapshots
+systemctl stop docker.service docker.socket
 restic-stacks restore latest --target /
+systemctl start docker.service
 cd /opt/stacks/<name> && docker compose up -d
 ```
 
@@ -114,7 +119,7 @@ cd /opt/stacks/<name> && docker compose up -d
 
 ```bash
 zstd -dc /opt/stacks/.dumps/<container>.sql.zst \
-  | docker compose exec -T db psql -U postgres
+  | docker compose exec -T db psql -X -U postgres
 ```
 
 RAID1 不是备份；restic 仓库必须位于异地。
