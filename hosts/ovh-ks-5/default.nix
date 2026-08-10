@@ -28,6 +28,7 @@
   ];
 
   services.smartd.enable = true;
+  services.openssh.ports = [ 22222 ];
 
   # mdadm 自带月度 scrub timer，但 NixOS 默认只链接单元，不会启动。
   systemd.targets.timers.wants = [ "mdcheck_start.timer" ];
