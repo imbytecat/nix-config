@@ -12,6 +12,7 @@ in
   programs.plasma = lib.mkIf plasmaEnabled {
     enable = true;
     configFile.kwinrc.Wayland.InputMethod = "/run/current-system/sw/share/applications/fcitx5-wayland-launcher.desktop";
+    configFile.kwinrc.Wayland.EnablePrimarySelection = false;
 
     # 这台机器无硬件背光；软件 dim 会破坏 direct scanout，并触发 Chromium 窗口闪烁。
     # 因此只在 10 分钟后熄屏，不调暗或休眠。
