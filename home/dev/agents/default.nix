@@ -8,6 +8,7 @@ in
     ./adapters/codex.nix
     ./adapters/codex-plugins.nix
     ./adapters/omp.nix
+    ./adapters/pi.nix
     ./adapters/skills.nix
   ];
 

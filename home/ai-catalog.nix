@@ -1,4 +1,4 @@
-# AI 网关与模型元数据真源，置于 home 根供 Codex、OMP、op-env 共享。
+# AI 网关与模型元数据真源，置于 home 根供 Codex、OMP、Pi、op-env 共享。
 let
   # endpoint 不含 /v1；adapter 自加版本路径，密钥仅通过 env。
   # 避免 AI_GATEWAY_*：Vercel AI SDK 会自动读取并误路由。

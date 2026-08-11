@@ -10,8 +10,8 @@ Pi 值得并行试用，但不应立刻替换当前 OMP：
 2. **它不是 OMP 的改名或精简发行版。** OMP 官方明确自称 Pi fork，但已形成独立的包名、版本、配置目录、运行时和内置工具面。两者有共同血缘，不代表当前 extension、package、配置或 session 可以无条件互换。见 OMP [`README.md`](https://github.com/can1357/oh-my-pi) 与 [`package.json`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/package.json)。
 3. **Pi 的强项是可塑性和嵌入能力。** 同一核心支持交互 TUI、print/JSON、RPC 和 SDK；extension 能拦截生命周期、注册工具/命令/快捷键/provider、修改 system prompt 与 compaction，并提供自定义 TUI。
 4. **安全边界不是默认能力。** Pi 本身没有文件、进程、网络或凭据权限系统；进程、extensions 和 packages 默认拥有启动用户的完整权限。Project trust 只决定是否加载项目资源，不是沙箱。需要隔离时必须使用容器、OpenShell 或 Gondolin 类 tool-routing extension。
-5. **本仓接入成本低。** 当前 `llm-agents` input 已提供 `pi` `0.84.1`，无需新增 flake input；现有配置尚未启用它。Pi 又会原生扫描 `~/.agents/skills`，所以本仓已经由 [`adapters/skills.nix`](../../home/dev/agents/adapters/skills.nix) 铺设的共享 skills 可以直接复用。
-6. **最小方案是与 OMP 并存。** 先只安装 `pi`，生成独立的 `~/.pi/agent/{settings,models}.json`，继续保留 `~/.omp/agent`；先比较真实任务，再决定是否迁移 behavior bundles 或默认入口。
+5. **本仓已经完成纯净接入。** 当前 `llm-agents` input 提供 `pi` `0.84.1`，[`adapters/pi.nix`](../../home/dev/agents/adapters/pi.nix) 安装它并从共享 catalog 生成独立配置。Pi 原生扫描 `~/.agents/skills`，所以继续复用 [`adapters/skills.nix`](../../home/dev/agents/adapters/skills.nix) 铺设的共享 skills。
+6. **Pi 与 OMP 并存。** Pi 使用独立的 `~/.pi/agent/{settings,models}.json`，OMP 继续使用 `~/.omp/agent`；Pi adapter 不加载 behavior bundle、plugin、extension、prompt、theme 或 Pi package。
 
 ## 1. Pi 是什么
 
@@ -174,19 +174,19 @@ inputs.llm-agents.packages.x86_64-linux.omp.version # "17.2.12"
 
 固定版本的 `enableInstallTelemetry` 默认 `true`，`enableAnalytics` 默认 `false`；关闭 install telemetry 不等于关闭 update check。Nix 管理的安装可以声明 `enableInstallTelemetry = false`，并用 `PI_SKIP_VERSION_CHECK=1` 禁止启动时自更新检查；需要完全关闭启动网络操作时才使用 `--offline` / `PI_OFFLINE=1`。见 [`settings.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/settings.md)。
 
-## 6. 本仓最小接入建议
+## 6. 本仓当前接入
 
-先并存，不迁移 OMP：
+[`adapters/pi.nix`](../../home/dev/agents/adapters/pi.nix) 实现最小、纯净的并存方案：
 
-1. 新增一个 `adapters/pi.nix`，把当前 `inputs.llm-agents.packages.${system}.pi` 放入 `home.packages`。**无需新增 input，也无需自己打包 Pi。**
-2. 从 [`home/ai-catalog.nix`](../../home/ai-catalog.nix) 生成 `~/.pi/agent/models.json`；只投影 Pi schema 支持的字段，API key 继续引用 `FURTHERVERSE_API_KEY` 环境变量。
-3. 生成最小 `settings.json`：默认 provider/model、thinking level、`enableInstallTelemetry = false`。不要先声明 packages、extensions、prompts 或 themes。
-4. 继续使用现有 `~/.agents/skills`；不要复制 skill tree。
-5. 保持 Pi 的 `~/.pi/agent` 与 OMP 的 `~/.omp/agent` 分离；session、trust、auth、npm/git package 目录必须可写，声明式 JSON 文件本身可以只读。
-6. 先用 `pi --no-session` 和普通独立 session 跑真实任务，重点比较：默认四工具是否够用、edit 成功率、compaction、session tree、provider compatibility、总 token 与人工介入次数。
-7. 只有 Pi 确实需要长期使用后，才逐个验证 Ponytail/Caveman 等 behavior bundle 的 Pi projection；不要第一轮就复制 OMP adapter。
+1. 直接安装 `inputs.llm-agents.packages.${system}.pi`；无需新增 input 或自建 package。
+2. 从 [`home/ai-catalog.nix`](../../home/ai-catalog.nix) 生成 `~/.pi/agent/models.json`，只投影 Pi 支持的模型字段。四种 wire API 使用独立的 `furtherverse-*` provider 名，避免覆盖 Pi 内置 provider catalog。
+3. 生成最小 `settings.json`：默认 `gpt-5.6-sol`、`high` thinking，并关闭 install telemetry。
+4. 设置 `PI_SKIP_VERSION_CHECK=1`；Pi 版本只随 Nix input 更新。
+5. 继续使用现有 `~/.agents/skills`，不复制 skill tree。
+6. 保持 Pi 的 `~/.pi/agent` 与 OMP 的 `~/.omp/agent` 分离；session、trust 和 auth 等运行态仍由 Pi 写入自己的目录。
+7. 不给 Pi 加载 Ponytail/Caveman behavior bundle，也不声明 plugin、extension、prompt、theme 或 Pi package。
 
-这条路径只新增一个薄 adapter，不改现有 OMP，不引入第二份 catalog，也不让 Pi package manager 接管 Nix 已经管理的长期依赖。
+该实现只新增一个薄 adapter，不改 OMP，不复制 catalog，也不引入 Pi 自己的长期 mutable package 管理面。
 
 ## 一方证据索引
 
@@ -195,4 +195,4 @@ inputs.llm-agents.packages.x86_64-linux.omp.version # "17.2.12"
 - Pi 扩展系统：[`skills.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/skills.md)、[`extensions.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/extensions.md)、[`packages.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/packages.md)。
 - Pi 集成与安全：[`rpc.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/rpc.md)、[`containerization.md`](https://github.com/earendil-works/pi/blob/2a95ef70db83a19cf5500f31dc4ff8247e04043e/packages/coding-agent/docs/containerization.md)。
 - OMP 官方：[`README.md`](https://github.com/can1357/oh-my-pi)、[`coding-agent/package.json`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/package.json)。
-- 本仓现状：[`adapters/omp.nix`](../../home/dev/agents/adapters/omp.nix)、[`adapters/skills.nix`](../../home/dev/agents/adapters/skills.nix)、[`home/ai-catalog.nix`](../../home/ai-catalog.nix)、[`flake.lock`](../../flake.lock)。
+- 本仓现状：[`adapters/pi.nix`](../../home/dev/agents/adapters/pi.nix)、[`adapters/omp.nix`](../../home/dev/agents/adapters/omp.nix)、[`adapters/skills.nix`](../../home/dev/agents/adapters/skills.nix)、[`home/ai-catalog.nix`](../../home/ai-catalog.nix)、[`flake.lock`](../../flake.lock)。
