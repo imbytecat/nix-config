@@ -124,6 +124,15 @@ let
     };
 
     furtherverse = {
+      ds = {
+        id = "deepseek-v4-flash";
+        name = "DeepSeek V4 Flash";
+        reasoning = true;
+        input = [ "text" ];
+        output = [ "text" ];
+        context = 1000000;
+        maxOutput = 384000;
+      };
       glm = {
         id = "glm-5.2";
         name = "GLM-5.2";

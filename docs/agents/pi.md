@@ -180,7 +180,7 @@ inputs.llm-agents.packages.x86_64-linux.omp.version # "17.2.12"
 
 1. 直接安装 `inputs.llm-agents.packages.${system}.pi`；无需新增 input 或自建 package。
 2. 从 [`home/ai-catalog.nix`](../../home/ai-catalog.nix) 生成 `~/.pi/agent/models.json`，只投影 Pi 支持的模型字段。四种 wire API 使用独立的 `furtherverse-*` provider 名，避免覆盖 Pi 内置 provider catalog。
-3. 生成最小 `settings.json`：默认 `gpt-5.6-sol`、`high` thinking，并关闭 install telemetry。
+3. 生成最小 `settings.json`：默认 `deepseek-v4-flash`、`high` thinking，并关闭 install telemetry。
 4. 设置 `PI_SKIP_VERSION_CHECK=1`；Pi 版本只随 Nix input 更新。
 5. 继续使用现有 `~/.agents/skills`，不复制 skill tree。
 6. 保持 Pi 的 `~/.pi/agent` 与 OMP 的 `~/.omp/agent` 分离；session、trust 和 auth 等运行态仍由 Pi 写入自己的目录。
