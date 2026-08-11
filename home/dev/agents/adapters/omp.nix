@@ -1,4 +1,5 @@
 {
+  aiCatalog,
   pkgs,
   lib,
   inputs,
@@ -9,7 +10,6 @@
 let
   yamlFormat = pkgs.formats.yaml { };
 
-  catalog = import ../../../ai-catalog.nix;
   bundles = import ../bundles { inherit inputs lib pkgs; };
   ompBundles = map (bundle: bundle.omp) (builtins.filter (bundle: bundle ? omp) bundles);
   bundleExtensions = lib.concatMap (bundle: bundle.extensions or [ ]) ompBundles;
@@ -27,22 +27,22 @@ let
     contextWindow = m.context;
     maxTokens = m.maxOutput;
   };
-  familyModels = p: map projectModel (lib.attrValues catalog.providers.${p});
+  familyModels = p: map projectModel (lib.attrValues aiCatalog.providers.${p});
 
   mkProvider = api: baseUrl: models: {
     inherit api baseUrl models;
     # 仅记录密钥环境变量名。
-    apiKey = catalog.gateway.apiKeyEnv;
+    apiKey = aiCatalog.gateway.apiKeyEnv;
   };
 
   ompModels = {
     providers = {
-      anthropic = mkProvider "anthropic-messages" catalog.gateway.endpoint (familyModels "anthropic");
-      openai = mkProvider "openai-responses" "${catalog.gateway.endpoint}/v1" (familyModels "openai");
-      google = mkProvider "google-generative-ai" "${catalog.gateway.endpoint}/v1beta" (
+      anthropic = mkProvider "anthropic-messages" aiCatalog.gateway.endpoint (familyModels "anthropic");
+      openai = mkProvider "openai-responses" "${aiCatalog.gateway.endpoint}/v1" (familyModels "openai");
+      google = mkProvider "google-generative-ai" "${aiCatalog.gateway.endpoint}/v1beta" (
         familyModels "google"
       );
-      furtherverse = mkProvider "openai-completions" "${catalog.gateway.endpoint}/v1" (
+      furtherverse = mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (
         familyModels "furtherverse"
       );
     };
@@ -62,8 +62,8 @@ let
     providers.webSearchOrder = [ "exa" ];
     compaction.thresholdPercent = 75;
     modelRoles = {
-      default = "${catalog.ref "sol"}:xhigh";
-      smol = catalog.ref "luna";
+      default = "${aiCatalog.ref "sol"}:xhigh";
+      smol = aiCatalog.ref "luna";
     };
     extensions = bundleExtensions;
   };

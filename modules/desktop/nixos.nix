@@ -31,9 +31,6 @@ let
     "wpspdf"
   ];
 
-  rime-wanxiang-grammar = pkgs.callPackage ../../pkgs/rime-wanxiang-grammar { };
-
-  orca-ide = pkgs.callPackage ../../pkgs/orca-ide { };
 in
 {
   imports = [ ./fonts.nix ];

@@ -145,7 +145,13 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-      pkgsFor = system: import nixpkgs { inherit system; };
+      overlay = import ./overlays { inherit inputs; };
+      pkgsFor =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ overlay ];
+        };
       treefmtFor = system: inputs.treefmt-nix.lib.evalModule (pkgsFor system) ./treefmt.nix;
     in
     {
@@ -210,11 +216,11 @@
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          orca-ide = pkgs.callPackage ./pkgs/orca-ide { };
+          inherit (pkgs) orca-ide;
         }
       );
 
-      overlays.default = import ./overlays { inherit inputs; };
+      overlays.default = overlay;
 
       devShells = forAllSystems (
         system:

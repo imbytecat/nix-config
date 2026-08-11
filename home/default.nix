@@ -9,6 +9,8 @@
 }:
 
 {
+  _module.args.aiCatalog = import ./ai-catalog.nix;
+
   imports = [
     inputs.catppuccin.homeModules.catppuccin
     ./shell

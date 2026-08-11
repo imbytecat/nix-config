@@ -1,10 +1,6 @@
 # NixOS 桌面字体；SC 字族需排在默认 Noto 前，避免 en_US 选到日文字形。
 { pkgs, lib, ... }:
 
-let
-  # WPS 需要 Windows 具名字体；来源取舍见 pkgs/ttf-ms-win10。
-  ttf-ms-win10 = pkgs.callPackage ../../pkgs/ttf-ms-win10 { };
-in
 {
   fonts = {
     packages = with pkgs; [
@@ -14,7 +10,7 @@ in
       sarasa-gothic
       lxgw-wenkai
       inter
-      ttf-ms-win10
+      ttf-ms-win10 # WPS 需要 Windows 具名字体；来源取舍见 pkgs/ttf-ms-win10。
     ];
 
     fontconfig.defaultFonts = {

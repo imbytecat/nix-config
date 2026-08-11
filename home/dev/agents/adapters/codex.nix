@@ -1,12 +1,10 @@
 {
+  aiCatalog,
   inputs,
   system,
   ...
 }:
 
-let
-  catalog = import ../../../ai-catalog.nix;
-in
 {
   programs.codex = {
     enable = true;
@@ -14,7 +12,7 @@ in
 
     settings = {
       model_provider = "furtherverse";
-      model = catalog.models.sol.id;
+      model = aiCatalog.models.sol.id;
       forced_login_method = "api";
       check_for_update_on_startup = false;
 
@@ -24,8 +22,8 @@ in
       approval_policy = "never";
       sandbox_mode = "danger-full-access";
 
-      model_context_window = catalog.models.sol.context;
-      model_auto_compact_token_limit = catalog.models.sol.context * 3 / 4;
+      model_context_window = aiCatalog.models.sol.context;
+      model_auto_compact_token_limit = aiCatalog.models.sol.context * 3 / 4;
 
       history.persistence = "none";
       analytics.enabled = false;
@@ -33,8 +31,8 @@ in
 
       model_providers.furtherverse = {
         name = "Furtherverse";
-        base_url = "${catalog.gateway.endpoint}/v1";
-        env_key = catalog.gateway.apiKeyEnv;
+        base_url = "${aiCatalog.gateway.endpoint}/v1";
+        env_key = aiCatalog.gateway.apiKeyEnv;
         wire_api = "responses";
       };
     };

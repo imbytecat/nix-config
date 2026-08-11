@@ -1,4 +1,5 @@
 {
+  aiCatalog,
   pkgs,
   inputs,
   system,
@@ -7,7 +8,6 @@
 
 let
   jsonFormat = pkgs.formats.json { };
-  catalog = import ../../../ai-catalog.nix;
 
   projectModel = m: {
     inherit (m) id name reasoning;
@@ -21,31 +21,31 @@ let
     contextWindow = m.context;
     maxTokens = m.maxOutput;
   };
-  familyModels = family: map projectModel (builtins.attrValues catalog.providers.${family});
+  familyModels = family: map projectModel (builtins.attrValues aiCatalog.providers.${family});
 
   mkProvider = api: baseUrl: models: {
     inherit api baseUrl models;
-    apiKey = "${"$"}${catalog.gateway.apiKeyEnv}";
+    apiKey = "${"$"}${aiCatalog.gateway.apiKeyEnv}";
   };
 
   piModels.providers = {
-    furtherverse-anthropic = mkProvider "anthropic-messages" catalog.gateway.endpoint (
+    furtherverse-anthropic = mkProvider "anthropic-messages" aiCatalog.gateway.endpoint (
       familyModels "anthropic"
     );
-    furtherverse-openai = mkProvider "openai-responses" "${catalog.gateway.endpoint}/v1" (
+    furtherverse-openai = mkProvider "openai-responses" "${aiCatalog.gateway.endpoint}/v1" (
       familyModels "openai"
     );
-    furtherverse-google = mkProvider "google-generative-ai" "${catalog.gateway.endpoint}/v1beta" (
+    furtherverse-google = mkProvider "google-generative-ai" "${aiCatalog.gateway.endpoint}/v1beta" (
       familyModels "google"
     );
-    furtherverse = mkProvider "openai-completions" "${catalog.gateway.endpoint}/v1" (
+    furtherverse = mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (
       familyModels "furtherverse"
     );
   };
 
   piSettings = {
     defaultProvider = "furtherverse-openai";
-    defaultModel = catalog.models.sol.id;
+    defaultModel = aiCatalog.models.sol.id;
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
   };

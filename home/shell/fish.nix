@@ -1,4 +1,5 @@
 {
+  aiCatalog,
   config,
   pkgs,
   lib,
@@ -6,7 +7,6 @@
 }:
 
 let
-  catalog = import ../ai-catalog.nix;
 
   envTpl = "${config.xdg.configHome}/op-env/env.tpl";
   envCache = "${config.xdg.cacheHome}/op-env/env.fish";
@@ -17,7 +17,7 @@ in
   # 模板只写 op:// 引用；真实密钥由 op-env-refresh 落到本机 0600 文件。
   xdg.configFile = {
     "op-env/env.tpl".text = ''
-      set -gx ${catalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
+      set -gx ${aiCatalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
       set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
       set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
