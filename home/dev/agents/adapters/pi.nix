@@ -38,9 +38,11 @@ let
     furtherverse-google = mkProvider "google-generative-ai" "${aiCatalog.gateway.endpoint}/v1beta" (
       familyModels "google"
     );
-    furtherverse = mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (
-      familyModels "furtherverse"
-    );
+    furtherverse =
+      mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (familyModels "furtherverse")
+      // {
+        compat.supportsDeveloperRole = false;
+      };
   };
 
   piSettings = {
