@@ -1,7 +1,13 @@
-{ sshKeys, ... }:
+{ pkgs, sshKeys, ... }:
 
 {
   imports = [ ./base.nix ];
+
+  environment.systemPackages = [
+    pkgs.btop
+    pkgs.neovim
+    pkgs.ouch
+  ];
 
   fonts.fontconfig.enable = false;
 
