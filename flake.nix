@@ -180,6 +180,15 @@
           ];
         };
 
+        homelab-server = mylib.mkServer {
+          hostname = "homelab-server";
+          system = "x86_64-linux";
+          extraModules = [
+            ./modules/nixos/boot/systemd-boot.nix
+            ./hosts/homelab-server
+          ];
+        };
+
         mihomo-gateway = mylib.mkServer {
           hostname = "mihomo-gateway";
           system = "x86_64-linux";
@@ -282,6 +291,7 @@
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           eval-awesome-macbook-air = evalOnly "awesome-macbook-air" inputs.self.darwinConfigurations.awesome-macbook-air.system.drvPath;
           eval-awesome-pc = evalOnly "awesome-pc" inputs.self.nixosConfigurations.awesome-pc.config.system.build.toplevel.drvPath;
+          eval-homelab-server = evalOnly "homelab-server" inputs.self.nixosConfigurations.homelab-server.config.system.build.toplevel.drvPath;
           eval-mihomo-gateway = evalOnly "mihomo-gateway" inputs.self.nixosConfigurations.mihomo-gateway.config.system.build.toplevel.drvPath;
           eval-ovh-ks-5 = evalOnly "ovh-ks-5" inputs.self.nixosConfigurations.ovh-ks-5.config.system.build.toplevel.drvPath;
         }
