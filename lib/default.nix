@@ -44,9 +44,9 @@ in
           ;
       };
       modules = [
-        ../modules/shared
         ../modules/nixos/base.nix
-        ../modules/nixos/dev.nix
+        ../modules/daily
+        ../modules/nixos/daily.nix
         inputs.home-manager.nixosModules.home-manager
         inputs.catppuccin.nixosModules.catppuccin
         (homeManagerConfig { inherit username system; })
@@ -100,7 +100,9 @@ in
             overlays = [ inputs.self.overlays.default ];
           };
         }
-        ../modules/shared
+        ../modules/shared/gc.nix
+        ../modules/shared/nix.nix
+        ../modules/daily
         ../modules/darwin
         inputs.home-manager.darwinModules.home-manager
         (homeManagerConfig { inherit username system; })
