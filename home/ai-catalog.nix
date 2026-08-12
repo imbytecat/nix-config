@@ -18,7 +18,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 1000000;
         maxOutput = 128000;
       };
@@ -31,7 +30,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 1000000;
         maxOutput = 128000;
       };
@@ -44,7 +42,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 1000000;
         maxOutput = 128000;
       };
@@ -57,7 +54,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 200000;
         maxOutput = 64000;
       };
@@ -73,7 +69,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 372000;
         maxOutput = 128000;
       };
@@ -86,7 +81,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 372000;
         maxOutput = 128000;
       };
@@ -99,7 +93,6 @@ let
           "image"
           "pdf"
         ];
-        output = [ "text" ];
         context = 372000;
         maxOutput = 128000;
       };
@@ -117,7 +110,6 @@ let
           "audio"
           "pdf"
         ];
-        output = [ "text" ];
         context = 1048576;
         maxOutput = 65536;
       };
@@ -129,7 +121,6 @@ let
         name = "DeepSeek V4 Flash";
         reasoning = true;
         input = [ "text" ];
-        output = [ "text" ];
         context = 1000000;
         maxOutput = 384000;
       };
@@ -138,7 +129,6 @@ let
         name = "GLM-5.2";
         reasoning = true;
         input = [ "text" ];
-        output = [ "text" ];
         context = 1000000;
         maxOutput = 131072;
       };
@@ -150,7 +140,6 @@ let
           "text"
           "image"
         ];
-        output = [ "text" ];
         context = 500000;
         maxOutput = 500000;
       };
@@ -163,7 +152,6 @@ let
           "image"
           "video"
         ];
-        output = [ "text" ];
         context = 1048576;
         maxOutput = 131072;
       };

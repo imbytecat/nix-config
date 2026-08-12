@@ -1,6 +1,7 @@
 {
   aiCatalog,
   pkgs,
+  lib,
   inputs,
   system,
   ...
@@ -9,40 +10,18 @@
 let
   jsonFormat = pkgs.formats.json { };
 
-  projectModel = m: {
-    inherit (m) id name reasoning;
-    input = builtins.filter (
-      x:
-      builtins.elem x [
-        "text"
-        "image"
-      ]
-    ) m.input;
-    contextWindow = m.context;
-    maxTokens = m.maxOutput;
-  };
-  familyModels = family: map projectModel (builtins.attrValues aiCatalog.providers.${family});
+  gatewayProviders = import ./gateway-providers.nix { inherit aiCatalog lib; };
 
-  mkProvider = api: baseUrl: models: {
-    inherit api baseUrl models;
-    apiKey = "${"$"}${aiCatalog.gateway.apiKeyEnv}";
-  };
+  # Pi 的 apiKey 走 shell expansion。
+  providers = gatewayProviders.mkProviders "${"$"}${aiCatalog.gateway.apiKeyEnv}";
 
   piModels.providers = {
-    furtherverse-anthropic = mkProvider "anthropic-messages" aiCatalog.gateway.endpoint (
-      familyModels "anthropic"
-    );
-    furtherverse-openai = mkProvider "openai-responses" "${aiCatalog.gateway.endpoint}/v1" (
-      familyModels "openai"
-    );
-    furtherverse-google = mkProvider "google-generative-ai" "${aiCatalog.gateway.endpoint}/v1beta" (
-      familyModels "google"
-    );
-    furtherverse =
-      mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (familyModels "furtherverse")
-      // {
-        compat.supportsDeveloperRole = false;
-      };
+    furtherverse-anthropic = providers.anthropic;
+    furtherverse-openai = providers.openai;
+    furtherverse-google = providers.google;
+    furtherverse = providers.furtherverse // {
+      compat.supportsDeveloperRole = false;
+    };
   };
 
   piSettings = {

@@ -15,38 +15,10 @@ let
   bundleExtensions = lib.concatMap (bundle: bundle.extensions or [ ]) ompBundles;
   bundleFiles = lib.foldl' (files: bundle: files // (bundle.files or { })) { } ompBundles;
 
-  projectModel = m: {
-    inherit (m) id name reasoning;
-    input = builtins.filter (
-      x:
-      builtins.elem x [
-        "text"
-        "image"
-      ]
-    ) m.input;
-    contextWindow = m.context;
-    maxTokens = m.maxOutput;
-  };
-  familyModels = p: map projectModel (lib.attrValues aiCatalog.providers.${p});
+  gatewayProviders = import ./gateway-providers.nix { inherit aiCatalog lib; };
 
-  mkProvider = api: baseUrl: models: {
-    inherit api baseUrl models;
-    # 仅记录密钥环境变量名。
-    apiKey = aiCatalog.gateway.apiKeyEnv;
-  };
-
-  ompModels = {
-    providers = {
-      anthropic = mkProvider "anthropic-messages" aiCatalog.gateway.endpoint (familyModels "anthropic");
-      openai = mkProvider "openai-responses" "${aiCatalog.gateway.endpoint}/v1" (familyModels "openai");
-      google = mkProvider "google-generative-ai" "${aiCatalog.gateway.endpoint}/v1beta" (
-        familyModels "google"
-      );
-      furtherverse = mkProvider "openai-completions" "${aiCatalog.gateway.endpoint}/v1" (
-        familyModels "furtherverse"
-      );
-    };
-  };
+  # apiKey 仅记录密钥环境变量名。
+  ompModels.providers = gatewayProviders.mkProviders aiCatalog.gateway.apiKeyEnv;
 
   # config.yml 只读，禁用会尝试写 setupVersion 的向导。
   ompConfig = {

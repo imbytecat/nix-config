@@ -173,7 +173,6 @@
           system = "x86_64-linux";
           username = "imbytecat";
           extraModules = [
-            inputs.disko.nixosModules.disko
             ./modules/nixos/boot/systemd-boot.nix
             ./modules/desktop/nixos.nix
             ./hosts/awesome-pc

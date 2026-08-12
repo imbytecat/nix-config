@@ -44,6 +44,7 @@ in
           ;
       };
       modules = [
+        inputs.disko.nixosModules.disko
         ../modules/nixos/base.nix
         ../modules/daily
         ../modules/nixos/daily.nix

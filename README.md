@@ -7,6 +7,7 @@
 | Host | 用途 | 平台 |
 |------|------|------|
 | `awesome-pc` | 主力 Plasma 桌面 | x86_64-linux |
+| `homelab-server` | root-only Docker VM（Proxmox VE） | x86_64-linux |
 | `awesome-macbook-air` | 移动与 Apple 平台构建 | aarch64-darwin |
 | `mihomo-gateway` | 单臂透明代理网关 | x86_64-linux |
 | `ovh-ks-5` | root-only Docker 服务器 | x86_64-linux |
@@ -71,6 +72,7 @@ ssh-keygen -R <remote>
 关键机器差异：
 
 - `awesome-pc`：单盘 UEFI + systemd-boot；磁盘默认使用 `hosts/awesome-pc/disko.nix` 中的 by-id。
+- `homelab-server`：PVE QEMU VM，默认 `/dev/sda`；PVE 呈现其他设备时先改 host 内默认值。
 - `mihomo-gateway`：默认 `/dev/sda`，安装后必须补 `/etc/mihomo/env`。
 - `ovh-ks-5`：两块 NVMe 全盘组成 RAID1；从 OVH Rescue 安装前确认以 UEFI 启动。
 

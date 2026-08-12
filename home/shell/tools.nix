@@ -89,8 +89,6 @@
     };
   };
 
-  home.packages = with pkgs; [
-    ripgrep
-    fd
-  ];
+  programs.ripgrep.enable = true;
+  programs.fd.enable = true;
 }

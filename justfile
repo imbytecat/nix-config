@@ -109,7 +109,8 @@ install host remote: (_valid host) (_valid_remote remote)
     kexec_installer="$(nix build --no-link --print-out-paths .#kexec-installer)"
     hardware_config="./hosts/{{ host }}/hardware-configuration.nix"
     hardware_args=()
-    if [ -f "$hardware_config" ]; then
+    # 只对 git tracked 的 hardware config 请求重新生成；未跟踪文件不会进入目标 build。
+    if git ls-files --error-unmatch "$hardware_config" > /dev/null 2>&1; then
       hardware_args+=(--generate-hardware-config nixos-generate-config "$hardware_config")
     fi
     # nixos-anywhere 会转发目标 host 的 nix.settings 并自动启用 flakes；勿在此复制。
