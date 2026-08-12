@@ -19,16 +19,6 @@
     flavor = "mocha";
   };
 
-  environment.systemPackages = with pkgs; [
-    curl
-    git
-    ghostty.terminfo
-    pciutils
-    usbutils
-    lsof
-    smartmontools
-  ];
-
   # 界面保持 en_US，时间与日期使用 zh_CN 的 24 小时格式。
   i18n.extraLocaleSettings.LC_TIME = "zh_CN.UTF-8";
 
