@@ -50,10 +50,10 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 | Windows 字体固定 commits | `pkgs/ttf-ms-win10/default.nix`：两个 GitHub repos，各自 immutable commit + hash，版本说明为 `unstable-2021-02-10`，且标注 unfree | **人工、低频**：只有字体缺失/文档兼容性需求或上游可信新 commit 才更新；两个 source 必须成对检查，关注许可证和字体内容 | 不跟随 branch/tag；可用 nurl 生成新 fetcher/hash，但不能替代许可证/视觉回归审阅 |
 | 破坏性安装引导镜像 | `flake.nix` `kexec-installer`：`nixos-images` 的 `nixos-26.05` noninteractive x86_64 tar.gz，供 just install 的 `nixos-anywhere --kexec` 使用；justfile 注释说明内核/mdraid 兼容风险 | **人工、强门槛**：镜像升级可能改变 kexec 内核、存储探测和目标机可启动性；先在可抛弃目标/维护窗口验证，再改 URL/hash | 禁止无审阅自动合并；即使 Renovate/nvfetcher 提示新 tag，也只能提案 |
 
-截至 2026-08-06 的上游状态：
+最近核验状态（Rime：2026-08-17；其余：2026-08-06）：
 
 - Orca 最新正式版是 [`v1.4.173`](https://github.com/stablyai/orca/releases/tag/v1.4.173)，本仓已由自动更新 PR 同步。
-- Rime LTS 的简体 asset 于 2026-08-05 重新发布；GitHub API 给出的 digest 转成 SRI 后正是本仓 `sha256-BRpVq7OCT+EDp68QuKyWtatOlwZ6HAzxyWiEHqKhw5E=`，当前已同步。
+- Rime LTS 的简体 asset 于 2026-08-13 重新发布；GitHub API digest 转成 SRI 后为本仓 `sha256-a81qxhNpt0AYI/fc5ZomWYFA6sW5Q884Zun0EgS2rfs=`，许可证仍为 CC-BY-4.0，当前已同步。
 - 两个字体仓库的最新 commit 分别仍是本仓固定的 [`417eb232`](https://github.com/streetsamurai00mi/ttf-ms-win10/commit/417eb232e8d037964971ae2690560a7b12e5f0d4) 和 [`f5d2ef2c`](https://github.com/chillcicada/ttf-ms-win10-sc-sup/commit/f5d2ef2c84e8979b322563a53ea3adb5ab995176)，无需更新。
 - `nixos-images` 最新正式 release 仍是 [`nixos-26.05`](https://github.com/nix-community/nixos-images/releases/tag/nixos-26.05)，kexec pin 当前没有落后。
 

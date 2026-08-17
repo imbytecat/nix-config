@@ -2,7 +2,7 @@
 
 {
   programs.ghostty = {
-    enable = pkgs.stdenv.isDarwin;
+    enable = pkgs.stdenv.hostPlatform.isDarwin;
     package = null; # 用 Homebrew cask
     settings = {
       font-family = "Maple Mono NF CN";

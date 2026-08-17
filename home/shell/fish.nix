@@ -42,7 +42,7 @@ in
     "$HOME/go/bin"
     "$HOME/.bun/bin"
   ]
-  ++ lib.optional pkgs.stdenv.isDarwin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin";
+  ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin";
 
   programs.fish = {
     enable = true;

@@ -95,10 +95,7 @@ in
   };
 
   # Solaar 支持该鼠标；libratbag 不支持，故不装 piper。
-  hardware.logitech.wireless = {
-    enable = true;
-    enableGraphical = true;
-  };
+  programs.solaar.enable = true;
 
   hardware.bluetooth = {
     enable = true;

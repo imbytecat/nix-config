@@ -212,9 +212,19 @@
         system:
         let
           pkgs = pkgsFor system;
+          # 上游 package.nix 仍读取 stdenv.isDarwin；修复后恢复直接 inherit。
+          disko-install =
+            (inputs.disko.packages.${system}.disko.override {
+              stdenv = pkgs.stdenv // {
+                isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+              };
+            }).overrideAttrs
+              (_old: {
+                name = "disko-install";
+              });
         in
         {
-          inherit (inputs.disko.packages.${system}) disko-install;
+          inherit disko-install;
           inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
 
           # release 分支资产会被上游重建并重新上传，hash 会随之变化，报 mismatch 就照 got 更新。
