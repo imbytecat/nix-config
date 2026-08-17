@@ -69,7 +69,7 @@ let
           "image"
           "pdf"
         ];
-        context = 372000;
+        context = 1050000;
         maxOutput = 128000;
       };
       terra = {
