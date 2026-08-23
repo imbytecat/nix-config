@@ -45,7 +45,7 @@
 
 let
   pname = "orca-ide";
-  version = "1.4.184";
+  version = "1.4.188";
 
   src = fetchurl {
     name = "${pname}-${version}.AppImage";
