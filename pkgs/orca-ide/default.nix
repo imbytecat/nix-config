@@ -50,7 +50,7 @@ let
   src = fetchurl {
     name = "${pname}-${version}.AppImage";
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
-    hash = "sha256-we74NUJ9DVCsGCQmsSiwIRfMQEOmO/A+g+5VeJQ/T6g=";
+    hash = "sha256-LnDLXhmXQeVgKnBgglV1MZ9eA7wvqkuJzScyjz9V1LQ=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
