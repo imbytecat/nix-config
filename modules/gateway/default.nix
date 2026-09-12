@@ -43,8 +43,8 @@
   environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/stub-resolv.conf";
 
   # info 日志含浏览域名，仅保留短窗口。
-  services.journald.extraConfig = ''
-    MaxRetentionSec=3day
-    SystemMaxUse=100M
-  '';
+  services.journald.settings.Journal = {
+    MaxRetentionSec = "3day";
+    SystemMaxUse = "100M";
+  };
 }
