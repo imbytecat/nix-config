@@ -1,10 +1,26 @@
 {
   aiCatalog,
+  config,
   inputs,
+  lib,
+  pkgs,
   system,
   ...
 }:
 
+let
+  configDir =
+    if config.home.preferXdgDirectories then
+      "${lib.removePrefix config.home.homeDirectory config.xdg.configHome}/codex"
+    else
+      ".codex";
+  codexHome =
+    if config.home.preferXdgDirectories then
+      "${config.xdg.configHome}/codex"
+    else
+      "${config.home.homeDirectory}/.codex";
+  managedConfig = config.home.file."${configDir}/config.toml".source;
+in
 {
   programs.codex = {
     enable = true;
@@ -38,4 +54,22 @@
     };
   };
 
+  # Home Manager 默认把 config.toml 链到只读 store，Codex 无法持久化项目与 hook 信任。
+  home.file."${configDir}/config.toml".enable = lib.mkForce false;
+  home.activation.mutableCodexConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    configPath=${lib.escapeShellArg "${codexHome}/config.toml"}
+    ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg codexHome}
+
+    if [ -e "$configPath" ]; then
+      dynamic="$(${pkgs.remarshal}/bin/remarshal --if toml --of json "$configPath")"
+    else
+      dynamic='{}'
+    fi
+    static="$(${pkgs.remarshal}/bin/remarshal --if toml --of json ${lib.escapeShellArg managedConfig})"
+    merged="$(${pkgs.jq}/bin/jq -n '$dynamic * $static' --argjson dynamic "$dynamic" --argjson static "$static")"
+
+    tmp="$configPath.tmp"
+    printf '%s\n' "$merged" | ${pkgs.remarshal}/bin/remarshal --if json --of toml - "$tmp"
+    ${pkgs.coreutils}/bin/mv "$tmp" "$configPath"
+  '';
 }
