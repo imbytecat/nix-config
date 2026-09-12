@@ -168,11 +168,10 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --no-reexec
 
 
-[doc('更新可自动维护的依赖（flake 输入 + Orca）')]
+[doc('更新可自动维护的 flake 输入')]
 [group('nix')]
 update:
     nix flake update
-    nix develop -c nix-update orca-ide --flake --system x86_64-linux --url https://github.com/stablyai/orca --use-github-releases
 
 [doc('更新单个 flake 输入')]
 [group('nix')]

@@ -234,7 +234,7 @@
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          inherit (pkgs) orca-ide;
+          orca = inputs.llm-agents.packages.${system}.orca;
         }
       );
 
@@ -253,7 +253,6 @@
               pkgs.nixd
               pkgs.statix
               pkgs.deadnix
-              pkgs.nix-update
               pkgs.nvd
               pkgs.nix-tree
               (treefmtFor system).config.build.wrapper

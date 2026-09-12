@@ -37,7 +37,7 @@ jobs:
         id: verify
         continue-on-error: true
         run: |
-          nix build .#orca-ide
+          nix build .#orca
           nix develop -c just check
 
       - name: Inspect manual pins
@@ -64,14 +64,13 @@ jobs:
           delete-branch: true
           add-paths: |
             flake.lock
-            pkgs/orca-ide/default.nix
           commit-message: "chore(deps): 自动更新依赖"
           title: "chore(deps): 自动更新依赖"
           body: |
             每周自动更新可安全维护的依赖。
 
             - 更新步骤：`${{ steps.update.outcome }}`
-            - `nix build .#orca-ide` + `just check`：`${{ steps.verify.outcome }}`
+            - `nix build .#orca` + `just check`：`${{ steps.verify.outcome }}`
             - Rime LTS 发布时间：`${{ steps.pins.outputs.rime }}`（仅提示）
             - nixos-images 最新版本：`${{ steps.pins.outputs.kexec }}`（仅提示）
 

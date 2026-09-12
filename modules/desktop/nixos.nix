@@ -1,11 +1,20 @@
 {
   pkgs,
   lib,
+  inputs,
   username,
   ...
 }:
 
 let
+  orca = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.orca;
+  # Plasma 已安装 GNOME Orca 的 `orca`；这里只暴露 IDE，避免 CLI 同名冲突。
+  orcaPackage = pkgs.symlinkJoin {
+    name = "orca-ide-${orca.version}";
+    paths = [ orca ];
+    postBuild = "rm $out/bin/orca";
+  };
+
   # XWayland Qt5 应用需显式 *_IM_MODULE=fcitx。
   wrapWithFcitx =
     pkg: bins:
@@ -67,7 +76,7 @@ in
     discord
     freerdp
     obs-studio
-    orca-ide
+    orcaPackage
     qq
     remmina
     snipaste

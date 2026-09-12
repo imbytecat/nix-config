@@ -10,6 +10,5 @@ final: prev:
   ttf-ms-win10 = final.callPackage ../pkgs/ttf-ms-win10 { };
 }
 // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
-  orca-ide = final.callPackage ../pkgs/orca-ide { };
   rime-wanxiang-grammar = final.callPackage ../pkgs/rime-wanxiang-grammar { };
 }
