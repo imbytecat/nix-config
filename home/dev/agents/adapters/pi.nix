@@ -25,8 +25,8 @@ let
   };
 
   piSettings = {
-    defaultProvider = "furtherverse";
-    defaultModel = aiCatalog.models.ds.id;
+    defaultProvider = "furtherverse-openai";
+    defaultModel = aiCatalog.models.sol.id;
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
   };

@@ -10,8 +10,8 @@ let
   providers = {
     anthropic = {
       fable = {
-        id = "claude-fable-5";
-        name = "Claude Fable 5";
+        id = "claude-fable-5-1";
+        name = "Claude Fable 5.1";
         reasoning = true;
         input = [
           "text"
@@ -60,6 +60,18 @@ let
     };
 
     openai = {
+      astra = {
+        id = "gpt-6-astra";
+        name = "GPT-6 Astra";
+        reasoning = true;
+        input = [
+          "text"
+          "image"
+          "pdf"
+        ];
+        context = 1050000;
+        maxOutput = 128000;
+      };
       sol = {
         id = "gpt-5.6-sol";
         name = "GPT-5.6 Sol";
@@ -116,25 +128,17 @@ let
     };
 
     furtherverse = {
-      ds = {
-        id = "deepseek-v4-flash";
-        name = "DeepSeek V4 Flash";
-        reasoning = true;
-        input = [ "text" ];
-        context = 1000000;
-        maxOutput = 384000;
-      };
       glm = {
-        id = "glm-5.2";
-        name = "GLM-5.2";
+        id = "glm-5.3";
+        name = "GLM-5.3";
         reasoning = true;
         input = [ "text" ];
         context = 1000000;
         maxOutput = 131072;
       };
       grok = {
-        id = "grok-4.5";
-        name = "Grok 4.5";
+        id = "grok-4.6";
+        name = "Grok 4.6";
         reasoning = true;
         input = [
           "text"
