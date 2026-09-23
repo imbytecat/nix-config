@@ -18,6 +18,7 @@
     "mos"
     "movist-pro"
     "obs"
+    "openmtp"
     "orbstack"
     "qq"
     "raycast"

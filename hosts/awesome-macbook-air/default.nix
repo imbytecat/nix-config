@@ -3,7 +3,6 @@ _:
 {
   homebrew.casks = [
     "thaw" # 刘海菜单栏
-    "openmtp"
   ];
 
   # 不用 power.sleep.*：systemsetup -setComputerSleep Never 会屏蔽合盖睡眠
