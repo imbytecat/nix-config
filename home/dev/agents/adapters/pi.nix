@@ -26,7 +26,7 @@ let
 
   piSettings = {
     defaultProvider = "furtherverse-openai";
-    defaultModel = aiCatalog.models.sol.id;
+    defaultModel = aiCatalog.models.astra.id;
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
   };

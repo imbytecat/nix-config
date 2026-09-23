@@ -73,8 +73,8 @@ let
         maxOutput = 128000;
       };
       sol = {
-        id = "gpt-5.6-sol";
-        name = "GPT-5.6 Sol";
+        id = "gpt-6-sol";
+        name = "GPT-6 Sol";
         reasoning = true;
         input = [
           "text"
@@ -84,28 +84,16 @@ let
         context = 1050000;
         maxOutput = 128000;
       };
-      terra = {
-        id = "gpt-5.6-terra";
-        name = "GPT-5.6 Terra";
-        reasoning = true;
-        input = [
-          "text"
-          "image"
-          "pdf"
-        ];
-        context = 372000;
-        maxOutput = 128000;
-      };
       luna = {
-        id = "gpt-5.6-luna";
-        name = "GPT-5.6 Luna";
+        id = "gpt-6-luna";
+        name = "GPT-6 Luna";
         reasoning = true;
         input = [
           "text"
           "image"
           "pdf"
         ];
-        context = 372000;
+        context = 1050000;
         maxOutput = 128000;
       };
     };

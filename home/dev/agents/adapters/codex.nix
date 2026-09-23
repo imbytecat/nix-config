@@ -28,18 +28,18 @@ in
 
     settings = {
       model_provider = "furtherverse";
-      model = aiCatalog.models.sol.id;
+      model = aiCatalog.models.astra.id;
       forced_login_method = "api";
       check_for_update_on_startup = false;
 
-      model_reasoning_effort = "medium";
+      model_reasoning_effort = "high";
       model_reasoning_summary = "auto";
 
       approval_policy = "never";
       sandbox_mode = "danger-full-access";
 
-      model_context_window = aiCatalog.models.sol.context;
-      model_auto_compact_token_limit = aiCatalog.models.sol.context * 3 / 4;
+      model_context_window = aiCatalog.models.astra.context;
+      model_auto_compact_token_limit = aiCatalog.models.astra.context * 3 / 4;
 
       history.persistence = "none";
       analytics.enabled = false;
