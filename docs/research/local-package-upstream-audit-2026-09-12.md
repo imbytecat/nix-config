@@ -80,7 +80,7 @@ Plasma 同时安装 nixpkgs 的 GNOME Orca 屏幕阅读器，二者都提供 `bi
 - nixpkgs 已有 [`rime-wanxiang`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/by-name/ri/rime-wanxiang/package.nix) **17.9.3**，[Package Search](https://search.nixos.org/packages?channel=unstable&query=rime-wanxiang) 也只列出该方案包；它的 `longDescription` 明确说 LTS release 会覆盖旧资产，不能进入要求可复现的 nixpkgs，用户必须自行下载 `.gram`。
 - 上游方案最新正式版是 [`v17.9.9`](https://github.com/amzxyz/rime-wanxiang/releases/tag/v17.9.9)（2026-09-08），并仍将该模型列为所有方案的必装组件。
 - 上游 [issue #22](https://github.com/amzxyz/RIME-LMDG/issues/22) 明确确认继续覆盖同一 LTS release；这不是稳定版本语义。
-- [`LTS` release](https://github.com/amzxyz/RIME-LMDG/releases/tag/LTS) 的简体资产于 2026-09-12 00:34 UTC 更新，GitHub digest `sha256:9f80530f…` 转为 SRI 后正是本仓 `sha256-n4BTD0cAM8+21LRLuGG1QPZBAEJvkt0PhxQIg2MqPZM=`，当前内容已同步。
+- [`LTS` release](https://github.com/amzxyz/RIME-LMDG/releases/tag/LTS) 的简体资产于 2026-09-29 06:33 UTC 更新，GitHub digest `sha256:5624b512…` 转为 SRI 后正是本仓 `sha256-ViS1EnTm70R7XfO+ZPPh0C8jbCnjBnm17CFgccAAUSE=`，当前内容已同步。
 
 ### 建议与退出门槛
 
