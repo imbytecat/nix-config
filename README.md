@@ -36,6 +36,13 @@ just update                        # 更新 flake 输入与自动维护项
 accept-flake-config = true
 ```
 
+### 中文输入
+
+`awesome-pc` 使用 Fcitx5 + 万象小鹤双拼；单击 CapsLock 切换中英，`nihc` 输入“你好”。
+配置在 `home/desktop/fcitx5.nix`：英文、混输、反查的 algebra 补丁须匹配所锁定的万象版本。
+输入法包路径写入 `default.custom.yaml`，使包升级也触发 Home Manager 清理 Rime `build` 并重新部署，
+避免 Nix store 固定时间戳导致旧 schema 搭配新版 Lua；个人词库不受影响。
+
 ## 安装与恢复
 
 ### macOS

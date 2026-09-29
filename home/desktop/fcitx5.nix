@@ -21,6 +21,8 @@ in
 lib.mkIf osConfig.i18n.inputMethod.enable {
   xdg.dataFile."fcitx5/rime/default.custom.yaml" = {
     text = ''
+      # 跟踪输入法包变化，避免升级后旧 build 引用已移除的 Lua 模块。
+      # ${osConfig.i18n.inputMethod.package}
       patch:
         __include: wanxiang_suggested_default:/
         # Shift 仅由 fcitx5 组切换处理
@@ -29,8 +31,8 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     onChange = redeployRime;
   };
 
-  # 官方 /flypy 会同时写四份 custom；这里只能声明式复制其四份双拼 patch。
-  # HM 文件是只读 symlink，且 nixpkgs 已删除 /flypy 依赖的 custom 模板。
+  # HM 文件是只读 symlink，不能使用 /flypy；这里声明四个拼音方案的双拼 patch。
+  # 简码与自造词方案沿用上游 26jian，不需要双拼转写。
   xdg.dataFile."fcitx5/rime/wanxiang.custom.yaml" = {
     text = ''
       patch:
@@ -45,8 +47,9 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     text = ''
       patch:
         speller/algebra:
-          __include: wanxiang_algebra:/english/通用规则
-          __patch: wanxiang_algebra:/english/${shuangpin}
+          __patch:
+            - wanxiang_algebra:/english/混合派生
+            - wanxiang_algebra:/english/${shuangpin}
     '';
     onChange = redeployRime;
   };
@@ -55,8 +58,9 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     text = ''
       patch:
         speller/algebra:
-          __include: wanxiang_algebra:/mixed/通用派生规则
-          __patch: wanxiang_algebra:/mixed/${shuangpin}
+          __patch:
+            - wanxiang_algebra:/mixed/混合派生
+            - wanxiang_algebra:/mixed/${shuangpin}
     '';
     onChange = redeployRime;
   };
@@ -65,8 +69,9 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
     text = ''
       patch:
         speller/algebra:
-          __include: wanxiang_algebra:/reverse/${shuangpin}
-          __patch: wanxiang_algebra:/reverse/hspzn
+          __patch:
+            - wanxiang_algebra:/reverse/${shuangpin}
+            - wanxiang_algebra:/reverse/hspzn
     '';
     onChange = redeployRime;
   };
