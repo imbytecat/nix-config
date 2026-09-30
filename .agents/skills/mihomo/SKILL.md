@@ -195,11 +195,27 @@ root 根本不往 state dir 写东西，属主问题从根上消失。
 | `resolved` 必须开 `DNSStubListener` | 关掉时 resolv.conf 直接写上游 IP，glibc 绕过 resolved 明文查询，DoT 形同虚设 |
 | 上游 DNS 只用「IP 字面量 DoH」 | 无需 bootstrap（无明文预解析）、不可被 UDP 投毒；实测复用连接后 7ms，与明文 UDP 53 同速 |
 | `direct-nameserver` 单独配 | 直连域名（国内 CDN）不必绕订阅给的远端 DoH（28~40ms），且能拿到就近解析 |
-| TPROXY 失败时 fail-open（不加 forward drop） | 已实测：mihomo 停止时 nft_tproxy 找不到 socket → 规则不匹配 → 内核照常转发，客户端脱代理直连。**这是明确选择的可用性优先**，代价是 mihomo 挂掉期间流量明文经 ISP 出去 |
+| TPROXY 失败时 fail-closed | 找不到透明 socket 时内核返回 `NFT_BREAK`，只跳过当前规则，不会自动丢包；`tproxy.nix` 紧跟同范围的 TCP/UDP 非 53 端口 `drop` 防止直连泄漏。成功接管时前一条 `accept` 已结束处理；私网绕过和 DNS 重定向保持不变，停止服务也不撤掉规则 |
 | dashboard 用 `services.mihomo.webui` | 订阅的 `external-ui-url` 会让 mihomo 运行时从 GitHub 下载解压进 state dir：国内不可靠、内容不固定，还挂在 API 端口对外服务。改指 store 里 pin 住的 zashboard |
 | 订阅 sanitize 覆盖全部监听/API 字段 | 订阅是外部输入。`external-controller-unix`/`-pipe` 和 `external-doh-server` 都**不校验 secret**，能开监听或放权限的字段一律 del |
 | 换配置后校验 `is-active` 并回滚 `.bak` | `mihomo -t` 只查静态语法；端口占用、节点字段组合非法只在运行时暴露。无人值守必须能自己退回上一份 |
 | nft 关键规则常驻 `counter` | 本文排查流程第 2 步就要计数器，事后加要改规则、丢现场 |
+
+### 隔离故障回归
+
+`check-tproxy.py` 在三个临时网络命名空间中加载仓库实际规则，验证 TCP/UDP 的正常拦截、无监听及停止监听时阻断、私网绕过和 DNS 重定向；不停止线上 Mihomo，也不改宿主机网络。Linux 仓库根目录执行，需 sudo：
+
+```bash
+nix shell nixpkgs#python3 nixpkgs#nftables nixpkgs#iproute2 nixpkgs#util-linux nixpkgs#procps -c bash --noprofile --norc
+nix eval --impure --json --expr '
+  let f = builtins.getFlake (toString ./.); in {
+    ruleset = f.nixosConfigurations.mihomo-gateway.config.networking.nftables.ruleset;
+    constants = import ./modules/gateway/constants.nix;
+  }
+' | sudo env "PATH=$PATH" unshare --net python3 .agents/skills/mihomo/check-tproxy.py
+```
+
+内核语义见 [`nft_tproxy_eval_v4`](https://github.com/torvalds/linux/blob/master/net/netfilter/nft_tproxy.c)：socket 缺失或不透明时返回 `NFT_BREAK`，因此只保持 TPROXY 规则常驻不足以保证 fail-closed。
 
 ### IP_TRANSPARENT 确认
 

@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   inputs,
   username,
@@ -30,9 +29,6 @@
   services.openssh.enable = true;
 
   nix.settings.trusted-users = [ username ];
-
-  # nix-darwin 仍通过旧选项生成 NIX_PATH，复用共享配置避免漂移。
-  nix.nixPath = config.nix.settings.nix-path;
 
   security.sudo.extraConfig = ''
     ${username} ALL=(ALL) NOPASSWD:ALL

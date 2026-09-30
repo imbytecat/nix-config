@@ -8,7 +8,6 @@
   nix.package = pkgs.lix;
 
   nix.settings = {
-    nix-path = [ "nixpkgs=${inputs.nixpkgs}" ];
     # 稳态缓存真源；flake.nix 的 bootstrap 子集因 nixConfig 不能 import 而重复。
     substituters = [
       "https://cache.nixos.org"
@@ -39,4 +38,5 @@
   nix.channel.enable = false;
 
   nix.registry.nixpkgs.flake = inputs.nixpkgs;
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 }

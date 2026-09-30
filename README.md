@@ -24,7 +24,7 @@ just check                         # 格式、lint、全部 host eval
 
 just deploy <host> <remote>        # 更新远程 NixOS
 just deploy-boot <host> <remote>   # 仅注册远程下次启动 generation
-just update                        # 更新 flake 输入与自动维护项
+just update                        # 更新 flake 输入
 ```
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。

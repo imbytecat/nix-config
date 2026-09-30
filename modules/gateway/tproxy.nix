@@ -43,6 +43,8 @@ in
           # DNS 留给 mihomo-dns dstnat；不依赖 TPROXY/NAT 的处理顺序。
           meta l4proto { tcp, udp } th dport != 53 counter \
             tproxy ip to 127.0.0.1:${toString tproxyPort} meta mark set ${toString routingMark} accept
+          # TPROXY 找不到透明 socket 时只跳过当前规则，兜底丢弃防止直连泄漏。
+          meta l4proto { tcp, udp } th dport != 53 counter drop
         }
       }
 
