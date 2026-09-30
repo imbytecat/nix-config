@@ -20,6 +20,7 @@ let
 in
 lib.mkIf osConfig.i18n.inputMethod.enable {
   xdg.dataFile."fcitx5/rime/default.custom.yaml" = {
+    force = true;
     text = ''
       # 跟踪输入法包变化，避免升级后旧 build 引用已移除的 Lua 模块。
       # ${osConfig.i18n.inputMethod.package}
@@ -34,6 +35,7 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   # HM 文件是只读 symlink，不能使用 /flypy；这里声明四个拼音方案的双拼 patch。
   # 简码与自造词方案沿用上游 26jian，不需要双拼转写。
   xdg.dataFile."fcitx5/rime/wanxiang.custom.yaml" = {
+    force = true;
     text = ''
       patch:
         speller/algebra:
@@ -44,6 +46,7 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   };
 
   xdg.dataFile."fcitx5/rime/wanxiang_english.custom.yaml" = {
+    force = true;
     text = ''
       patch:
         speller/algebra:
@@ -55,6 +58,7 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   };
 
   xdg.dataFile."fcitx5/rime/wanxiang_mixedcode.custom.yaml" = {
+    force = true;
     text = ''
       patch:
         speller/algebra:
@@ -66,6 +70,7 @@ lib.mkIf osConfig.i18n.inputMethod.enable {
   };
 
   xdg.dataFile."fcitx5/rime/wanxiang_reverse.custom.yaml" = {
+    force = true;
     text = ''
       patch:
         speller/algebra:

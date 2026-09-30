@@ -42,6 +42,7 @@ accept-flake-config = true
 配置在 `home/desktop/fcitx5.nix`：英文、混输、反查的 algebra 补丁须匹配所锁定的万象版本。
 输入法包路径写入 `default.custom.yaml`，使包升级也触发 Home Manager 清理 Rime `build` 并重新部署，
 避免 Nix store 固定时间戳导致旧 schema 搭配新版 Lua；个人词库不受影响。
+五份声明的 Rime `*.custom.yaml` 由 Nix 强制接管，切换时覆盖同名文件或软链接；修改请写入上述模块，不在用户目录手改。
 
 ## 安装与恢复
 
