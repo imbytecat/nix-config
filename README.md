@@ -44,6 +44,14 @@ accept-flake-config = true
 避免 Nix store 固定时间戳导致旧 schema 搭配新版 Lua；个人词库不受影响。
 五份声明的 Rime `*.custom.yaml` 由 Nix 强制接管，切换时覆盖同名文件或软链接；修改请写入上述模块，不在用户目录手改。
 
+### 显卡熄屏功耗
+
+`awesome-pc` 在 `hosts/awesome-pc/default.nix` 通过 `amdgpu.ppfeaturemask=0xfff73fff`
+关闭 GFXOFF，绕过 [Navi 33 空闲高功耗问题](https://gitlab.freedesktop.org/drm/amd/-/issues/3549)。
+掩码由当前默认值 `0xfff7bfff` 仅清除 `0x8000` 得到，不启用其他特性。
+这是牺牲深度省电的临时规避：本机熄屏实测由约 130W 降至 26–28W，仍可能正常温控启停风扇。
+`just switch awesome-pc` 后须重启使启动参数生效；上游修复后移除此参数并重启恢复默认。
+
 ## 安装与恢复
 
 ### macOS

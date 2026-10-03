@@ -14,6 +14,9 @@
   nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
   boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
+  # 从默认 0xfff7bfff 仅清除 GFXOFF 位 0x8000，绕过 Navi 33 熄屏功耗异常（drm/amd#3549）。
+  boot.kernelParams = [ "amdgpu.ppfeaturemask=0xfff73fff" ];
+
   # Wayland-only，不启用 X11 session。
   services.xserver.videoDrivers = [ "amdgpu" ];
   hardware.enableRedistributableFirmware = true;
