@@ -53,7 +53,7 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 最近核验状态（Rime：2026-09-29；Orca：2026-09-12；其余：2026-08-06）：
 
 - Orca 最新正式版是 [`v1.4.200`](https://github.com/stablyai/orca/releases/tag/v1.4.200)；本仓锁定的 [`llm-agents` package](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca) 已同步。
-- Rime LTS 的简体 asset 于 2026-09-29 重新发布；GitHub API digest 转成 SRI 后为本仓 `sha256-ViS1EnTm70R7XfO+ZPPh0C8jbCnjBnm17CFgccAAUSE=`，许可证仍为 CC-BY-4.0，当前已同步。
+- Rime LTS 的简体 asset 于 2026-10-05 重新发布；GitHub API digest 转成 SRI 后为本仓 `sha256-K2jqjjtaxd41CtW2dhMjcDHoJmeMptGqc9Jp2RtMCxI=`，许可证仍为 CC-BY-4.0，当前已同步。
 - 两个字体仓库的最新 commit 分别仍是本仓固定的 [`417eb232`](https://github.com/streetsamurai00mi/ttf-ms-win10/commit/417eb232e8d037964971ae2690560a7b12e5f0d4) 和 [`f5d2ef2c`](https://github.com/chillcicada/ttf-ms-win10-sc-sup/commit/f5d2ef2c84e8979b322563a53ea3adb5ab995176)，无需更新。
 - `nixos-images` 最新正式 release 仍是 [`nixos-26.05`](https://github.com/nix-community/nixos-images/releases/tag/nixos-26.05)，kexec pin 当前没有落后。
 

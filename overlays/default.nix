@@ -10,5 +10,13 @@ final: prev:
   ttf-ms-win10 = final.callPackage ../pkgs/ttf-ms-win10 { };
 }
 // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
+  # nixpkgs 仍是 18.0.10；主线追平 18.1.0 后删除此 override。
+  rime-wanxiang = prev.rime-wanxiang.overrideAttrs (old: {
+    version = "18.1.0";
+    src = old.src.override {
+      tag = "v18.1.0";
+      hash = "sha256-R+prsv6bNprGOwxZ1OO6e7LXijvwwouv+iZnC0Z1uaM=";
+    };
+  });
   rime-wanxiang-grammar = final.callPackage ../pkgs/rime-wanxiang-grammar { };
 }

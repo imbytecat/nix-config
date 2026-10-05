@@ -230,7 +230,7 @@
           # release 分支资产会被上游重建并重新上传，hash 会随之变化，报 mismatch 就照 got 更新。
           kexec-installer = pkgs.fetchurl {
             url = "https://github.com/nix-community/nixos-images/releases/download/nixos-26.05/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz";
-            hash = "sha256-MFqeSStu9LTF7eZZKFfOrf7KtsFCcErNULepSIUFs+w=";
+            hash = "sha256-Sk25JC9Hs1ItqLEzHwS7mKi0HG8HSisbxbluWQmv1Bg=";
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
