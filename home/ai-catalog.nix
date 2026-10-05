@@ -22,8 +22,8 @@ let
         maxOutput = 128000;
       };
       opus = {
-        id = "claude-opus-5";
-        name = "Claude Opus 5";
+        id = "claude-opus-5-5";
+        name = "Claude Opus 5.5";
         reasoning = true;
         input = [
           "text"
@@ -34,8 +34,8 @@ let
         maxOutput = 128000;
       };
       sonnet = {
-        id = "claude-sonnet-5";
-        name = "Claude Sonnet 5";
+        id = "claude-sonnet-5-5";
+        name = "Claude Sonnet 5.5";
         reasoning = true;
         input = [
           "text"
@@ -73,8 +73,20 @@ let
         maxOutput = 128000;
       };
       sol = {
-        id = "gpt-6-sol";
-        name = "GPT-6 Sol";
+        id = "gpt-6.1-sol";
+        name = "GPT-6.1 Sol";
+        reasoning = true;
+        input = [
+          "text"
+          "image"
+          "pdf"
+        ];
+        context = 1050000;
+        maxOutput = 128000;
+      };
+      terra = {
+        id = "gpt-6-terra";
+        name = "GPT-6 Terra";
         reasoning = true;
         input = [
           "text"
@@ -125,8 +137,8 @@ let
         maxOutput = 131072;
       };
       grok = {
-        id = "grok-4.6";
-        name = "Grok 4.6";
+        id = "grok-4.7";
+        name = "Grok 4.7";
         reasoning = true;
         input = [
           "text"

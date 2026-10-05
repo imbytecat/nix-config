@@ -25,8 +25,8 @@ let
   };
 
   piSettings = {
-    defaultProvider = "furtherverse-openai";
-    defaultModel = aiCatalog.models.astra.id;
+    defaultProvider = "furtherverse-anthropic";
+    defaultModel = aiCatalog.models.opus.id;
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
   };
