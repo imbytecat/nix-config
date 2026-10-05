@@ -11,11 +11,14 @@ let
   shuangpin = "小鹤双拼";
 
   # nix store mtime 恒为 1970，Rime 会漏掉配置变化；删除 build 强制重编译。
-  # 无用户 D-Bus 时在线部署可失败，fcitx5 下次启动会重建。
+  # switch 不重启 fcitx5：旧进程会按旧 rime-data 重建 build，只允许当前包的进程在线部署，
+  # 否则留给下次启动（build 被删使目录 mtime 晚于 last_build_time，启动时自动部署）。
   redeployRime = ''
     rm -rf "${config.xdg.dataHome}/fcitx5/rime/build"
-    ${pkgs.systemd}/bin/busctl --user call org.fcitx.Fcitx5 /controller \
-      org.fcitx.Fcitx.Controller1 SetConfig sv "fcitx://config/addon/rime/deploy" s "" || true
+    if ${pkgs.procps}/bin/pgrep -u "$(id -u)" -f "^${osConfig.i18n.inputMethod.package}/bin/fcitx5" >/dev/null; then
+      ${pkgs.systemd}/bin/busctl --user call org.fcitx.Fcitx5 /controller \
+        org.fcitx.Fcitx.Controller1 SetConfig sv "fcitx://config/addon/rime/deploy" s "" || true
+    fi
   '';
 in
 lib.mkIf osConfig.i18n.inputMethod.enable {
