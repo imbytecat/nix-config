@@ -1,8 +1,4 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -10,9 +6,7 @@
     ./hardware-configuration.nix
   ];
 
-  # pinned overlay 命中其 CachyOS 缓存；使用非 LTO 变体。
-  nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
-  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # 从默认 0xfff7bfff 仅清除 GFXOFF 位 0x8000，绕过 Navi 33 熄屏功耗异常（drm/amd#3549）。
   boot.kernelParams = [ "amdgpu.ppfeaturemask=0xfff73fff" ];
