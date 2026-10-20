@@ -7,6 +7,7 @@ in
   imports = [
     ./adapters/codex.nix
     ./adapters/codex-plugins.nix
+    ./adapters/dsh.nix
     ./adapters/omp.nix
     ./adapters/pi.nix
     ./adapters/skills.nix

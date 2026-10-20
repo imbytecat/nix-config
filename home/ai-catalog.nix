@@ -128,6 +128,17 @@ let
     };
 
     furtherverse = {
+      deepseek = {
+        id = "deepseek-v4.1-flash";
+        name = "DeepSeek V4.1 Flash";
+        reasoning = true;
+        input = [
+          "text"
+          "image"
+        ];
+        context = 1000000;
+        maxOutput = 384000;
+      };
       glm = {
         id = "glm-5.3";
         name = "GLM-5.3";
