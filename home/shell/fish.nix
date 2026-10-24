@@ -20,6 +20,7 @@ in
       set -gx ${aiCatalog.gateway.apiKeyEnv} "{{ op://Developer/AI Gateway API/credential }}"
 
       set -gx EXA_API_KEY "{{ op://Developer/Exa API/credential }}"
+      set -gx DEEPSEEK_API_KEY "{{ op://Developer/DeepSeek API/credential }}"
       set -gx CONTEXT7_API_KEY "{{ op://Developer/Context7 API/credential }}"
 
       # GitHub API 必须用 token；SSH key 仅负责 git transport。

@@ -25,6 +25,7 @@ let
     setupVersion = 1;
     startup.setupWizard = false;
     enableInstallTelemetry = false;
+    telemetry.otlpExportEnabled = false;
     dev.autoqa = false;
     theme = {
       dark = "dark-catppuccin";

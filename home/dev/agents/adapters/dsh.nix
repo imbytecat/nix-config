@@ -47,6 +47,22 @@ let
         model = model.id;
       };
     }
+    # FEEDBACK_ONLY 会在点赞/点踩/feedback 后把整段 session log 传到 dsh-otel-collector.deepseeksvc.com；
+    # 与 DSH_TELEMETRY_DISABLED 生成的启动 patch 相同，不依赖启动环境。
+    {
+      id = "session-telemetry-otel";
+      disabled = true;
+    }
+    # 网关会丢弃 DeepSeek 原生 web_search server tool，搜索只能直连官方 DEEPSEEK_API_KEY；
+    # 用 Search/Fetch API（不耗模型 token）。本地 http fetch 的 SSRF 校验拒绝 mihomo fake-ip（198.18.0.0/15），
+    # 在网关后面任何域名都抓不到。config 整行替换，两项都要写明。
+    {
+      id = "web";
+      config = {
+        searchProvider = "deepseek-search-api";
+        fetchProvider = "deepseek-fetch-api";
+      };
+    }
   ];
 in
 {
