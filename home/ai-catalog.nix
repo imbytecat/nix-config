@@ -85,8 +85,8 @@ let
         maxOutput = 128000;
       };
       terra = {
-        id = "gpt-6-terra";
-        name = "GPT-6 Terra";
+        id = "gpt-6.1-terra";
+        name = "GPT-6.1 Terra";
         reasoning = true;
         input = [
           "text"

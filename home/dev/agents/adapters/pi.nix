@@ -25,9 +25,9 @@ let
   };
 
   piSettings = {
-    defaultProvider = "furtherverse-anthropic";
-    defaultModel = aiCatalog.models.opus.id;
-    defaultThinkingLevel = "high";
+    defaultProvider = "furtherverse-openai";
+    defaultModel = aiCatalog.models.sol.id;
+    defaultThinkingLevel = "max";
     enableInstallTelemetry = false;
   };
 in
