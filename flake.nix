@@ -229,6 +229,7 @@
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          inherit (pkgs) rime-wanxiang-grammar;
           orca = inputs.llm-agents.packages.${system}.orca;
         }
       );
@@ -245,6 +246,7 @@
             packages = [
               pkgs.actionlint
               pkgs.just
+              pkgs.python3
               pkgs.nixd
               pkgs.statix
               pkgs.deadnix
@@ -289,6 +291,16 @@
                   ./hosts/awesome-pc/hardware-configuration.nix \
                   ./hosts/ovh-ks-5/hardware-configuration.nix
                 touch $out
+              '';
+
+          rime-grammar-update =
+            pkgs.runCommand "rime-grammar-update"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 -B -m unittest discover -s ${./pkgs/rime-wanxiang-grammar}
+                touch "$out"
               '';
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {

@@ -168,10 +168,11 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --no-reexec
 
 
-[doc('更新可自动维护的 flake 输入')]
+[doc('更新 flake 输入与 Rime 语法模型哈希')]
 [group('nix')]
 update:
     nix flake update
+    python3 pkgs/rime-wanxiang-grammar/update.py
 
 [doc('更新单个 flake 输入')]
 [group('nix')]

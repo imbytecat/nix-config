@@ -1,5 +1,5 @@
 # 上游覆盖发布同一 LTS tag，nixpkgs 因不可复现不打包；此处 pin hash。
-# 安装到共享 rime-data；hash 失配时重新运行 `nix store prefetch-file`。
+# 安装到共享 rime-data；hash 由 `just update` 按发布资产的 SHA256 更新。
 {
   lib,
   stdenvNoCC,

@@ -24,10 +24,15 @@ just check                         # 格式、lint、全部 host eval
 
 just deploy <host> <remote>        # 更新远程 NixOS
 just deploy-boot <host> <remote>   # 仅注册远程下次启动 generation
-just update                        # 更新 flake 输入
+just update                        # 更新 flake 输入与 Rime 语法模型哈希
 ```
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
+
+`just update` 从 GitHub 发布资产的 SHA256 元数据刷新 Rime LTS 哈希，哈希未变时不改写配置。
+任一步失败会返回非零，但不会回滚已完成的 flake 更新。
+每周依赖更新工作流使用同一入口，构建 Orca 和 Rime 并通过 `just check` 后自动合并；
+字体和 kexec 镜像仍需人工维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在
 `~/.config/nix/nix.conf` 写入：

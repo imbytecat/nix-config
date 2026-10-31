@@ -37,7 +37,7 @@ jobs:
         id: verify
         continue-on-error: true
         run: |
-          nix build .#orca
+          nix build .#orca .#rime-wanxiang-grammar
           nix develop -c just check
 
       - name: Inspect manual pins
@@ -45,13 +45,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rime="$(gh api repos/amzxyz/RIME-LMDG/releases/tags/LTS --jq .published_at || echo unknown)"
           kexec="$(gh api repos/nix-community/nixos-images/releases/latest --jq .tag_name || echo unknown)"
-          echo "rime=$rime" >> "$GITHUB_OUTPUT"
           echo "kexec=$kexec" >> "$GITHUB_OUTPUT"
           {
             echo "### Manual pins"
-            echo "- Rime LTS published: $rime"
             echo "- nixos-images latest release: $kexec"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -64,17 +61,18 @@ jobs:
           delete-branch: true
           add-paths: |
             flake.lock
+            pkgs/rime-wanxiang-grammar/default.nix
           commit-message: "chore(deps): 自动更新依赖"
           title: "chore(deps): 自动更新依赖"
           body: |
             每周自动更新可安全维护的依赖。
 
             - 更新步骤：`${{ steps.update.outcome }}`
-            - `nix build .#orca` + `just check`：`${{ steps.verify.outcome }}`
-            - Rime LTS 发布时间：`${{ steps.pins.outputs.rime }}`（仅提示）
+            - `nix build .#orca .#rime-wanxiang-grammar` + `just check`：`${{ steps.verify.outcome }}`
+            - Rime LTS：按发布资产 SHA256 自动更新并构建校验。
             - nixos-images 最新版本：`${{ steps.pins.outputs.kexec }}`（仅提示）
 
-            验证通过后自动 squash 合并；Rime、字体和 kexec 镜像仍需人工确认后更新。
+            验证通过后自动 squash 合并；字体和 kexec 镜像仍需人工确认后更新。
 
       - name: Merge verified update
         if: steps.update.outcome == 'success' && steps.verify.outcome == 'success' && steps.pr.outputs.pull-request-number != ''
