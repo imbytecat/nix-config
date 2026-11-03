@@ -2,6 +2,7 @@
 
 {
   homebrew.casks = [
+    "hyperconnect"
     "thaw" # 刘海菜单栏
   ];
 

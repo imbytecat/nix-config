@@ -75,6 +75,8 @@ sudo nix run nix-darwin -- switch --flake .#awesome-macbook-air
 just switch awesome-macbook-air
 ```
 
+`awesome-macbook-air` 通过 Homebrew Cask 安装小米互联服务（`hyperconnect`），配置位于 `hosts/awesome-macbook-air/default.nix`。
+
 ### NixOS
 
 目标机先启动 NixOS installer/rescue，联网并开放 root SSH，再从持有本仓的机器运行：
