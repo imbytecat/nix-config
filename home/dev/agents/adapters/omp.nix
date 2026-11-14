@@ -35,9 +35,9 @@ let
     providers.webSearchOrder = [ "exa" ];
     compaction.thresholdPercent = 75;
     modelRoles = {
-      default = "${aiCatalog.ref "sol"}:max";
+      default = "${aiCatalog.ref "opus"}:max";
       smol = "${aiCatalog.ref "luna"}:max";
-      slow = "${aiCatalog.ref "astra"}:xhigh";
+      slow = "${aiCatalog.ref "fable"}:xhigh";
     };
     extensions = bundleExtensions;
   };

@@ -10,8 +10,8 @@ let
   providers = {
     anthropic = {
       fable = {
-        id = "claude-fable-5-1";
-        name = "Claude Fable 5.1";
+        id = "claude-fable-5-2";
+        name = "Claude Fable 5.2";
         reasoning = true;
         input = [
           "text"
