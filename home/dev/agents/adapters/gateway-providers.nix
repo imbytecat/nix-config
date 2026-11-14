@@ -1,5 +1,5 @@
-# OMP 与 Pi 的 models 配置同 schema、同 gateway wire protocol；catalog→provider 投影单一化于此，
-# adapter 只保留 provider 命名、apiKey 表达式与 compat 差异。
+# OMP models.yml 与 DSH llm-pi-ai 共用 catalog→gateway provider 投影，单一化于此；
+# OMP 整体写入，DSH 只取 api/baseUrl/apiKey。
 { aiCatalog, lib }:
 
 let
