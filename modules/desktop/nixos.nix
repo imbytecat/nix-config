@@ -111,21 +111,13 @@ in
     powerOnBoot = true;
   };
 
-  # rimeDataPkgs 替换默认 rime-data，并补入上游未打包的 LTS .gram。
-  # 用户侧 include 与双拼 patch 见 home/desktop/fcitx5.nix。
+  # 输入法列表与 WowType 设置见 home/desktop/fcitx5.nix。
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
     fcitx5 = {
       waylandFrontend = true;
-      addons = with pkgs; [
-        (fcitx5-rime.override {
-          rimeDataPkgs = [
-            rime-wanxiang
-            rime-wanxiang-grammar
-          ];
-        })
-      ];
+      addons = [ inputs.wowtype.packages.${pkgs.stdenv.hostPlatform.system}.default ];
     };
   };
 

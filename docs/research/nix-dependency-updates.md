@@ -5,17 +5,17 @@
 ## 结论先行
 
 - **没有一个原生命令能更新所有 Nix 依赖。** `nix flake update` 只刷新 `flake.lock`；普通 `.nix` 中的 `fetchurl`/`fetchFromGitHub` 仍需包级 updater。
-- **本仓采用最小组合。** `just update` 只运行 `nix flake update`；Orca 随 `llm-agents` input 更新，Rime、字体和 kexec 等普通 source 仍人工维护。
-- **Rime、字体和 kexec 保留人工门槛。** 它们只有上游状态提示，不进入自动修改或自动合并。
-- **GitHub Actions 是编排层。** 每周更新后构建 `packages.x86_64-linux.orca`、运行 `just check`，成功则创建 PR 并自动 squash 合并；失败则保留 PR 和日志。
+- **本仓采用最小组合。** `just update` 只运行 `nix flake update`；Orca 随 `llm-agents` input、WowType 随 `wowtype` input 更新，字体和 kexec 等普通 source 仍人工维护。
+- **字体和 kexec 保留人工门槛。** 它们只有上游状态提示，不进入自动修改或自动合并。
+- **GitHub Actions 是编排层。** 每周更新后构建 `packages.x86_64-linux.{orca,wowtype}`、运行 `just check`，成功则创建 PR 并自动 squash 合并；失败则保留 PR 和日志。
 
 ## 1. `nix flake update` 职责边界
 
 Nix 官方手册把命令定义为 “update flake lock file”，并说明默认更新全部 inputs，也可传入 input 名称；相关 `nix flake lock` 只添加缺失输入、不会更新已有锁项，因此更安全（Nix 2.34.9 文档：[官方手册](https://nix.dev/manual/nix/2.34/command-ref/new-cli/nix3-flake-update)）。
 
-本仓 `flake.nix` 的 inputs 包括 nixpkgs、home-manager、nix-darwin、工具 flake 和非 flake GitHub 资源；Orca 由 `llm-agents` input 提供，所以 `nix flake update` 会随 lock 一并更新它，但仍不会重算普通 `.nix` 中 `fetchurl`/`fetchFromGitHub` 的 source hash。
+本仓 `flake.nix` 的 inputs 包括 nixpkgs、home-manager、nix-darwin、工具 flake 和非 flake GitHub 资源；Orca 与 WowType 分别由 `llm-agents`、`wowtype` input 提供，所以 `nix flake update` 会随 lock 一并更新它们，但仍不会重算普通 `.nix` 中 `fetchurl`/`fetchFromGitHub` 的 source hash。
 
-因此 `just update` 只运行 `nix flake update`；工作流另行构建 Orca 并执行全仓检查，`just up input` 仍用于选择性更新单个 input。
+因此 `just update` 只运行 `nix flake update`；工作流另行构建 Orca 与 WowType 并执行全仓检查，`just up input` 仍用于选择性更新单个 input。
 
 ## 2. 工具定位与限制
 
@@ -31,7 +31,7 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 
 ### nvfetcher
 
-[nvfetcher 官方 README](https://raw.githubusercontent.com/berberman/nvfetcher/master/README.md) 说明它通过 TOML 定义 source/fetch，结合 nvchecker，生成 `_sources/generated.nix/json`，维护版本与预取 SHA256。它要求引入生成文件和 TOML 元数据；支持 GitHub release、git 最新 commit、URL 等，但输出生成式结构。对本仓少量且异质的本地 source，为它们引入整套生成目录会比直接维护表达式更复杂；尤其 LTS 同 tag 覆盖与破坏性安装镜像仍需人工策略。
+[nvfetcher 官方 README](https://raw.githubusercontent.com/berberman/nvfetcher/master/README.md) 说明它通过 TOML 定义 source/fetch，结合 nvchecker，生成 `_sources/generated.nix/json`，维护版本与预取 SHA256。它要求引入生成文件和 TOML 元数据；支持 GitHub release、git 最新 commit、URL 等，但输出生成式结构。对本仓少量且异质的本地 source，为它们引入整套生成目录会比直接维护表达式更复杂；尤其破坏性安装镜像仍需人工策略。
 
 ### Renovate Nix manager
 
@@ -46,14 +46,14 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 | 类别 | 当前定义 | 更新策略 | 自动化边界 |
 |---|---|---|---|
 | Orca flake input package | `inputs.llm-agents.packages.${system}.orca`：上游维护 deb 原生重打包；本仓 `packages.x86_64-linux.orca` 仅重导出用于构建 | **自动候选**：`nix flake update` 更新 input，`nix build .#orca` 验证锁定包 | 更新、构建和全量检查成功后自动合并 |
-| Rime 覆盖同一 LTS asset | `pkgs/rime-wanxiang-grammar/default.nix`：固定 URL `.../releases/download/LTS/wanxiang-lts-zh-hans.gram`，无稳定版本号 | **必须人工触发**：同一 mutable tag 可能被覆盖，发现 hash 变化不代表语义版本；只在确认上游 LTS 内容/许可证后更新 hash | 不做“latest”自动升级；人工记录发布日期/上游变更，重新预取并审阅 |
+| WowType flake input package | `inputs.wowtype.packages.${system}.default`：跟随上游 `release` 分支，`follows` 本仓 nixpkgs 以匹配系统 fcitx5；词库与语言模型由上游 `nix/package.nix` 按版本化发布资产固定 URL/hash；本仓 `packages.x86_64-linux.wowtype` 仅重导出用于构建 | **自动候选**：`nix flake update` 更新 input，`nix build .#wowtype` 本地编译验证（上游无二进制缓存） | 更新、构建和全量检查成功后自动合并 |
 | Windows 字体固定 commits | `pkgs/ttf-ms-win10/default.nix`：两个 GitHub repos，各自 immutable commit + hash，版本说明为 `unstable-2021-02-10`，且标注 unfree | **人工、低频**：只有字体缺失/文档兼容性需求或上游可信新 commit 才更新；两个 source 必须成对检查，关注许可证和字体内容 | 不跟随 branch/tag；可用 nurl 生成新 fetcher/hash，但不能替代许可证/视觉回归审阅 |
 | 破坏性安装引导镜像 | `flake.nix` `kexec-installer`：`nixos-images` 的 `nixos-26.05` noninteractive x86_64 tar.gz，供 just install 的 `nixos-anywhere --kexec` 使用；justfile 注释说明内核/mdraid 兼容风险 | **人工、强门槛**：镜像升级可能改变 kexec 内核、存储探测和目标机可启动性；先在可抛弃目标/维护窗口验证，再改 URL/hash | 禁止无审阅自动合并；即使 Renovate/nvfetcher 提示新 tag，也只能提案 |
 
-最近核验状态（Rime：2026-09-29；Orca：2026-09-12；其余：2026-08-06）：
+最近核验状态（WowType：2026-11-14；Orca：2026-09-12；其余：2026-08-06）：
 
 - Orca 最新正式版是 [`v1.4.200`](https://github.com/stablyai/orca/releases/tag/v1.4.200)；本仓锁定的 [`llm-agents` package](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca) 已同步。
-- Rime LTS 的简体 asset 于 2026-10-05 重新发布；GitHub API digest 转成 SRI 后为本仓 `sha256-K2jqjjtaxd41CtW2dhMjcDHoJmeMptGqc9Jp2RtMCxI=`，许可证仍为 CC-BY-4.0，当前已同步。
+- WowType `release` 分支指向 [`v0.3.12`](https://github.com/Gloridust/WowType/releases/tag/v0.3.12)；本仓锁定同一 commit `ebb10573`。
 - 两个字体仓库的最新 commit 分别仍是本仓固定的 [`417eb232`](https://github.com/streetsamurai00mi/ttf-ms-win10/commit/417eb232e8d037964971ae2690560a7b12e5f0d4) 和 [`f5d2ef2c`](https://github.com/chillcicada/ttf-ms-win10-sc-sup/commit/f5d2ef2c84e8979b322563a53ea3adb5ab995176)，无需更新。
 - `nixos-images` 最新正式 release 仍是 [`nixos-26.05`](https://github.com/nix-community/nixos-images/releases/tag/nixos-26.05)，kexec pin 当前没有落后。
 
@@ -63,12 +63,12 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 
 | 方案 | 复杂度 | 自动化 | 可复现性 | 破坏风险 | 适配本仓判断 |
 |---|---:|---:|---:|---:|---|
-| A. 当前工作流：`nix flake update` + 构建/检查 + 自动合并 | 低 | 高（安全子集） | 高（保留 hash/pin） | 中 | **采用中**；Orca 由已有 input 维护，Rime/字体/kexec 仍隔离 |
+| A. 当前工作流：`nix flake update` + 构建/检查 + 自动合并 | 低 | 高（安全子集） | 高（保留 hash/pin） | 中 | **采用中**；Orca、WowType 由已有 input 维护，字体/kexec 仍隔离 |
 | B. Renovate Nix manager 只管 `flake.lock`，包更新仍手动 | 中 | 高（仅 inputs） | 高 | 中 | 可选；官方仍标 beta/默认关闭，适合先自动提 flake PR，不覆盖普通 package source |
-| C. 给包添加 `passthru.updateScript`，由 nix-update/nixpkgs runner 调度 | 中 | 中—高 | 高 | 中 | 仅适合未来有稳定 source 语义的本地包；Rime mutable LTS、镜像和字体不应套通用脚本 |
+| C. 给包添加 `passthru.updateScript`，由 nix-update/nixpkgs runner 调度 | 中 | 中—高 | 高 | 中 | 仅适合未来有稳定 source 语义的本地包；镜像和字体不应套通用脚本 |
 | D. nvfetcher 管理全部普通包，或把包变成 NUR/flake inputs | 高 | 高（机械 source） | 高 | 中—高 | 不推荐：生成层/第三方聚合复杂度超过收益；NUR 也不解决本地维护与审批 |
 
-排序说明：A 只组合仓库已有命令；B/C 引入额外管理入口；D 增加生成层。可复现性只要最终提交 immutable hash 都高，mutable LTS 例外；破坏风险取决于资源类别，镜像最高，非工具本身能消除。
+排序说明：A 只组合仓库已有命令；B/C 引入额外管理入口；D 增加生成层。可复现性只要最终提交 immutable hash 都高；破坏风险取决于资源类别，镜像最高，非工具本身能消除。
 
 ## 5. 最小推荐接口与触发条件
 
@@ -76,23 +76,24 @@ Nixpkgs 的更新脚本协议以 `passthru.updateScript` 暴露“如何更新�
 
 1. **Flake inputs**：`just update` 全量刷新，`just up <input>` 选择性刷新；工作流提交 `flake.lock` 候选。
 2. **Orca**：直接消费 `inputs.llm-agents.packages.${system}.orca`；本仓重导出 `packages.x86_64-linux.orca`，供 `nix build .#orca` 做定点验证。
-3. **人工包源**：Rime、字体和 kexec 保持现有 `fetchurl/fetchFromGitHub { url/rev; hash; }`；工作流只报告上游状态。
+3. **WowType**：直接消费 `inputs.wowtype.packages.${system}.default`；本仓重导出 `packages.x86_64-linux.wowtype`，供 `nix build .#wowtype` 做定点验证。
+4. **人工包源**：字体和 kexec 保持现有 `fetchurl/fetchFromGitHub { url/rev; hash; }`；工作流只报告上游状态。
 
 ### 触发条件
 
 - flake input：每周生成全量候选并执行仓库检查；需要单独控制时仍可 `just up <input>`。
 - Orca：`llm-agents` input 更新后构建锁定包；运行时部署仍随正常 `switch` 流程。
-- Rime：明确确认 LTS asset 被上游重新发布且内容应接受；只改 hash/必要元数据，不把 tag 当版本号。
+- WowType：`wowtype` input 更新后本地编译锁定包；上游每次发版都会移动 `release` 分支，插件升级需重新登录生效。
 - 字体：确有字体缺失/排版回归或可信来源新 commit；重新检查 unfree 许可与两个仓库内容。
 - kexec：nixos-anywhere/NixOS 镜像发布并有内核、mdraid 或安全修复需求；先单独安装演练，后改 pin。
 
 ## 6. 当前仓库实现
 
-1. `just update` 运行 `nix flake update`，Orca 随 `llm-agents` input 更新。
-2. `packages.x86_64-linux.orca` 重导出上游 derivation，提供稳定的 CI/手工构建入口；桌面模块直接消费同一 input package。
-3. `.github/workflows/dependency-update.yml` 每周运行更新、`nix build .#orca` 与 `just check`；成功自动 squash 合并，失败保留 PR。
+1. `just update` 运行 `nix flake update`，Orca、WowType 随各自 input 更新。
+2. `packages.x86_64-linux.{orca,wowtype}` 重导出上游 derivation，提供稳定的 CI/手工构建入口；桌面模块直接消费同一 input package。
+3. `.github/workflows/dependency-update.yml` 每周运行更新、`nix build .#orca .#wowtype` 与 `just check`；成功自动 squash 合并，失败保留 PR。
 4. `.github/dependabot.yml` 单独维护 GitHub Actions 版本。
-5. Rime、字体和 kexec 不自动改；其中 mutable LTS 和安装镜像仍要求人工判断。
+5. 字体和 kexec 不自动改；其中安装镜像仍要求人工判断。
 
 ## 关键一方来源
 

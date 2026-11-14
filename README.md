@@ -24,14 +24,12 @@ just check                         # 格式、lint、全部 host eval
 
 just deploy <host> <remote>        # 更新远程 NixOS
 just deploy-boot <host> <remote>   # 仅注册远程下次启动 generation
-just update                        # 更新 flake 输入与 Rime 语法模型哈希
+just update                        # 更新 flake 输入
 ```
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
 
-`just update` 从 GitHub 发布资产的 SHA256 元数据刷新 Rime LTS 哈希，哈希未变时不改写配置。
-任一步失败会返回非零，但不会回滚已完成的 flake 更新。
-每周依赖更新工作流使用同一入口，构建 Orca 和 Rime 并通过 `just check` 后自动合并；
+每周依赖更新工作流使用同一入口，构建 Orca 和 WowType 并通过 `just check` 后自动合并；
 字体和 kexec 镜像仍需人工维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在
@@ -43,12 +41,11 @@ accept-flake-config = true
 
 ### 中文输入
 
-`awesome-pc` 使用 Fcitx5 + 万象小鹤双拼；单击 CapsLock 切换中英，`nihc` 输入“你好”。
-配置在 `home/desktop/fcitx5.nix`：英文、混输、反查的 algebra 补丁须匹配所锁定的万象版本。
-输入法包路径写入 `default.custom.yaml`，使包升级也触发 Home Manager 清理 Rime `build` 并重新部署，
-避免 Nix store 固定时间戳导致旧 schema 搭配新版 Lua；个人词库不受影响。
-switch 不会重启 fcitx5；仍在运行的旧进程会用旧数据重建，所以输入法包升级后只清理 `build`，重新登录后新 fcitx5 自动部署。
-五份声明的 Rime `*.custom.yaml` 由 Nix 强制接管，切换时覆盖同名文件或软链接；修改请写入上述模块，不在用户目录手改。
+`awesome-pc` 使用 Fcitx5 + [WowType](https://github.com/Gloridust/WowType) 小鹤双拼；单击 CapsLock 切换中英，`nihc` 输入“你好”。
+配置在 `home/desktop/fcitx5.nix`。`~/.config/fcitx5/conf/wowtype.conf` 由 Nix 强制接管：
+设置界面里的改动会在下次 switch 时被覆盖，长期设置写进该模块；自定义词在 `~/.local/share/wowtype/custom.tsv`，不受影响。
+WowType 跟随上游 `release` 分支，随 `just update` 更新，没有二进制缓存，每次升级都在本地编译。
+switch 不会重启 fcitx5，插件升级后重新登录生效；KDE Wayland 下不要用 `fcitx5 -r` 重启，否则之后新开的程序无法输入。
 
 ### 显卡熄屏功耗
 

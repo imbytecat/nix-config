@@ -2,7 +2,7 @@
 
 ## 方法与基线
 
-- 审计对象：本仓 [`flake.nix`](../../flake.nix)、[`overlays/default.nix`](../../overlays/default.nix)、原 `pkgs/orca-ide`、`pkgs/rime-wanxiang-grammar`、`pkgs/ttf-ms-win10`，以及既有研究记录与实际调用点。
+- 审计对象：本仓 [`flake.nix`](../../flake.nix)、[`overlays/default.nix`](../../overlays/default.nix)、原 `pkgs/orca-ide`、原 `pkgs/rime-wanxiang-grammar`、`pkgs/ttf-ms-win10`，以及既有研究记录与实际调用点。
 - 实际配置与 NixOS Package Search 的 `nixos-unstable` 数据都落在 nixpkgs [`8ce4ef6cb6f8`](https://github.com/NixOS/nixpkgs/commit/8ce4ef6cb6f871616146b9fe26d2a5ae594e94fe)（2026-09-10 02:20 UTC）；另以审计时 nixpkgs `master` [`357a2d91de6a`](https://github.com/NixOS/nixpkgs/commit/357a2d91de6a33ea893b200f480e5f9db1b0a7f5)（2026-09-12 01:16 UTC）交叉确认当前源码。
 - “官方可用”同时检查包定义、NixOS Package Search 索引和 nixpkgs 默认安全求值规则；Search 能列出元数据，不代表默认用户求值会允许 insecure 依赖。
 - Orca 迁移后执行了锁定包、桌面 `system.path` 构建与进程启动 smoke；未运行项目测试套件。
@@ -15,7 +15,7 @@
 |---|---|---|---|---|
 | Orca IDE | nixpkgs 的 `orca` 是 GNOME 屏幕阅读器 50.2；已锁 `llm-agents` 提供 stablyai Orca IDE 1.4.200 | stablyai Orca IDE 1.4.200 | **已移除本地包** | 桌面模块直接消费 input package，并删除与 GNOME Orca 冲突的同名 CLI 链接 |
 | `nixpkgs-pnpm-pin` / `cherry-studio` | 主 nixpkgs 仍为 1.9.11，与本地 pin 相同；默认安全求值会被 pnpm 10.29.2 与 Electron 40.10.5 阻断 | Cherry Studio 2.0.14 | **保留** | nixpkgs 包本身更新到无 insecure Electron/pnpm、默认求值不再拒绝，并确认缓存可接受；不能只看应用版本号 |
-| `pkgs/rime-wanxiang-grammar` | 有 `rime-wanxiang` 17.9.3 方案，但官方明确不含可变的 LTS `.gram` | 方案 17.9.9；LTS 简体模型于 2026-09-12 再次覆盖发布 | **保留** | 上游提供不可变、带版本的模型资产，且 nixpkgs 出现包含同等简体模型的可复现包 |
+| 原 `pkgs/rime-wanxiang-grammar` | nixpkgs 的 `rime-wanxiang` 方案不含可变的 LTS `.gram` | LTS 简体模型持续覆盖发布 | **已移除本地包** | 2026-11-14 输入法改用 WowType flake input，不再需要该模型 |
 | `pkgs/ttf-ms-win10` | 仅有 `corefonts`、`vista-fonts`、`vista-fonts-chs` 等部分集合；没有完整 Windows 10 等价包 | 两个本地来源仓均已归档 | **有条件保留** | 只有确认该来源与跨设备使用权、且确需 WPS/Office 精确字体名称和度量时保留；否则立即移除或接受部分/自由字体替代 |
 
 ## 1. stablyai Orca IDE
@@ -73,18 +73,9 @@ Plasma 同时安装 nixpkgs 的 GNOME Orca 屏幕阅读器，二者都提供 `bi
 
 ## 3. Rime 万象 LTS 语法模型
 
-### 现状与证据
+### 迁移结果
 
-本仓 [`pkgs/rime-wanxiang-grammar/default.nix`](../../pkgs/rime-wanxiang-grammar/default.nix) 只安装 `wanxiang-lts-zh-hans.gram`，与 nixpkgs 的 `rime-wanxiang` 方案一起传给 `fcitx5-rime`。
-
-- nixpkgs 已有 [`rime-wanxiang`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/by-name/ri/rime-wanxiang/package.nix) **17.9.3**，[Package Search](https://search.nixos.org/packages?channel=unstable&query=rime-wanxiang) 也只列出该方案包；它的 `longDescription` 明确说 LTS release 会覆盖旧资产，不能进入要求可复现的 nixpkgs，用户必须自行下载 `.gram`。
-- 上游方案最新正式版是 [`v17.9.9`](https://github.com/amzxyz/rime-wanxiang/releases/tag/v17.9.9)（2026-09-08），并仍将该模型列为所有方案的必装组件。
-- 上游 [issue #22](https://github.com/amzxyz/RIME-LMDG/issues/22) 明确确认继续覆盖同一 LTS release；这不是稳定版本语义。
-- [`LTS` release](https://github.com/amzxyz/RIME-LMDG/releases/tag/LTS) 的简体资产于 2026-10-05 13:17 UTC 更新，GitHub digest `sha256:2b68ea8e…` 转为 SRI 后正是本仓 `sha256-K2jqjjtaxd41CtW2dhMjcDHoJmeMptGqc9Jp2RtMCxI=`，当前内容已同步。
-
-### 建议与退出门槛
-
-**保留。** 只有同时满足以下条件才移除：上游停止覆盖、发布不可变且带版本的简体模型资产；nixpkgs 随后提供该模型或把它纳入官方 `rime-wanxiang`；新包与当前方案组合可正常部署。届时删除 `rime-wanxiang-grammar` overlay/本地定义，并从 `rimeDataPkgs` 移除本地 attr 或替换为官方 attr。
+2026-11-14 起 `awesome-pc` 输入法从 fcitx5-rime + 万象改为 [WowType](https://github.com/Gloridust/WowType) flake input（[`modules/desktop/nixos.nix`](../../modules/desktop/nixos.nix)）。本仓已删除 `pkgs/rime-wanxiang-grammar`、对应 overlay、`just update` 中的哈希刷新脚本及其单测。WowType 的词库与语言模型由上游 `nix/package.nix` 按版本化发布资产固定 URL/hash，随 `nix flake update` 一并更新。
 
 ## 4. Windows 10 字体
 
@@ -121,6 +112,6 @@ nixpkgs 没有完整等价包。[Package Search 的 Microsoft fonts 结果](http
 
 - [`packages/orca/package.nix`](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca/package.nix) 明确打包 `stablyai/orca` 官方 deb，attr/pname 为 `orca`、`mainProgram = "orca-ide"`，支持 x86_64-linux 与 aarch64-linux，同时提供 `orca-ide` GUI 和 `orca` CLI；[`hashes.json`](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca/hashes.json) 为 **1.4.200**。本仓已迁移到该 package。
 - 定点验证确认该锁定 attr 命中 `cache.numtide.com`，`orca --version` 与 `orca-ide --version` 均成功；桌面 system path 额外裁掉同名 `orca` CLI，保留 Plasma 的 GNOME Orca。
-- 该 revision 的 [`packages/` 清单](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages)与[生成目录](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/README.md#orca)没有 Cherry Studio、Rime grammar 或 Windows 字体 attr。目录中其他 AI 桌面/代理工具属于不同产品，不能作为 Cherry Studio 配置与数据的原位替代。
+- 该 revision 的 [`packages/` 清单](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages)与[生成目录](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/README.md#orca)没有 Cherry Studio 或 Windows 字体 attr。目录中其他 AI 桌面/代理工具属于不同产品，不能作为 Cherry Studio 配置与数据的原位替代。
 
-因此 `llm-agents` 已接管 Orca，不改变 Cherry pin、Rime 模型或字体的保留结论。
+因此 `llm-agents` 已接管 Orca，不改变 Cherry pin 或字体的保留结论。

@@ -592,7 +592,8 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager",
         "ponytail": "ponytail",
-        "treefmt-nix": "treefmt-nix_3"
+        "treefmt-nix": "treefmt-nix_3",
+        "wowtype": "wowtype"
       }
     },
     "systems": {
@@ -684,6 +685,27 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "wowtype": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794523261,
+        "narHash": "sha256-Syqyqxp1DhM6GBcuP9L7wzUZTj90sePeovlpeZsEEM8=",
+        "owner": "Gloridust",
+        "repo": "WowType",
+        "rev": "ebb10573594e90ed56c2989d33e01b0d092529cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Gloridust",
+        "ref": "release",
+        "repo": "WowType",
         "type": "github"
       }
     }

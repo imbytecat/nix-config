@@ -33,6 +33,12 @@
     # 不 follows nixpkgs，避免 cache.numtide.com miss。
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    # 插件链接系统 fcitx5，必须 follows；上游无二进制缓存，总在本地编译。
+    wowtype = {
+      url = "github:Gloridust/WowType/release";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ponytail = {
       url = "github:DietrichGebert/ponytail";
       flake = false;
@@ -229,8 +235,8 @@
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          inherit (pkgs) rime-wanxiang-grammar;
           orca = inputs.llm-agents.packages.${system}.orca;
+          wowtype = inputs.wowtype.packages.${system}.default;
         }
       );
 
@@ -246,7 +252,6 @@
             packages = [
               pkgs.actionlint
               pkgs.just
-              pkgs.python3
               pkgs.nixd
               pkgs.statix
               pkgs.deadnix
@@ -291,16 +296,6 @@
                   ./hosts/awesome-pc/hardware-configuration.nix \
                   ./hosts/ovh-ks-5/hardware-configuration.nix
                 touch $out
-              '';
-
-          rime-grammar-update =
-            pkgs.runCommand "rime-grammar-update"
-              {
-                nativeBuildInputs = [ pkgs.python3 ];
-              }
-              ''
-                python3 -B -m unittest discover -s ${./pkgs/rime-wanxiang-grammar}
-                touch "$out"
               '';
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
