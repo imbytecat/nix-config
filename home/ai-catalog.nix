@@ -46,16 +46,16 @@ let
         maxOutput = 128000;
       };
       haiku = {
-        id = "claude-haiku-4-5";
-        name = "Claude Haiku 4.5";
+        id = "claude-haiku-5-5";
+        name = "Claude Haiku 5.5";
         reasoning = true;
         input = [
           "text"
           "image"
           "pdf"
         ];
-        context = 200000;
-        maxOutput = 64000;
+        context = 1000000;
+        maxOutput = 128000;
       };
     };
 
@@ -138,14 +138,6 @@ let
         ];
         context = 1000000;
         maxOutput = 384000;
-      };
-      glm = {
-        id = "glm-5.3";
-        name = "GLM-5.3";
-        reasoning = true;
-        input = [ "text" ];
-        context = 1000000;
-        maxOutput = 131072;
       };
       grok = {
         id = "grok-4.7";
