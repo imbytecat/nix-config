@@ -32,8 +32,6 @@
         shfmt
         statix
         stylua
-
-        ast-grep
       ];
 
       programs.mise = {
