@@ -26,10 +26,6 @@
     # Darwin 使用推进更快、aarch64 缓存命中更高的 nixpkgs-unstable。
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # cherry-studio 暂 pin 在 1.9.11 的缓存 revision；当前主线同版本依赖 insecure pnpm/Electron。
-    # 主线切到无 insecure 依赖后，dry-run 确认缓存再删除此 pin。
-    nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/4c5fd5ac81ed3f63654e295d49552ca1dbc65447";
-
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";

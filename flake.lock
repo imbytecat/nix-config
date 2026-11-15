@@ -501,22 +501,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-pnpm-pin": {
-      "locked": {
-        "lastModified": 1782050869,
-        "narHash": "sha256-V52D7vZ+g2DNCRSOMn/TcskYNR2bh4BBkwv4ButVN7A=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "4c5fd5ac81ed3f63654e295d49552ca1dbc65447",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "4c5fd5ac81ed3f63654e295d49552ca1dbc65447",
-        "type": "github"
-      }
-    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1794495034,
@@ -609,7 +593,6 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-anywhere": "nixos-anywhere",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-pnpm-pin": "nixpkgs-pnpm-pin",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager",
         "ponytail": "ponytail",

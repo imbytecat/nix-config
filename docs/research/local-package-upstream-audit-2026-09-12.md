@@ -14,7 +14,7 @@
 | 本仓对象 | 官方 nixpkgs / 已锁输入 | 当前上游 | 建议 | 精确门槛 |
 |---|---|---|---|---|
 | Orca IDE | nixpkgs 的 `orca` 是 GNOME 屏幕阅读器 50.2；已锁 `llm-agents` 提供 stablyai Orca IDE 1.4.200 | stablyai Orca IDE 1.4.200 | **已移除本地包** | 桌面模块直接消费 input package，并删除与 GNOME Orca 冲突的同名 CLI 链接 |
-| `nixpkgs-pnpm-pin` / `cherry-studio` | 主 nixpkgs 仍为 1.9.11，与本地 pin 相同；默认安全求值会被 pnpm 10.29.2 与 Electron 40.10.5 阻断 | Cherry Studio 2.0.14 | **保留** | nixpkgs 包本身更新到无 insecure Electron/pnpm、默认求值不再拒绝，并确认缓存可接受；不能只看应用版本号 |
+| 原 `nixpkgs-pnpm-pin` / `cherry-studio` | 主 nixpkgs 仍为 1.9.11，与本地 pin 相同；默认安全求值会被 pnpm 10.29.2 与 Electron 40.10.5 阻断 | Cherry Studio 2.0.14 | **已移除** | 2026-11-15 不再使用 Cherry Studio，pin 与两端安装一并删除 |
 | 原 `pkgs/rime-wanxiang-grammar` | nixpkgs 的 `rime-wanxiang` 方案不含可变的 LTS `.gram` | LTS 简体模型持续覆盖发布 | **已移除本地包** | 2026-11-14 输入法改用 WowType flake input，不再需要该模型 |
 | `pkgs/ttf-ms-win10` | 仅有 `corefonts`、`vista-fonts`、`vista-fonts-chs` 等部分集合；没有完整 Windows 10 等价包 | 两个本地来源仓均已归档 | **有条件保留** | 只有确认该来源与跨设备使用权、且确需 WPS/Office 精确字体名称和度量时保留；否则立即移除或接受部分/自由字体替代 |
 
@@ -47,29 +47,9 @@ Plasma 同时安装 nixpkgs 的 GNOME Orca 屏幕阅读器，二者都提供 `bi
 
 ## 2. Cherry Studio 与 `nixpkgs-pnpm-pin`
 
-### 版本、求值与安全状态
+### 移除结果
 
-本仓 [`flake.nix`](../../flake.nix) 固定 nixpkgs [`4c5fd5ac81ed`](https://github.com/NixOS/nixpkgs/commit/4c5fd5ac81ed3f63654e295d49552ca1dbc65447)（2026-06-21），overlay 用该 revision 的 `cherry-studio` 覆盖主包集。Linux 安装此包；Darwin 走独立 Homebrew cask，不受该 pin 的移除与否影响。
-
-主 nixpkgs **没有比 pin 更新**：
-
-- [NixOS Package Search](https://search.nixos.org/packages?channel=unstable&query=cherry-studio) 在实际基线 `8ce4ef6c` 显示 **1.9.11**；审计时 [`master` 包定义](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/by-name/ch/cherry-studio/package.nix) 仍是 **1.9.11**，依赖 `electron_40` 与 `pnpm_10_29_2`。
-- 当前 [`pnpm` 定义](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/development/tools/pnpm/default.nix) 为 10.29.2 列出 **12 个 CVE**。
-- `electron_40` 在 [`all-packages.nix`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/top-level/all-packages.nix#L4743-L4804) 指向 binary 包；[`binary/info.json`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/development/tools/electron/binary/info.json) 给出版本 **40.10.5**，而 [`binary/generic.nix`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/development/tools/electron/binary/generic.nix#L43-L51) 将所有 `< 42.0.0` 版本标为 EOL。Electron 官方也只支持[最新三个稳定大版本](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)。
-- nixpkgs [`check-meta.nix`](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/stdenv/generic/check-meta.nix#L202-L217) 默认不允许 `knownVulnerabilities` 非空的 derivation，并在[错误处理](https://github.com/NixOS/nixpkgs/blob/357a2d91de6a33ea893b200f480e5f9db1b0a7f5/pkgs/stdenv/generic/check-meta.nix#L620-L681)中抛出 `Refusing to evaluate package ... because it is marked as insecure`。因此 pnpm 与 Electron 任一项都足以阻断标准求值；Search 中出现包名不代表可直接安装。
-
-旧 pin 的 [`cherry-studio`](https://github.com/NixOS/nixpkgs/blob/4c5fd5ac81ed3f63654e295d49552ca1dbc65447/pkgs/by-name/ch/cherry-studio/package.nix) 同样使用 pnpm **10.29.2** 和 Electron **40.10.3**。该 revision 尚未给 pnpm 写入后来的 CVE 列表，Electron EOL 门槛也仍是 `< 40`，所以它保留了可求值性和旧缓存；这是**绕过后来元数据，不是安全修复**。
-
-上游最新为 [`v2.0.14`](https://github.com/CherryHQ/cherry-studio/releases/tag/v2.0.14)（2026-09-09）。其官方 `package.json` 使用 Electron **41.8.0** 与 electron-builder **26.15.6**（[源码](https://github.com/CherryHQ/cherry-studio/blob/v2.0.14/package.json#L370-L371)），并用 pnpm **11.8.0**（[源码](https://github.com/CherryHQ/cherry-studio/blob/v2.0.14/package.json#L509)）；pnpm 已离开 10.29.2，但 Electron 41 仍低于 nixpkgs 当前 `< 42` EOL 门槛，故不能仅凭“上游已到 2.x”判断安全或可求值。
-
-### 建议与退出门槛
-
-**保留 pin，禁止用 `permittedInsecurePackages` 代替。** 精确退出条件：
-
-1. 主 nixpkgs 的 `cherry-studio` 包定义已更新，而非只有 Cherry 上游发布新版；
-2. 它实际选用的 Electron、pnpm 及被强制求值的依赖均无 `knownVulnerabilities`，标准 `drvPath` 求值不再出现 `Refusing to evaluate`，且未设置 `NIXPKGS_ALLOW_INSECURE`/allowlist；
-3. dry-run 显示二进制缓存命中和本地构建量可接受；
-4. 满足后同时删除 overlay 的 `inherit ... cherry-studio`、`flake.nix` 的 `nixpkgs-pnpm-pin` input 及对应 lock 节点，让 Linux 直接使用主 nixpkgs。Darwin Homebrew cask 保持独立。
+2026-11-15 起不再使用 Cherry Studio。本仓已删除 `nixpkgs-pnpm-pin` input、overlay 中的 `cherry-studio`、Linux 包与 Darwin Homebrew cask；原 pin 的保留理由与退出门槛随之失效。
 
 ## 3. Rime 万象 LTS 语法模型
 
@@ -112,6 +92,6 @@ nixpkgs 没有完整等价包。[Package Search 的 Microsoft fonts 结果](http
 
 - [`packages/orca/package.nix`](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca/package.nix) 明确打包 `stablyai/orca` 官方 deb，attr/pname 为 `orca`、`mainProgram = "orca-ide"`，支持 x86_64-linux 与 aarch64-linux，同时提供 `orca-ide` GUI 和 `orca` CLI；[`hashes.json`](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages/orca/hashes.json) 为 **1.4.200**。本仓已迁移到该 package。
 - 定点验证确认该锁定 attr 命中 `cache.numtide.com`，`orca --version` 与 `orca-ide --version` 均成功；桌面 system path 额外裁掉同名 `orca` CLI，保留 Plasma 的 GNOME Orca。
-- 该 revision 的 [`packages/` 清单](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages)与[生成目录](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/README.md#orca)没有 Cherry Studio 或 Windows 字体 attr。目录中其他 AI 桌面/代理工具属于不同产品，不能作为 Cherry Studio 配置与数据的原位替代。
+- 该 revision 的 [`packages/` 清单](https://github.com/numtide/llm-agents.nix/tree/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/packages)与[生成目录](https://github.com/numtide/llm-agents.nix/blob/95f48ce58bfb55a1a4d4d1ccdc4801b37cbb88c9/README.md#orca)没有 Windows 字体 attr。
 
-因此 `llm-agents` 已接管 Orca，不改变 Cherry pin 或字体的保留结论。
+因此 `llm-agents` 已接管 Orca，不改变字体的保留结论。

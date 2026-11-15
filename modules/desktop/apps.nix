@@ -4,7 +4,6 @@ let
   both = {
     android-studio = "android-studio";
     brave-browser = "brave";
-    cherry-studio = "cherry-studio";
     dbeaver-community = "dbeaver-bin";
     obs = "obs-studio";
     qq = "qq";
