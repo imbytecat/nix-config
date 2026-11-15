@@ -69,7 +69,7 @@ Codex 官方规则：
 
 三条命令都调用 `node`，所以非交互 shell 的 `PATH` 必须包含 Node。它们使用 `${CLAUDE_PLUGIN_ROOT}`，Codex 官方兼容变量保证可解析。运行态由 [`ponytail-runtime.js`](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/hooks/ponytail-runtime.js) 写到 `${PLUGIN_DATA}/.ponytail-active`；`/ponytail default ...` 另写 `~/.config/ponytail/config.json`。
 
-Ponytail 自带 [`.agents/plugins/marketplace.json`](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/.agents/plugins/marketplace.json)，但其中插件 source 明确写 `ref: "main"`。本仓改由 HM 生成指向固定 Nix input 的 local marketplace；激活时再把 HM cache symlink 落成真实可写目录，并在生成的 `config.toml` 中声明三条经过审核的 trust hash。Standalone Codex 无需 mutable clone、host install 或交互 `/hooks`；Orca managed `CODEX_HOME` 使用独立 trust store，首次同步新 plugin hook 仍需审核一次。上游定义变化后 hash 不匹配，hook 自动停用。
+Ponytail 自带 [`.agents/plugins/marketplace.json`](https://github.com/DietrichGebert/ponytail/blob/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/.agents/plugins/marketplace.json)，但其中插件 source 明确写 `ref: "main"`。本仓改由 HM 生成指向固定 Nix input 的 local marketplace；激活时再把 HM cache symlink 落成真实可写目录，并在生成的 `config.toml` 中声明三条经过审核的 trust hash。Codex 因此无需 mutable clone、host install 或交互 `/hooks`；上游定义变化后 hash 不匹配，hook 自动停用。
 
 ### 2.3 Caveman：技能插件、项目 hook、安装器三者不等价
 
@@ -84,7 +84,7 @@ Ponytail 自带 [`.agents/plugins/marketplace.json`](https://github.com/Dietrich
 
 官方 [`INSTALL.md`](https://github.com/JuliusBrussee/caveman/blob/ec83e5bace4c20484d704dea21e12fc4eb94e9aa/INSTALL.md) 对 Codex 明确写 `npx skills add JuliusBrussee/caveman -a codex`，并标注 “Per-session: `/caveman`”。安装器 [`cli/install.js`](https://github.com/JuliusBrussee/caveman/blob/ec83e5bace4c20484d704dea21e12fc4eb94e9aa/cli/install.js) 的 Codex provider 也只进入通用 `installViaSkills()`，调用 `npx skills add`；不会复制根 `.codex/hooks.json`，也不会安装上述 plugin bundle。因此，Pinned Caveman 的常规 Codex 安装是 **instruction-only**，不是 lifecycle-plugin。
 
-对于不可变 store，skills 仍直接 symlink 到 `$HOME/.agents/skills`。为提供 always-on 模式，本仓另生成一个只包含上游 `.codex/hooks.json` 的最小 `caveman` Codex plugin；这不是重写 hook，只是给上游分离的 hook 文件补上 plugin manifest，使它在普通 Codex 与 Orca 隔离的 managed `CODEX_HOME` 中都按 lifecycle plugin 加载。trust hash 继续锁定原始 hook 定义。
+对于不可变 store，skills 仍直接 symlink 到 `$HOME/.agents/skills`。为提供 always-on 模式，本仓另生成一个只包含上游 `.codex/hooks.json` 的最小 `caveman` Codex plugin；这不是重写 hook，只是给上游分离的 hook 文件补上 plugin manifest，使它按 lifecycle plugin 加载。trust hash 继续锁定原始 hook 定义。
 
 ## 3. 推荐的声明式接入
 

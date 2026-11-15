@@ -1,10 +1,5 @@
-{ pkgs, inputs, ... }:
-
 {
-  # Homebrew 的 `orca` cask 是 plotly 的另一个工具；stablyai Orca IDE 只能取 llm-agents。
-  environment.systemPackages = [
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.orca
-  ];
+  imports = [ ./herdr.nix ];
 
   homebrew.casks = [
     "1password"

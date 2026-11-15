@@ -2,8 +2,9 @@
 
 {
   programs.ghostty = {
-    enable = pkgs.stdenv.hostPlatform.isDarwin;
-    package = null; # 用 Homebrew cask
+    enable = true;
+    # Darwin 用 Homebrew cask（modules/desktop/darwin.nix）；Linux 交给 HM，systemd/D-Bus 集成需要 package。
+    package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
     settings = {
       font-family = "Maple Mono NF CN";
       font-size = 14;

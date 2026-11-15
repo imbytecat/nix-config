@@ -7,14 +7,6 @@
 }:
 
 let
-  orca = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.orca;
-  # Plasma 已安装 GNOME Orca 的 `orca`；这里只暴露 IDE，避免 CLI 同名冲突。
-  orcaPackage = pkgs.symlinkJoin {
-    name = "orca-ide-${orca.version}";
-    paths = [ orca ];
-    postBuild = "rm $out/bin/orca";
-  };
-
   # XWayland Qt5 应用需显式 *_IM_MODULE=fcitx。
   wrapWithFcitx =
     pkg: bins:
@@ -42,7 +34,10 @@ let
 
 in
 {
-  imports = [ ./fonts.nix ];
+  imports = [
+    ./fonts.nix
+    ./herdr.nix
+  ];
 
   # 不提供 X11 session；XWayland 由 Plasma 自带。
   services.displayManager.sddm = {
@@ -76,7 +71,6 @@ in
     discord
     freerdp
     obs-studio
-    orcaPackage
     qq
     remmina
     snipaste

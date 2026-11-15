@@ -29,7 +29,7 @@ just update                        # 更新 flake 输入
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
 
-每周依赖更新工作流使用同一入口，构建 Orca 和 WowType 并通过 `just check` 后自动合并；
+每周依赖更新工作流使用同一入口，构建 herdr-app 和 WowType 并通过 `just check` 后自动合并；
 字体和 kexec 镜像仍需人工维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在

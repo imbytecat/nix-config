@@ -235,7 +235,7 @@
           };
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          orca = inputs.llm-agents.packages.${system}.orca;
+          herdr-app = inputs.llm-agents.packages.${system}.herdr-app;
           wowtype = inputs.wowtype.packages.${system}.default;
         }
       );
