@@ -229,8 +229,8 @@ star、最新 release 与 60 天活跃度均为 2026-11-15 的 `gh api` 快照�
 
 仓库改动：
 
-- 新增 `modules/desktop/herdr.nix`，由两台的桌面模块共同导入，用 llm-agents 的 `herdr-app` 与 `herdr-core` 替换 Orca；Darwin 不用 Homebrew cask，因为 release 构建默认开遥测并自更新。
-- `home/shell/ghostty.nix` 在 Linux 由 HM 安装 nixpkgs `ghostty`，Darwin 仍用 cask，配置共用。
+- 新增两台桌面共用的 `modules/desktop/herdr.nix`，用 llm-agents 的 `herdr-app` 与 `herdr-core` 替换 Orca；Darwin 不用 Homebrew cask，因为 release 构建默认开遥测并自更新。
+- `modules/shell/ghostty.nix` 在 Linux 由 HM 安装 nixpkgs `ghostty`，Darwin 仍用 cask，配置共用。
 - `packages.x86_64-linux.orca` 改为 `herdr-app`，依赖更新工作流改为构建 `.#herdr-app .#wowtype`；README、AGENTS.md 与相关文档同步。
 
 两台机器上已清理（未 switch）：

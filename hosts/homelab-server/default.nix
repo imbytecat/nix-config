@@ -1,8 +1,5 @@
 {
-  imports = [
-    ../../modules/nixos/qemu-guest.nix
-    ./disko.nix
-  ];
+  imports = [ ./disko.nix ];
 
   system.stateVersion = "25.11";
 

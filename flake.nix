@@ -1,7 +1,7 @@
 {
   description = "Multi-platform Nix configuration — nix-darwin + NixOS";
 
-  # bootstrap 缓存有意重复 modules/shared/nix.nix：nixConfig 不能 import，稳态仍以后者为准。
+  # bootstrap 缓存有意重复 modules/nix.nix：nixConfig 不能 import，稳态仍以后者为准。
   # nixos-anywhere 会另行转发目标机 nix.settings，justfile 不再复制。
   nixConfig = {
     extra-substituters = [
@@ -29,6 +29,11 @@
     # cherry-studio 暂 pin 在 1.9.11 的缓存 revision；当前主线同版本依赖 insecure pnpm/Electron。
     # 主线切到无 insecure 依赖后，dry-run 确认缓存再删除此 pin。
     nixpkgs-pnpm-pin.url = "github:NixOS/nixpkgs/4c5fd5ac81ed3f63654e295d49552ca1dbc65447";
+
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
 
     # 不 follows nixpkgs，避免 cache.numtide.com miss。
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -135,178 +140,14 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      ...
-    }@inputs:
+    inputs:
     let
-      mylib = import ./lib { inherit inputs; };
-      systems = [
-        "aarch64-darwin"
-        "x86_64-linux"
-      ];
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-      overlay = import ./overlays { inherit inputs; };
-      pkgsFor =
-        system:
-        import nixpkgs {
-          inherit system;
-          overlays = [ overlay ];
-        };
-      treefmtFor = system: inputs.treefmt-nix.lib.evalModule (pkgsFor system) ./treefmt.nix;
+      inherit (inputs.nixpkgs) lib;
     in
-    {
-      darwinConfigurations = {
-        awesome-macbook-air = mylib.mkDarwin {
-          hostname = "awesome-macbook-air";
-          system = "aarch64-darwin";
-          username = "imbytecat";
-          extraModules = [
-            ./modules/desktop/darwin.nix
-            ./hosts/awesome-macbook-air
-          ];
-        };
-      };
-
-      nixosConfigurations = {
-        awesome-pc = mylib.mkNixos {
-          hostname = "awesome-pc";
-          system = "x86_64-linux";
-          username = "imbytecat";
-          extraModules = [
-            ./modules/nixos/boot/systemd-boot.nix
-            ./modules/desktop/nixos.nix
-            ./hosts/awesome-pc
-          ];
-        };
-
-        homelab-server = mylib.mkServer {
-          hostname = "homelab-server";
-          system = "x86_64-linux";
-          extraModules = [
-            ./modules/nixos/boot/systemd-boot.nix
-            ./hosts/homelab-server
-          ];
-        };
-
-        mihomo-gateway = mylib.mkServer {
-          hostname = "mihomo-gateway";
-          system = "x86_64-linux";
-          extraModules = [
-            ./modules/nixos/boot/systemd-boot.nix
-            ./modules/gateway
-            ./hosts/mihomo-gateway
-          ];
-        };
-
-        ovh-ks-5 = mylib.mkServer {
-          hostname = "ovh-ks-5";
-          system = "x86_64-linux";
-          extraModules = [
-            ./modules/nixos/boot/grub-raid.nix
-            ./hosts/ovh-ks-5
-          ];
-        };
-      };
-
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = pkgsFor system;
-          # 上游 package.nix 仍读取 stdenv.isDarwin；修复后恢复直接 inherit。
-          disko-install =
-            (inputs.disko.packages.${system}.disko.override {
-              stdenv = pkgs.stdenv // {
-                isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-              };
-            }).overrideAttrs
-              (_old: {
-                name = "disko-install";
-              });
-        in
-        {
-          inherit disko-install;
-          inherit (inputs.nixos-anywhere.packages.${system}) nixos-anywhere;
-
-          # release 分支资产会被上游重建并重新上传，hash 会随之变化，报 mismatch 就照 got 更新。
-          kexec-installer = pkgs.fetchurl {
-            url = "https://github.com/nix-community/nixos-images/releases/download/nixos-26.05/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz";
-            hash = "sha256-Sk25JC9Hs1ItqLEzHwS7mKi0HG8HSisbxbluWQmv1Bg=";
-          };
-        }
-        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          herdr-app = inputs.llm-agents.packages.${system}.herdr-app;
-          wowtype = inputs.wowtype.packages.${system}.default;
-        }
-      );
-
-      overlays.default = overlay;
-
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = pkgsFor system;
-        in
-        {
-          default = pkgs.mkShell {
-            packages = [
-              pkgs.actionlint
-              pkgs.just
-              pkgs.nixd
-              pkgs.statix
-              pkgs.deadnix
-              pkgs.nvd
-              pkgs.nix-tree
-              (treefmtFor system).config.build.wrapper
-            ];
-          };
-        }
-      );
-
-      checks = forAllSystems (
-        system:
-        let
-          pkgs = pkgsFor system;
-
-          # 仅强制求值 drvPath；丢弃 derivation 上下文，避免 Linux 真构建 Darwin 闭包。
-          evalOnly =
-            name: drvPath:
-            pkgs.runCommand "eval-${name}" { } ''
-              echo ${builtins.unsafeDiscardOutputDependency drvPath} > $out
-            '';
-        in
-        {
-          formatting = (treefmtFor system).config.build.check inputs.self;
-
-          lint =
-            pkgs.runCommand "lint"
-              {
-                nativeBuildInputs = [
-                  pkgs.actionlint
-                  pkgs.statix
-                  pkgs.deadnix
-                ];
-              }
-              ''
-                cd ${inputs.self}
-                actionlint .github/workflows/*.yml
-                statix check
-                # hardware-configuration.nix 由 nixos-generate-config 生成，不由我们维护
-                deadnix --fail --exclude \
-                  ./hosts/awesome-pc/hardware-configuration.nix \
-                  ./hosts/ovh-ks-5/hardware-configuration.nix
-                touch $out
-              '';
-        }
-        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          eval-awesome-macbook-air = evalOnly "awesome-macbook-air" inputs.self.darwinConfigurations.awesome-macbook-air.system.drvPath;
-          eval-awesome-pc = evalOnly "awesome-pc" inputs.self.nixosConfigurations.awesome-pc.config.system.build.toplevel.drvPath;
-          eval-homelab-server = evalOnly "homelab-server" inputs.self.nixosConfigurations.homelab-server.config.system.build.toplevel.drvPath;
-          eval-mihomo-gateway = evalOnly "mihomo-gateway" inputs.self.nixosConfigurations.mihomo-gateway.config.system.build.toplevel.drvPath;
-          eval-ovh-ks-5 = evalOnly "ovh-ks-5" inputs.self.nixosConfigurations.ovh-ks-5.config.system.build.toplevel.drvPath;
-        }
-      );
-
-      formatter = forAllSystems (system: (treefmtFor system).config.build.wrapper);
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      # modules/ 下每个 .nix 都是 flake-parts 模块；路径含 /_ 的是被 import 的数据或辅助函数。
+      imports = builtins.filter (
+        path: lib.hasSuffix ".nix" (toString path) && !lib.hasInfix "/_" (toString path)
+      ) (lib.filesystem.listFilesRecursive ./modules);
     };
 }

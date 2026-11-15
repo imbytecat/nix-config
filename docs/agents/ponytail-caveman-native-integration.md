@@ -109,18 +109,18 @@ Ponytail 与 Caveman 不是「更大的 skill」，也不等于 Codex plugin 或
 
 | 目录 | 责任 |
 |---|---|
-| `home/dev/agents/bundles/` | 每个行为包独立拥有 pin-specific packaging、hook trust、OMP 投影与共享 skills；`default.nix` 是 plain-attr registry。 |
-| `home/dev/agents/adapters/` | 把 registry 投影到 Codex、OMP 和 `~/.agents/skills`；不重新定义 Ponytail/Caveman 语义。 |
+| `modules/agents/_bundles/` | 每个行为包独立拥有 pin-specific packaging、hook trust、OMP 投影与共享 skills；`default.nix` 是 plain-attr registry。 |
+| `modules/agents/*.nix` | 把 registry 投影到 Codex、OMP 和 `~/.agents/skills`；不重新定义 Ponytail/Caveman 语义。 |
 
 因此新增行为包只需新增一个 bundle 并注册；新增 agent 只需新增一个 adapter。实现没有引入 NixOS/Home Manager 自定义 option 或通用 plugin framework：registry 只是两个真实 bundle 与三个真实 adapter 之间的最小数据 seam。
 
 ### 4.3 当前投影
 
-1. `bundles/ponytail.nix`：Codex 直接消费上游正式 plugin；OMP 直接引用仓库根 extension；skills 由两边 plugin 自带。
-2. `bundles/caveman.nix`：Codex 用最小 manifest 封装上游 `.codex/hooks.json`；OMP 使用 always-apply rule 与 `/caveman` command；可运行 skills 导出到共享目录。
-3. `adapters/codex-plugins.nix`：聚合 plugin source、trust hash 与 Codex 0.146 cache materialization。
-4. `adapters/omp.nix`：聚合 `extensions` 与 bundle-owned `home.file`。
-5. `adapters/skills.nix`：聚合 bundle skills 与 agent-browser、mattpocock 等 skill-only distribution。
+1. `_bundles/ponytail.nix`：Codex 直接消费上游正式 plugin；OMP 直接引用仓库根 extension；skills 由两边 plugin 自带。
+2. `_bundles/caveman.nix`：Codex 用最小 manifest 封装上游 `.codex/hooks.json`；OMP 使用 always-apply rule 与 `/caveman` command；可运行 skills 导出到共享目录。
+3. `codex-plugins.nix`：聚合 plugin source、trust hash 与 Codex 0.146 cache materialization。
+4. `omp.nix`：聚合 `extensions` 与 bundle-owned `home.file`。
+5. `skills.nix`：聚合 bundle skills 与 agent-browser、mattpocock 等 skill-only distribution。
 
 Caveman 上游若把 hook 纳入正式 plugin，删除 wrapper；Codex/HM 若原生识别 cache symlink，删除 activation。行为包边界不变，只有对应 adapter 数据缩减。
 

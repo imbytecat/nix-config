@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 
 {
   imports = [
@@ -35,6 +35,21 @@
         model = "everywhere";
       }
     ];
+  };
+
+  # 这台机器无硬件背光；软件 dim 会破坏 direct scanout，并触发 Chromium 窗口闪烁。
+  # 因此只在 10 分钟后熄屏，不调暗或休眠。
+  home-manager.users.${username}.programs.plasma = {
+    powerdevil.AC = {
+      autoSuspend.action = "nothing";
+      turnOffDisplay.idleTimeout = 600;
+      dimDisplay.enable = false;
+    };
+
+    kscreenlocker = {
+      autoLock = false;
+      lockOnResume = false;
+    };
   };
 
   system.stateVersion = "25.11";

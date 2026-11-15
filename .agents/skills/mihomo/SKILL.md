@@ -210,7 +210,7 @@ nix shell nixpkgs#python3 nixpkgs#nftables nixpkgs#iproute2 nixpkgs#util-linux n
 nix eval --impure --json --expr '
   let f = builtins.getFlake (toString ./.); in {
     ruleset = f.nixosConfigurations.mihomo-gateway.config.networking.nftables.ruleset;
-    constants = import ./modules/gateway/constants.nix;
+    constants = import ./modules/gateway/_constants.nix;
   }
 ' | sudo env "PATH=$PATH" unshare --net python3 .agents/skills/mihomo/check-tproxy.py
 ```
