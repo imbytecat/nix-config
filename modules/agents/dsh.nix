@@ -24,7 +24,7 @@
             inherit (gateway) api;
             apiKeyEnv = gateway.apiKey;
             baseURL = gateway.baseUrl;
-            reasoning = "high";
+            reasoning = "max";
             models = [
               {
                 inherit (model) id name input;
