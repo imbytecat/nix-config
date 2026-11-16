@@ -18,5 +18,5 @@
     pmset -a halfdim 0
   '';
 
-  system.stateVersion = 6;
+  system.stateVersion = 7;
 }
