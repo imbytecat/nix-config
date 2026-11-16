@@ -14,6 +14,8 @@
           pkgs.actionlint
           pkgs.just
           pkgs.nixd
+          # .vscode 里 nixd 格式化调用裸 nixfmt；取 treefmt 的同一份，保存结果与 nix fmt 一致。
+          treefmt.config.programs.nixfmt.package
           pkgs.statix
           pkgs.deadnix
           pkgs.nvd

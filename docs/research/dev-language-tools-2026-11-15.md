@@ -199,3 +199,4 @@ Mac 上 bash 登录 shell 的 PATH 中，mise shims 排在 HM 前面（`which -a
 - 删除 `lua-language-server`、`vue-language-server`、`shfmt`、`stylua`、`statix`：VS Code 不从 PATH 用它们，agent 也用不到；`shfmt`、`stylua`、`statix` 原本只服务 LazyVim。
 - 保留 omp 会选用的 LSP（`bash-language-server`、`dockerfile-language-server`、`gopls`、`nixd`、`typescript-language-server`、`yaml-language-server`），VS Code just 扩展用的 `just-lsp`，以及 `biome`、`nixfmt`、`ruff`、`shellcheck`。
 - `fvm` 保留：`aima-lite` 的 AGENTS.md 规定只用 `fvm flutter`，项目暂停不等于工具无用。`typst` 保留。
+- devShell 加入 treefmt 用的同一份 `nixfmt`（上文缺口 3）：本仓里 VS Code 保存时的格式化结果与 `nix fmt`、CI 一致，不再取决于 Mac 的 `nixpkgs-unstable`。
