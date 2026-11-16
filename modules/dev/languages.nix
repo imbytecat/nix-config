@@ -19,19 +19,14 @@
         dockerfile-language-server
         gopls
         just-lsp
-        lua-language-server
         nixd
         typescript-language-server
-        vue-language-server
         yaml-language-server
 
         biome
         nixfmt
         ruff
         shellcheck
-        shfmt
-        statix
-        stylua
       ];
 
       programs.mise = {

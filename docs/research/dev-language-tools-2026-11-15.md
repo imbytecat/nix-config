@@ -192,3 +192,10 @@ Mac 上 bash 登录 shell 的 PATH 中，mise shims 排在 HM 前面（`which -a
 2. VS Code 的 Biome 被写死为 HM 2.6.5，而项目声明的是 `^2.4.13`、`^2.4.16`、`2.6.7`。编辑器和 `bunx biome` 可能给出不同结果。删除 `biome.lsp.bin` 后扩展会自动用项目版本（[Biome 文档](https://biomejs.dev/reference/vscode/)）。
 3. nix-config 的 `.vscode/settings.json` 让 nixd 调用裸 `nixfmt`，devShell（`modules/flake/tooling.nix`）只提供 treefmt wrapper，不提供 `nixfmt`（`ls …-treefmt/bin` 只有 `treefmt`）。所以 VS Code 在仓库里格式化依赖 HM 的 `nixfmt`。如果想让仓库自给自足，把 `pkgs.nixfmt` 加进 devShell 即可。本次没有修改。
 4. `settings.json` 中的 `go.toolsManagement.autoUpdate: true` 会在缺少工具时往 `~/go/bin` 安装二进制，目前两台机器都没有这个目录。删除 `gopls` 后，vscode-go 会提示自行 `go install`，绕开 Nix。
+
+## 处理结果（2026-11-16）
+
+- 删除 LazyVim：去掉 `lazyvim` flake input 与 `programs.lazyvim`，Neovim 改为原生 `programs.neovim`（仍是 `$EDITOR`，带 `vi`/`vim` 别名），配色跟随全仓 catppuccin。
+- 删除 `lua-language-server`、`vue-language-server`、`shfmt`、`stylua`、`statix`：VS Code 不从 PATH 用它们，agent 也用不到；`shfmt`、`stylua`、`statix` 原本只服务 LazyVim。
+- 保留 omp 会选用的 LSP（`bash-language-server`、`dockerfile-language-server`、`gopls`、`nixd`、`typescript-language-server`、`yaml-language-server`），VS Code just 扩展用的 `just-lsp`，以及 `biome`、`nixfmt`、`ruff`、`shellcheck`。
+- `fvm` 保留：`aima-lite` 的 AGENTS.md 规定只用 `fvm flutter`，项目暂停不等于工具无用。`typst` 保留。
