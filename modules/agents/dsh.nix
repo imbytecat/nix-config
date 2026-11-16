@@ -64,6 +64,28 @@
             fetchProvider = "deepseek-fetch-api";
           };
         }
+        # 新会话默认完全访问且不弹审批（同 Codex 的 never + danger-full-access），/permission 仍可按会话切换。
+        # config 整行替换：照抄上游的三个预设，否则 read-only 会从选择器消失。
+        {
+          id = "permission";
+          config = {
+            presets = {
+              read-only = {
+                sandbox = "read-only";
+                approval = "ask";
+              };
+              workspace-write = {
+                sandbox = "workspace-write";
+                approval = "ask";
+              };
+              danger-full-access = {
+                sandbox = "danger-full-access";
+                approval = "never";
+              };
+            };
+            defaultPreset = "danger-full-access";
+          };
+        }
       ];
     in
     {
