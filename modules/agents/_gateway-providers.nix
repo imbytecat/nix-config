@@ -26,10 +26,6 @@ let
       api = "openai-responses";
       path = "/v1";
     };
-    google = {
-      api = "google-generative-ai";
-      path = "/v1beta";
-    };
     furtherverse = {
       api = "openai-completions";
       path = "/v1";

@@ -110,23 +110,6 @@ let
       };
     };
 
-    google = {
-      gemini = {
-        id = "gemini-3.1-pro-preview";
-        name = "Gemini 3.1 Pro Preview";
-        reasoning = true;
-        input = [
-          "text"
-          "image"
-          "video"
-          "audio"
-          "pdf"
-        ];
-        context = 1048576;
-        maxOutput = 65536;
-      };
-    };
-
     furtherverse = {
       deepseek = {
         id = "deepseek-v4.1-flash";
