@@ -19,15 +19,11 @@
       pluginCaches = map (
         plugin: "${codexHome}/plugins/cache/home-manager/${plugin.name}/${plugin.version}"
       ) codexPlugins;
-      hookState = lib.foldl' (state: plugin: state // (plugin.hookState or { })) { } codexPlugins;
     in
     {
       programs.codex = {
         plugins = map (plugin: plugin.plugin) codexPlugins;
-        settings = {
-          features.hooks = true;
-          hooks.state = hookState;
-        };
+        settings.features.hooks = true;
       };
 
       # Codex 0.146 不把 HM cache symlink 视为已安装，激活后落成可清理实体目录。
@@ -41,5 +37,16 @@
           fi
         done
       '';
+
+      # Codex 把 hook 信任钉在声明与整个插件目录的 hash 上，插件或 Codex 一更新就失效且静默失败。
+      # 这里 Codex 本来就是 never 审批 + 完全访问，激活时照 TUI 审批的做法信任它在用户级列出的全部 hook。
+      home.activation.trustCodexHooks =
+        lib.hm.dag.entryAfter [ "materializeCodexPlugins" "mutableCodexConfig" ]
+          ''
+            $DRY_RUN_CMD env CODEX_HOME=${lib.escapeShellArg codexHome} \
+              ${lib.getExe pkgs.python3} ${./_codex-hook-trust.py} \
+              ${lib.getExe config.programs.codex.package} \
+              || echo "warning: Codex hooks remain untrusted" >&2
+          '';
     };
 }

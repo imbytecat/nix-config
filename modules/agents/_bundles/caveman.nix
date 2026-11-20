@@ -13,6 +13,22 @@ let
     hooks = "./hooks.json";
   };
 
+  # 上游命令从 git 根目录找脚本，只在 caveman 自己的仓库里成立；插件里改指 store 中的脚本，
+  # 脚本靠 __dirname 找 ../src/hooks 与 skills。上游改写法时求值直接报错，不再静默失效。
+  upstreamHooks = builtins.readFile "${inputs.caveman}/.codex/hooks.json";
+  gitRootScript = "$(git rev-parse --show-toplevel)/.codex/codex-sessionstart.js";
+  hooks =
+    assert lib.assertMsg (lib.hasInfix gitRootScript upstreamHooks)
+      "caveman: upstream .codex/hooks.json no longer resolves codex-sessionstart.js from the git root";
+    pkgs.writeText "caveman-hooks.json" (
+      builtins.replaceStrings
+        [ gitRootScript ]
+        [
+          "${inputs.caveman}/.codex/codex-sessionstart.js"
+        ]
+        upstreamHooks
+    );
+
   plugin =
     pkgs.runCommandLocal "caveman-codex-plugin"
       {
@@ -20,7 +36,7 @@ let
         inherit (manifest) version;
       }
       ''
-        install -Dm444 ${inputs.caveman}/.codex/hooks.json "$out/hooks.json"
+        install -Dm444 ${hooks} "$out/hooks.json"
         install -Dm444 ${pkgs.writeText "caveman-plugin.json" (builtins.toJSON manifest)} "$out/.codex-plugin/plugin.json"
       '';
 
@@ -41,8 +57,6 @@ in
   codex = {
     inherit plugin;
     inherit (manifest) name version;
-    hookState."caveman@home-manager:hooks.json:session_start:0:0".trusted_hash =
-      "sha256:0ed786805542f7114c30eda6945e72a2f1285c06fd6d4320de621a9549c095ed";
   };
 
   # caveman 无 Pi extension，OMP 继续用 always-apply rule 与显式命令。
