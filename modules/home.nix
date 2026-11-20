@@ -35,7 +35,6 @@ in
 
   aspects.homeManager.daily =
     {
-      config,
       pkgs,
       username,
       ...
@@ -49,16 +48,13 @@ in
       };
 
       home.packages = with pkgs; [
-        duf
         dust
         jq
-        procs
         sd
         socat
         wget
         yq
 
-        gomi
         ouch
 
         just
@@ -73,18 +69,7 @@ in
         tsshd
       ];
 
-      programs.nh = {
-        enable = true;
-        flake = "${config.home.homeDirectory}/nix-config";
-      };
-
       programs.fastfetch.enable = true;
-      programs.tealdeer = {
-        enable = true;
-        # Darwin 的 tldr-update launchd 会以 code 5 失败，改用按需更新。
-        enableAutoUpdates = false;
-        settings.updates.auto_update = true;
-      };
 
       xdg.enable = true;
     };

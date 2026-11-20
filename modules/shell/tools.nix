@@ -71,23 +71,10 @@
         ];
       };
 
-      programs.yazi = {
-        enable = true;
-        shellWrapperName = "y";
-      };
-
       programs.btop = {
         enable = true;
         settings = {
           vim_keys = true;
-        };
-      };
-
-      programs.zellij = {
-        enable = true;
-        enableFishIntegration = false;
-        settings = {
-          show_startup_tips = false;
         };
       };
 
