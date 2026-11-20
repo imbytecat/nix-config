@@ -149,10 +149,10 @@ RAID1 不是备份；restic 仓库必须位于异地。
 
 ## 本地密钥
 
-在 `~/.config/fish/local.fish` 设置 1Password Service Account token：
+在 `~/.config/zsh/local.zsh` 设置 1Password Service Account token：
 
-```fish
-set -gx OP_SERVICE_ACCOUNT_TOKEN "your-service-account-token"
+```zsh
+export OP_SERVICE_ACCOUNT_TOKEN="your-service-account-token"
 ```
 
 然后手动刷新本地环境变量缓存：

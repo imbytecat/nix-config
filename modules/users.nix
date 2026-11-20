@@ -9,7 +9,7 @@
     {
       users.users.${username} = {
         isNormalUser = true;
-        shell = pkgs.fish;
+        shell = pkgs.zsh;
         extraGroups = [
           "wheel"
           "docker"
@@ -34,7 +34,7 @@
       users.knownUsers = [ username ];
       users.users.${username} = {
         home = "/Users/${username}";
-        shell = pkgs.fish;
+        shell = pkgs.zsh;
         uid = 501;
         openssh.authorizedKeys.keys = sshKeys;
       };

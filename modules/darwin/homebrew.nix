@@ -21,7 +21,6 @@
 
       homebrew = {
         enable = true;
-        enableFishIntegration = true;
         greedyCasks = true;
 
         # cleanup=zap 要求列全受管 tap；非官方 tap 需 trusted。
