@@ -61,8 +61,8 @@ let
 
     openai = {
       astra = {
-        id = "gpt-6-astra";
-        name = "GPT-6 Astra";
+        id = "gpt-6.2-astra";
+        name = "GPT-6.2 Astra";
         reasoning = true;
         input = [
           "text"
@@ -73,8 +73,8 @@ let
         maxOutput = 128000;
       };
       sol = {
-        id = "gpt-6.1-sol";
-        name = "GPT-6.1 Sol";
+        id = "gpt-6.2-sol";
+        name = "GPT-6.2 Sol";
         reasoning = true;
         input = [
           "text"
