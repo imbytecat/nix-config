@@ -20,6 +20,8 @@ in
 
       envTpl = "${config.xdg.configHome}/op-env/env.tpl";
       envCache = "${config.xdg.cacheHome}/op-env/env.fish";
+      # launchd/systemd 服务读不了 fish 语法，另存一份 KEY="value" 给 EnvironmentFile。
+      envDotenv = "${config.xdg.cacheHome}/op-env/env";
       teaTpl = "${config.xdg.configHome}/op-env/tea.yml.tpl";
       teaConfig = "${config.xdg.configHome}/tea/config.yml";
     in
@@ -137,6 +139,14 @@ in
               for var in $old_vars
                 set -e $var
               end
+              set -l dotenv_tmp (mktemp "$cache_dir/.tmp.XXXXXX")
+              and string replace -rf '^set -gx (\S+) ' '$1=' < "${envCache}" > "$dotenv_tmp"
+              and mv "$dotenv_tmp" "${envDotenv}"
+              or begin
+                command rm -f "$dotenv_tmp"
+                echo "op-env: cannot write ${envDotenv}" >&2
+                return 1
+              end
               if not source "${envCache}"
                 echo "op-env: files written but env cache could not be sourced" >&2
                 return 1
@@ -152,7 +162,7 @@ in
                   set -e $var
                 end
               end
-              command rm -f "${envCache}" "${teaConfig}"
+              command rm -f "${envCache}" "${envDotenv}" "${teaConfig}"
               echo "op-env: cleared"
             '';
           };
