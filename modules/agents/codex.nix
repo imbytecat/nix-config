@@ -33,7 +33,7 @@
           forced_login_method = "api";
           check_for_update_on_startup = false;
 
-          model_reasoning_effort = "max";
+          model_reasoning_effort = "xhigh";
           model_reasoning_summary = "auto";
 
           approval_policy = "never";
