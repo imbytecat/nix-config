@@ -7,6 +7,7 @@ let
     apiKeyEnv = "FURTHERVERSE_API_KEY";
   };
 
+  # 数值默认照 models.dev（providers/<provider>/models/<id>.toml）；网关确有不同才偏离，并在条目旁注明原因。
   providers = {
     anthropic = {
       fable = {
@@ -119,8 +120,8 @@ let
           "text"
           "image"
         ];
-        context = 1000000;
-        maxOutput = 384000;
+        context = 1048576;
+        maxOutput = 393216;
       };
       grok = {
         id = "grok-4.7";
@@ -129,6 +130,7 @@ let
         input = [
           "text"
           "image"
+          "pdf"
         ];
         context = 500000;
         maxOutput = 500000;
@@ -143,7 +145,7 @@ let
           "video"
         ];
         context = 1048576;
-        maxOutput = 131072;
+        maxOutput = 1048576;
       };
     };
   };
