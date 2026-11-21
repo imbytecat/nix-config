@@ -37,7 +37,7 @@
         compaction.thresholdPercent = 75;
         modelRoles = {
           default = "${aiCatalog.ref "opus"}:max";
-          smol = "${aiCatalog.ref "luna"}:max";
+          smol = "${aiCatalog.ref "deepseek"}:max";
           slow = "${aiCatalog.ref "fable"}:xhigh";
         };
         extensions = bundleExtensions;
