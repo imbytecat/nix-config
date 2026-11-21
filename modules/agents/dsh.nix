@@ -30,9 +30,7 @@
                 inherit (model) id name input;
                 contextWindow = model.context;
                 maxTokens = model.maxOutput;
-                # 网关把 reasoning_effort=off 映射为关闭思考；留空则 DeepSeek 默认继续思考。
                 reasoningEfforts = {
-                  off = "off";
                   low = "low";
                   high = "high";
                   max = "max";
