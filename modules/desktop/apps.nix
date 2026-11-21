@@ -2,7 +2,6 @@ let
   # 两端都装的同一应用：键是 Homebrew cask，值是 nixpkgs 包名。
   # 带配置、服务或特殊安装要求的应用各有文件：1password.nix、tailscale.nix、shell/ghostty.nix、desktop/herdr.nix。
   both = {
-    android-studio = "android-studio";
     brave-browser = "brave";
     dbeaver-community = "dbeaver-bin";
     obs = "obs-studio";

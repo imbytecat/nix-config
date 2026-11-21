@@ -14,6 +14,7 @@
 
         fvm
         android-tools
+        android-cli
 
         bash-language-server
         dockerfile-language-server
@@ -28,6 +29,12 @@
         ruff
         shellcheck
       ];
+
+      home.sessionVariables.ANDROID_HOME =
+        if pkgs.stdenv.hostPlatform.isDarwin then "$HOME/Library/Android/sdk" else "$HOME/Android/Sdk";
+
+      # Android CLI 遥测默认开启；.androidrc 的全局 flag 对每次调用生效。
+      home.file.".androidrc".text = "--no-metrics\n";
 
       programs.mise = {
         enable = true;
