@@ -114,10 +114,12 @@ in
           ''
             _op_env_load() { [[ -f "${envFile}" ]] && { set -a; source "${envFile}"; set +a; } }
             _op_env_load
-            # 包一层，让当前 shell 也拿到新值；token 来自 local.zsh。
-            op-env-refresh() { command op-env-refresh && _op_env_load; }
+            # 包一层，让当前 shell 也拿到新值；token 来自 local.zsh，只在这次调用里导出。
+            op-env-refresh() { OP_SERVICE_ACCOUNT_TOKEN=$OP_SERVICE_ACCOUNT_TOKEN command op-env-refresh && _op_env_load; }
 
             [[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"
+            # service account token 能读整个 vault：去掉导出标记，agent 等子进程不继承（omp 会把环境写进 daemon spec）。
+            [[ -v OP_SERVICE_ACCOUNT_TOKEN ]] && typeset +x OP_SERVICE_ACCOUNT_TOKEN
           ''
         ];
       };
