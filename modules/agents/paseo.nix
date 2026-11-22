@@ -7,10 +7,14 @@ in
   aspects.nixos.daily =
     {
       config,
+      lib,
       pkgs,
       username,
       ...
     }:
+    let
+      hm = config.home-manager.users.${username};
+    in
     {
       imports = [ "${inputs.paseo}/nix/module.nix" ];
 
@@ -23,11 +27,22 @@ in
         listenAddress = "0.0.0.0";
         inherit port;
         relay.enable = false;
+        # 上游拼的 PATH 不含 HM sessionPath（mise shims 等），关掉后按 t3code 的拼法自己给。
+        inheritUserEnvironment = false;
       };
       # 模块没有密钥文件选项，agent 要的 API key 取自 op-env 的 dotenv。
-      systemd.services.paseo.serviceConfig.EnvironmentFile = "${
-        config.home-manager.users.${username}.xdg.cacheHome
-      }/op-env/env";
+      systemd.services.paseo.serviceConfig.EnvironmentFile = "${hm.xdg.cacheHome}/op-env/env";
+      systemd.services.paseo.environment.PATH = lib.mkForce (
+        lib.concatStringsSep ":" (
+          map (lib.replaceStrings [ "$HOME" ] [ hm.home.homeDirectory ]) hm.home.sessionPath
+          ++ [
+            "${hm.home.profileDirectory}/bin"
+            "/run/wrappers/bin"
+            "/run/current-system/sw/bin"
+            "/nix/var/nix/profiles/default/bin"
+          ]
+        )
+      );
       networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
     };
 

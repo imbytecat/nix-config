@@ -1,6 +1,6 @@
 {
   aspects.homeManager.daily =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
 
     {
       home.packages = with pkgs; [
@@ -43,5 +43,8 @@
           all_compile = false;
         };
       };
+
+      # 交互 zsh 之外（非交互 shell、SSH、T3/Paseo 服务）没有 `mise activate`；shims 按 cwd 取项目锁的版本，项目外回落到 Nix 版本。
+      home.sessionPath = [ "${config.xdg.dataHome}/mise/shims" ];
     };
 }
