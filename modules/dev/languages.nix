@@ -8,13 +8,10 @@
         go
         nodejs
         python3
-        typst
 
         uv
 
-        fvm
         android-tools
-        android-cli
 
         bash-language-server
         dockerfile-language-server
@@ -33,8 +30,11 @@
       home.sessionVariables.ANDROID_HOME =
         if pkgs.stdenv.hostPlatform.isDarwin then "$HOME/Library/Android/sdk" else "$HOME/Android/Sdk";
 
-      # Android CLI 遥测默认开启；.androidrc 的全局 flag 对每次调用生效。
+      # Android CLI 由项目 mise 安装，遥测默认开启；.androidrc 的全局 flag 对每次调用生效。
       home.file.".androidrc".text = "--no-metrics\n";
+
+      # Flutter 也由项目 mise 安装，遥测默认开启；它自己的开关在工具会改写的 ~/.dart-tool 状态文件里，不能交给 HM。
+      home.sessionVariables.FLUTTER_SUPPRESS_ANALYTICS = "true";
 
       programs.mise = {
         enable = true;

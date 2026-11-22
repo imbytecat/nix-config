@@ -139,3 +139,6 @@ home.file.".androidrc".text = "--no-metrics\n";
   - zap 也会移走 `~/.android/adbkey`，新生成的 key 需要在车机和手机上重新授权 USB 调试。
 - 未处理 JDK：Flutter 不再能用 Studio 自带的 JBR，改为依赖 `JAVA_HOME` 或 PATH 上的 `java`（各项目由 mise 固定版本）。
 - 未在 awesome-pc 上验证终端直接启动 emulator：没有 Studio 的 FHS 环境后，可能需要给 `programs.nix-ld.libraries` 补 GL、X11、音频等库。
+- 同日后续：删除 nixpkgs `android-cli`。用到它的项目在自己的 mise 配置里锁版本，例如 supercar 的 `.mise.toml` 写 `android-cli = "1.1.16717390"`；同一份配置还服务 Windows 和 CI，Nix 管不到。`ANDROID_HOME` 和 `~/.androidrc` 保留在 HM。
+  - mise 的 `http:android-cli` 下载 `dl.google.com/android/cli/<version>/<os_arch>/android`，即 3.6 MB 的启动器，版本号只锁启动器。启动器首次运行时从 `latest` 下载 payload 到 `~/.android/bin/android-cli`：本机 mise 锁 1.1.16717390，payload 实测是 1.1.16919734。上文“只要 nixpkgs 的 `android` 在 PATH 上，就会用锁定版本”不再适用。
+  - `~/.androidrc` 对 mise 安装的 CLI 同样生效：payload 已运行过，`~/.android/cli/analytics/metrics/spool/` 不存在。

@@ -200,3 +200,4 @@ Mac 上 bash 登录 shell 的 PATH 中，mise shims 排在 HM 前面（`which -a
 - 保留 omp 会选用的 LSP（`bash-language-server`、`dockerfile-language-server`、`gopls`、`nixd`、`typescript-language-server`、`yaml-language-server`），VS Code just 扩展用的 `just-lsp`，以及 `biome`、`nixfmt`、`ruff`、`shellcheck`。
 - `fvm` 保留：`aima-lite` 的 AGENTS.md 规定只用 `fvm flutter`，项目暂停不等于工具无用。`typst` 保留。
 - devShell 加入 treefmt 用的同一份 `nixfmt`（上文缺口 3）：本仓里 VS Code 保存时的格式化结果与 `nix fmt`、CI 一致，不再取决于 Mac 的 `nixpkgs-unstable`。
+- 后续（2026-11-22）：删除 `typst` 与 `fvm`，项目工具链改由各项目自己声明。typst-docs 改由 pandoc 内置的 typst 读取器直出 DOCX，不再调用 typst CLI（见该仓 AGENTS.md），edu-spark 已弃用，VS Code 的 tinymist 自带二进制；aima-lite 改在 `mise.toml` 固定 Flutter 3.44.2。
