@@ -1,5 +1,23 @@
+{ inputs, ... }:
 let
   port = 3773;
+
+  # 默认 wrapper 把 llm-agents 自带的 codex、claude-code 等前置进 PATH，会盖过 HM 的版本。
+  t3codeFor =
+    pkgs:
+    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.t3code.override {
+      providerPackages = [ ];
+    };
+
+  # 遥测默认开。managed policy 同时管服务与桌面端，从 Dock 启动的桌面端读不到 shell 变量也生效。
+  policy = builtins.toJSON { limits.telemetry = false; };
+
+  # Nix 构建以未打包形式运行 Electron，不会自更新。
+  desktop =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [ (t3codeFor pkgs).desktop ];
+    };
 in
 {
   # --lan 监听全部地址：NixOS 防火墙只在 tailscale0 放行；用户服务开 linger，重启后不登录也起来。
@@ -8,21 +26,29 @@ in
     {
       networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
       users.users.${username}.linger = true;
+      environment.etc."t3code/policy.json".text = policy;
     };
+
+  aspects.darwin.daily =
+    { pkgs, ... }:
+    {
+      system.activationScripts.postActivation.text = ''
+        mkdir -p "/Library/Application Support/T3Code"
+        install -m 0644 ${pkgs.writeText "t3code-policy.json" policy} "/Library/Application Support/T3Code/policy.json"
+      '';
+    };
+
+  aspects.nixos.desktop = desktop;
+  aspects.darwin.desktop = desktop;
 
   aspects.homeManager.daily =
     {
       config,
-      inputs,
       lib,
       pkgs,
       ...
     }:
     let
-      # 默认 wrapper 把 llm-agents 自带的 codex、claude-code 等前置进 PATH，会盖过 HM 的 codex。
-      t3code = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.t3code.override {
-        providerPackages = [ ];
-      };
       # 遥测默认开，交互 shell 里的 `t3` CLI 与服务都要关。
       telemetryOff = {
         T3CODE_TELEMETRY_ENABLED = "false";
@@ -50,7 +76,7 @@ in
     {
       programs.t3code = {
         enable = true;
-        package = t3code;
+        package = t3codeFor pkgs;
         # 命令名必须是 omp，T3 才对它套用 omp 专用的提问表单解析。
         userSettings.providerInstances.omp = {
           driver = "acpRegistry";

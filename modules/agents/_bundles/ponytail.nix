@@ -10,4 +10,6 @@ in
   };
 
   omp.extensions = [ "${inputs.ponytail}" ];
+
+  claude = inputs.ponytail;
 }

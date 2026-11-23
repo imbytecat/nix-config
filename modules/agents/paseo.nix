@@ -3,7 +3,7 @@ let
   port = 6767;
 in
 {
-  # 服务用上游 NixOS 模块（系统服务，以用户身份运行）；macOS 没有现成服务，需要时手动起 daemon。
+  # 服务用上游 NixOS 模块（系统服务，以用户身份运行）；macOS 没有现成服务，由桌面端自己起 daemon。
   aspects.nixos.daily =
     {
       config,
@@ -46,6 +46,17 @@ in
       networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
     };
 
+  # 桌面端复用 ~/.paseo 里已在跑的 daemon（NixOS 上即上面的服务），没有才自己起。
+  # llm-agents 只有 Linux 版 paseo-desktop（不自更新）；Mac 只能用会自更新的 cask，CLI 也由 cask 链接。
+  aspects.nixos.desktop =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.paseo-desktop
+      ];
+    };
+  aspects.darwin.desktop.homebrew.casks = [ "paseo" ];
+
   aspects.homeManager.daily =
     {
       aiCatalog,
@@ -55,9 +66,7 @@ in
       ...
     }:
     {
-      home.packages = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.paseo ];
-
-      # config.json 由 CLI 与手机 App 改写，只合并声明的键。omp 的模型列表混有网关不提供的内置条目，
+      # config.json 由 CLI、桌面端与手机 App 改写，只合并声明的键。omp 的模型列表混有网关不提供的内置条目，
       # Paseo 默认挑第一个（claude-fable-5）会一直 503 重试；默认模型与 omp.nix 的 modelRoles.default 一致。
       home.activation.paseoConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] (
         lib.hm.generators.mkImpureConfigMerger {

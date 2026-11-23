@@ -1,6 +1,6 @@
 # Pi Coding Agent 调查
 
-> 状态（2026-11-14）：Pi 已从本仓移除，DeepSeek 场景改由 DSH 承担；下文“本仓接入/现状”只反映调查时状态。2026-11-15 起本仓按 feature 重组到 `modules/`，文中 `home/...`、`adapters/...` 链接均为调查时路径，已失效。
+> 状态（2026-11-23）：Pi 已恢复安装（`modules/agents/pi.nix`：provider 取自 catalog 网关，关安装遥测与版本检查）；2026-11-14 曾移除。下文“本仓接入/现状”只反映调查时状态。2026-11-15 起本仓按 feature 重组到 `modules/`，文中 `home/...`、`adapters/...` 链接均为调查时路径，已失效。
 
 > 调查日期：2026-08-11。本文所称 **Pi** 是 Mario Zechner 发起的 coding agent，历史入口为 [`badlogic/pi-mono`](https://github.com/badlogic/pi-mono)，调查时 GitHub 已将其解析到 [`earendil-works/pi`](https://github.com/earendil-works/pi)。上游 `main` 固定在 [`2a95ef70db83a19cf5500f31dc4ff8247e04043e`](https://github.com/earendil-works/pi/commit/2a95ef70db83a19cf5500f31dc4ff8247e04043e)，`@earendil-works/pi-coding-agent` 版本为 `0.84.1`。下文只按该完整 SHA 判断，避免 `main` 漂移。
 
