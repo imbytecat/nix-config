@@ -50,6 +50,10 @@
 
             # 遥测、错误上报、自动更新、/feedback 等非必要流量全关；版本只随 Nix 更新。
             CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+            # 总开关在文档里是枚举清单，新通道另配开关；单项开关冗余写上，防以后收窄。
+            DISABLE_TELEMETRY = "1";
+            DISABLE_ERROR_REPORTING = "1";
+            CLAUDE_CODE_DISABLE_FEATURE_FLAGS = "1";
             CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL = "1";
             CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           };
