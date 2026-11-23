@@ -27,7 +27,7 @@ in
         listenAddress = "0.0.0.0";
         inherit port;
         relay.enable = false;
-        # 上游拼的 PATH 不含 HM sessionPath（mise shims 等），关掉后按 t3code 的拼法自己给。
+        # 上游拼的 PATH 不含 HM sessionPath（mise shims 等），关掉后自己拼。
         inheritUserEnvironment = false;
       };
       # 模块没有密钥文件选项，agent 要的 API key 取自 op-env 的 dotenv。
