@@ -30,7 +30,7 @@ just update                        # 更新 flake 输入
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
 
 每周依赖更新工作流使用同一入口，构建 herdr-app 和 WowType 并通过 `just check` 后自动合并；
-字体和 kexec 镜像仍需人工维护。
+字体和 kexec 引导镜像（`kexec-bootstrap`）的 hash 仍需人工维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在
 `~/.config/nix/nix.conf` 写入：
@@ -81,6 +81,8 @@ just install <host> <remote>
 ```
 
 > `just install` 会按 `hosts/<host>/disko.nix` 重建整盘，目标数据全部丢失。执行前必须核对 host、磁盘型号、容量和序列号。
+
+安装会先用 `ssh-copy-id` 把本机公钥装进目标机（rescue 只有密码时会提示输入），再 kexec 两次：第一次进上游镜像拿到 Nix，第二次进本仓按目标机 LTS 内核构建的镜像，再分区安装。RAID 阵列必须由不比目标新的内核创建，否则目标机组装不了。
 
 安装完成后清除旧 SSH host key：
 

@@ -108,6 +108,12 @@
       inputs.disko.follows = "disko";
     };
 
+    # 只取 kexec 安装镜像的 NixOS 模块；镜像由本仓 nixpkgs 按目标机内核构建。
+    nixos-images = {
+      url = "github:nix-community/nixos-images";
+      flake = false;
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
