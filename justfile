@@ -65,12 +65,13 @@ eval:
 [linux]
 [group('check')]
 eval:
+    @nix eval .#nixosConfigurations.agent-server.config.system.build.toplevel > /dev/null && echo "agent-server: ok"
     @nix eval .#nixosConfigurations.awesome-pc.config.system.build.toplevel > /dev/null && echo "awesome-pc: ok"
     @nix eval .#nixosConfigurations.homelab-server.config.system.build.toplevel > /dev/null && echo "homelab-server: ok"
     @nix eval .#nixosConfigurations.mihomo-gateway.config.system.build.toplevel > /dev/null && echo "mihomo-gateway: ok"
     @nix eval .#nixosConfigurations.ovh-ks-5.config.system.build.toplevel > /dev/null && echo "ovh-ks-5: ok"
 
-[doc('nix flake check —— 格式 + lint + 五台 host 的 eval（在 Linux 上跑才全覆盖：host eval 挂在 x86_64-linux 上，darwin 只跑得到 formatting/lint，用 just eval 补）')]
+[doc('nix flake check —— 格式 + lint + 六台 host 的 eval（在 Linux 上跑才全覆盖：host eval 挂在 x86_64-linux 上，darwin 只跑得到 formatting/lint，用 just eval 补）')]
 [group('check')]
 check:
     nix flake check --show-trace
@@ -231,6 +232,7 @@ lint:
     actionlint .github/workflows/*.yml
     statix check
     deadnix --fail --exclude \
+      ./hosts/agent-server/hardware-configuration.nix \
       ./hosts/awesome-pc/hardware-configuration.nix \
       ./hosts/ovh-ks-5/hardware-configuration.nix
 

@@ -11,6 +11,7 @@
 | `awesome-macbook-air` | 移动与 Apple 平台构建 | aarch64-darwin |
 | `mihomo-gateway` | 单臂透明代理网关 | x86_64-linux |
 | `ovh-ks-5` | root-only Docker 服务器 | x86_64-linux |
+| `agent-server` | Rakazo 个人 agent，服务只经 tailnet | x86_64-linux |
 
 flake 目标、`hosts/<host>` 目录和 `networking.hostName` 必须同名。
 
@@ -96,6 +97,7 @@ ssh-keygen -R <remote>
 - `homelab-server`：PVE QEMU VM，默认 `/dev/sda`；PVE 呈现其他设备时先改 host 内默认值。
 - `mihomo-gateway`：默认 `/dev/sda`，安装后必须补 `/etc/mihomo/env`。
 - `ovh-ks-5`：两块 NVMe 全盘组成 RAID1；从 OVH Rescue 安装前确认以 UEFI 启动。
+- `agent-server`：与 `ovh-ks-5` 同款两块 NVMe，但 root 是 RAID0（ESP、`/boot` 仍为 RAID1），且不做备份：坏任一块盘即重装并丢失数据。
 
 ### Mihomo 订阅
 
@@ -107,6 +109,27 @@ EOF"
 ```
 
 文件变化会自动触发订阅拉取、净化、校验与 Mihomo 重启。
+
+### Rakazo（agent-server）
+
+公网只开放 SSH 22 和 Tailscale。Rakazo 只监听回环，由 `tailscale serve` 在 tailnet 内提供 HTTPS（tailnet 需先开启 HTTPS certificates），手机 App 的自定义服务器也填这个地址。
+
+```bash
+ssh root@<public-ip>
+tailscale up
+mkdir -p /opt/stacks/rakazo && cd /opt/stacks/rakazo
+curl -fsSLO https://raw.githubusercontent.com/elie222/rakazo/main/infra/compose/install-images.sh
+bash install-images.sh --prepare-only
+```
+
+编辑 `.env`：`RAKAZO_HOST` 设为 `agent-server.<tailnet>.ts.net`，`BETTER_AUTH_URL`、`WEB_ORIGIN`、`API_URL` 都设为 `https://agent-server.<tailnet>.ts.net`。然后启动：
+
+```bash
+bash install-images.sh
+tailscale serve --bg 5173
+```
+
+NixOS 上安装脚本无法持久化 egress 防火墙规则，会写入 `SANDBOX_COMPUTER_EGRESS=open`：bot 电脑能连到宿主和宿主可达的私网（含 tailnet）。在 Tailscale ACL 里禁止这台机器主动连接其他设备。
 
 ### OVH 备份与灾难恢复
 

@@ -68,6 +68,8 @@ in
   };
 
   flake.nixosConfigurations = {
+    agent-server = server "agent-server" [ aspects.nixos.grub-raid ];
+
     awesome-pc = daily "awesome-pc" "x86_64-linux" [
       aspects.nixos.desktop
       aspects.nixos.systemd-boot
