@@ -512,22 +512,6 @@
         "type": "github"
       }
     },
-    "paseo": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1795431047,
-        "narHash": "sha256-6frnWB0ih1x9SqIIlbNUm4T5adv8oinPPwKk5r906XI=",
-        "owner": "getpaseo",
-        "repo": "paseo",
-        "rev": "182c1aa192677f821f25f618b166fd964c9696ba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "getpaseo",
-        "repo": "paseo",
-        "type": "github"
-      }
-    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -590,7 +574,6 @@
         "nixos-images": "nixos-images_2",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "paseo": "paseo",
         "plasma-manager": "plasma-manager",
         "ponytail": "ponytail",
         "treefmt-nix": "treefmt-nix_3",

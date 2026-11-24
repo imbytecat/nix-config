@@ -68,7 +68,11 @@ in
   };
 
   flake.nixosConfigurations = {
-    agent-server = server "agent-server" [ aspects.nixos.grub-raid ];
+    agent-server = server "agent-server" [
+      aspects.nixos.grub-raid
+      aspects.nixos.home-manager
+      { home-manager.users.t3code.imports = [ aspects.homeManager.agent ]; }
+    ];
 
     awesome-pc = daily "awesome-pc" "x86_64-linux" [
       aspects.nixos.desktop

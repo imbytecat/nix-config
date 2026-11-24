@@ -37,7 +37,7 @@ jobs:
         id: verify
         continue-on-error: true
         run: |
-          nix build .#herdr-app .#wowtype
+          nix build .#wowtype
           nix develop -c just check
 
       - name: Inspect manual pins
@@ -68,7 +68,7 @@ jobs:
             每周自动更新可安全维护的依赖。
 
             - 更新步骤：`${{ steps.update.outcome }}`
-            - `nix build .#herdr-app .#wowtype` + `just check`：`${{ steps.verify.outcome }}`
+            - `nix build .#wowtype` + `just check`：`${{ steps.verify.outcome }}`
             - nixos-images 最新版本：`${{ steps.pins.outputs.kexec }}`（仅提示）
 
             验证通过后自动 squash 合并；字体和 kexec 镜像仍需人工确认后更新。

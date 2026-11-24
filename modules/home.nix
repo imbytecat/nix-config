@@ -1,37 +1,43 @@
-{ config, ... }:
+{ config, inputs, ... }:
 
 let
-  integration =
-    { inputs, username, ... }:
+  inherit (config) aspects;
+  integration.home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    extraSpecialArgs = { inherit inputs; };
+  };
+
+  dailyUser =
+    { username, ... }:
     {
       home-manager = {
-        useGlobalPkgs = true;
-        useUserPackages = true;
         backupFileExtension = "bak";
         overwriteBackup = true;
-        extraSpecialArgs = { inherit inputs username; };
-        users.${username}.imports = [ config.aspects.homeManager.daily ];
+        extraSpecialArgs = { inherit username; };
+        users.${username}.imports = [
+          aspects.homeManager.daily
+          aspects.homeManager.agent
+        ];
       };
     };
 in
 {
-  aspects.nixos.daily =
-    { inputs, ... }:
-    {
-      imports = [
-        inputs.home-manager.nixosModules.home-manager
-        integration
-      ];
-    };
+  aspects.nixos.home-manager.imports = [
+    inputs.home-manager.nixosModules.home-manager
+    integration
+  ];
 
-  aspects.darwin.daily =
-    { inputs, ... }:
-    {
-      imports = [
-        inputs.home-manager.darwinModules.home-manager
-        integration
-      ];
-    };
+  aspects.nixos.daily.imports = [
+    aspects.nixos.home-manager
+    dailyUser
+  ];
+
+  aspects.darwin.daily.imports = [
+    inputs.home-manager.darwinModules.home-manager
+    integration
+    dailyUser
+  ];
 
   aspects.homeManager.daily =
     {

@@ -1,5 +1,5 @@
 {
-  aspects.homeManager.daily =
+  aspects.homeManager.agent =
     {
       config,
       inputs,

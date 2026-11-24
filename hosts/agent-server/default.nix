@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   imports = [
@@ -10,20 +10,30 @@
 
   boot.swraid.mdadmConf = "PROGRAM ${pkgs.util-linux}/bin/logger";
 
-  # Rakazo 的 install-images.sh 每次运行都检查 openssl（生成 .env 密钥）。
-  environment.systemPackages = [ pkgs.openssl ];
-
   networking.useDHCP = true;
-
-  # 公网只留 SSH 22 与 Tailscale 的 UDP 端口（便于直连）；Rakazo 只经 tailscale serve 进 tailnet。
   services.tailscale = {
     enable = true;
     openFirewall = true;
   };
 
-  virtualisation.docker = {
-    enable = true;
-    # 发布端口经 DNAT 走 FORWARD，绕过 NixOS 防火墙；没写宿主 IP 的端口一律只绑回环。
-    daemon.settings.ip = "127.0.0.1";
+  users.groups.t3code = { };
+  users.users.t3code = {
+    isSystemUser = true;
+    group = "t3code";
+    home = "/var/lib/t3code";
+    createHome = true;
+    homeMode = "0700";
+    shell = pkgs.bashInteractive;
+    linger = true;
+  };
+
+  home-manager.users.t3code = {
+    home.stateVersion = "26.05";
+    programs.t3code.server.extraArgs = lib.mkBefore [
+      "--host"
+      "127.0.0.1"
+    ];
+    # 空机也能配对，模型密钥另放在服务账号的私有文件里。
+    systemd.user.services.t3code.Service.EnvironmentFile = "-%h/.config/t3code/env";
   };
 }

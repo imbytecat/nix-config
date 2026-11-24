@@ -11,7 +11,7 @@
 | `awesome-macbook-air` | 移动与 Apple 平台构建 | aarch64-darwin |
 | `mihomo-gateway` | 单臂透明代理网关 | x86_64-linux |
 | `ovh-ks-5` | root-only Docker 服务器 | x86_64-linux |
-| `agent-server` | Rakazo 个人 agent，服务只经 tailnet | x86_64-linux |
+| `agent-server` | T3 Code daemon，服务只经 tailnet | x86_64-linux |
 
 flake 目标、`hosts/<host>` 目录和 `networking.hostName` 必须同名。
 
@@ -30,7 +30,7 @@ just update                        # 更新 flake 输入
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
 
-每周依赖更新工作流使用同一入口，构建 herdr-app 和 WowType 并通过 `just check` 后自动合并；
+每周依赖更新工作流使用同一入口，构建 WowType 并通过 `just check` 后自动合并；
 字体和 kexec 引导镜像（`kexec-bootstrap`）的 hash 仍需人工维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在
@@ -110,26 +110,29 @@ EOF"
 
 文件变化会自动触发订阅拉取、净化、校验与 Mihomo 重启。
 
-### Rakazo（agent-server）
+### T3 Code（agent-server）
 
-公网只开放 SSH 22 和 Tailscale。Rakazo 只监听回环，由 `tailscale serve` 在 tailnet 内提供 HTTPS（tailnet 需先开启 HTTPS certificates），手机 App 的自定义服务器也填这个地址。
+开发机和服务器共用 Home Manager 的 `agent` 角色，包含 Codex、Claude Code、OMP、Pi、DSH、插件、skills 和 T3 daemon。服务器以 `t3code` 账号运行，家目录是 `/var/lib/t3code`，重启后由 systemd 用户服务自动启动。
+
+首次部署后，以 root 在服务器上启用 tailnet HTTPS。下面的映射会跨重启保留：
 
 ```bash
-ssh root@<public-ip>
 tailscale up
-mkdir -p /opt/stacks/rakazo && cd /opt/stacks/rakazo
-curl -fsSLO https://raw.githubusercontent.com/elie222/rakazo/main/infra/compose/install-images.sh
-bash install-images.sh --prepare-only
+tailscale serve --bg http://127.0.0.1:3773
 ```
 
-编辑 `.env`：`RAKAZO_HOST` 设为 `agent-server.<tailnet>.ts.net`，`BETTER_AUTH_URL`、`WEB_ORIGIN`、`API_URL` 都设为 `https://agent-server.<tailnet>.ts.net`。然后启动：
+将 `FURTHERVERSE_API_KEY` 写入服务账号的 `~/.config/t3code/env`（dotenv 格式，权限 0600）；使用 DSH 搜索或 OMP 的 Exa 搜索时，分别加入 `DEEPSEEK_API_KEY` 或 `EXA_API_KEY`。修改后重启 daemon：
 
 ```bash
-bash install-images.sh
-tailscale serve --bg 5173
+systemctl --user --machine=t3code@.host restart t3code
 ```
 
-NixOS 上安装脚本无法持久化 egress 防火墙规则，会写入 `SANDBOX_COMPUTER_EGRESS=open`：bot 电脑能连到宿主和宿主可达的私网（含 tailnet）。在 Tailscale ACL 里禁止这台机器主动连接其他设备。
+在服务器上生成一次性配对链接，把 `<tailnet>` 替换为 `tailscale serve status` 显示的域名后缀。手机或桌面端连上同一 tailnet，在 **Add environment** 粘贴链接：
+
+```bash
+sudo -Hu t3code /etc/profiles/per-user/t3code/bin/t3 auth pairing create \
+  --base-url 'https://agent-server.<tailnet>.ts.net'
+```
 
 ### OVH 备份与灾难恢复
 

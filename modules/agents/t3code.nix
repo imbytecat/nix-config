@@ -35,6 +35,34 @@ in
       pkgs,
       ...
     }:
+    {
+      programs.t3code.server = {
+        extraArgs = lib.mkBefore [ "--lan" ];
+        environmentFile = "${config.xdg.cacheHome}/op-env/env";
+      };
+
+      # 服务占着 ~/.t3，桌面端的本地环境会抢同一把锁（弹 "This T3 home is unavailable" 后退出），只当客户端。
+      home.activation.t3codeDesktopClient = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+        lib.hm.generators.mkImpureConfigMerger {
+          inherit pkgs;
+          format = "json";
+          empty = "{}";
+          jqOperation = "$dynamic * $static";
+          path = "${config.home.homeDirectory}/.t3/userdata/desktop-settings.json";
+          staticSettings = (pkgs.formats.json { }).generate "t3code-desktop-settings.json" {
+            localEnvironmentEnabled = false;
+          };
+        }
+      );
+    };
+
+  aspects.homeManager.agent =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       # 遥测默认开，服务与交互 shell 里的 `t3` CLI 都要关。
       telemetryOff.T3CODE_TELEMETRY_ENABLED = "false";
@@ -73,30 +101,14 @@ in
         server = {
           enable = true;
           extraArgs = [
-            "--lan"
             "--port"
             (toString port)
             config.home.homeDirectory
           ];
-          environmentFile = "${config.xdg.cacheHome}/op-env/env";
         };
       };
 
       home.sessionVariables = telemetryOff;
-
-      # 服务占着 ~/.t3，桌面端的本地环境会抢同一把锁（弹 "This T3 home is unavailable" 后退出），只当客户端。
-      home.activation.t3codeDesktopClient = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-        lib.hm.generators.mkImpureConfigMerger {
-          inherit pkgs;
-          format = "json";
-          empty = "{}";
-          jqOperation = "$dynamic * $static";
-          path = "${config.home.homeDirectory}/.t3/userdata/desktop-settings.json";
-          staticSettings = (pkgs.formats.json { }).generate "t3code-desktop-settings.json" {
-            localEnvironmentEnabled = false;
-          };
-        }
-      );
 
       launchd.agents.t3code.config = {
         EnvironmentVariables = serviceEnv;

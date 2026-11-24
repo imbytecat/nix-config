@@ -34,12 +34,6 @@
     # 不 follows nixpkgs，避免 cache.numtide.com miss。
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # 只取上游 nix/module.nix 的 NixOS 服务；包仍用 llm-agents 的。
-    paseo = {
-      url = "github:getpaseo/paseo";
-      flake = false;
-    };
-
     # 插件链接系统 fcitx5，必须 follows；上游无二进制缓存，总在本地编译。
     wowtype = {
       url = "github:Gloridust/WowType/release";

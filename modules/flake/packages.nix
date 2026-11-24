@@ -56,7 +56,6 @@
               )
             ];
           }).config.system.build.kexecInstallerTarball;
-        herdr-app = inputs.llm-agents.packages.${system}.herdr-app;
         wowtype = inputs.wowtype.packages.${system}.default;
       };
     };
