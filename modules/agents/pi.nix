@@ -9,6 +9,7 @@
     }:
     let
       jsonFormat = pkgs.formats.json { };
+      deepseek = aiCatalog.models.deepseek;
 
       gatewayProviders = import ./_gateway-providers.nix { inherit aiCatalog lib; };
 
@@ -21,12 +22,16 @@
         furtherverse-openai = providers.openai;
         furtherverse = providers.furtherverse // {
           compat.supportsDeveloperRole = false;
+          # 自定义模型要显式映射 max，否则 Pi 会降到 high。
+          models = map (
+            model: model // lib.optionalAttrs (model.id == deepseek.id) { thinkingLevelMap.max = "max"; }
+          ) providers.furtherverse.models;
         };
       };
 
       piSettings = {
-        defaultProvider = "furtherverse-anthropic";
-        defaultModel = aiCatalog.models.opus.id;
+        defaultProvider = deepseek.provider;
+        defaultModel = deepseek.id;
         defaultThinkingLevel = "max";
         enableInstallTelemetry = false;
       };
