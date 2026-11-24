@@ -3,6 +3,7 @@
     {
       inputs,
       lib,
+      pkgs,
       username,
       ...
     }:
@@ -27,7 +28,15 @@
         taps = {
           "homebrew/homebrew-core" = inputs.homebrew-core;
           "homebrew/homebrew-cask" = inputs.homebrew-cask;
-          "goooler/homebrew-repo" = inputs.homebrew-goooler;
+          # shortcut: FlClash 把 0.9.4 的 dmg 改名去掉了 `-dev`（sha256 未变），tap 的 URL 还指向旧名，404 会让整个
+          # Homebrew bundle 失败；tap 修好后删掉这个 patch。
+          "goooler/homebrew-repo" = pkgs.applyPatches {
+            name = "homebrew-goooler";
+            src = inputs.homebrew-goooler;
+            postPatch = ''
+              substituteInPlace Casks/fl-clash.rb --replace-quiet 'FlClash-dev-' 'FlClash-'
+            '';
+          };
           "imbytecat/homebrew-tap" = inputs.homebrew-imbytecat;
         };
       };
