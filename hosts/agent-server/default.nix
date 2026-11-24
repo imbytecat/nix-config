@@ -33,7 +33,5 @@
       "--host"
       "127.0.0.1"
     ];
-    # 空机也能配对，模型密钥另放在服务账号的私有文件里。
-    systemd.user.services.t3code.Service.EnvironmentFile = "-%h/.config/t3code/env";
   };
 }

@@ -8,81 +8,8 @@ in
   aspects.darwin.daily = enable;
 
   aspects.homeManager.daily =
+    { lib, pkgs, ... }:
     {
-      aiCatalog,
-      config,
-      pkgs,
-      lib,
-      ...
-    }:
-
-    let
-      envTpl = "${config.xdg.configHome}/op-env/env.tpl";
-      teaTpl = "${config.xdg.configHome}/op-env/tea.yml.tpl";
-      envDir = "${config.xdg.cacheHome}/op-env";
-      # zsh 用 set -a 载入；T3 服务当 EnvironmentFile 读。
-      envFile = "${envDir}/env";
-      teaDir = "${config.xdg.configHome}/tea";
-      teaConfig = "${teaDir}/config.yml";
-
-      opEnvRefresh = pkgs.writeShellApplication {
-        name = "op-env-refresh";
-        text = ''
-          : "''${OP_SERVICE_ACCOUNT_TOKEN:?op-env: OP_SERVICE_ACCOUNT_TOKEN is not set}"
-          if ! command -v op >/dev/null; then
-            echo "op-env: op CLI not found in PATH" >&2
-            exit 1
-          fi
-
-          mkdir -p "${envDir}" "${teaDir}"
-          chmod 700 "${envDir}" "${teaDir}"
-          env_tmp=$(mktemp "${envDir}/.tmp.XXXXXX")
-          tea_tmp=$(mktemp "${teaDir}/.tmp.XXXXXX")
-          trap 'rm -f "$env_tmp" "$tea_tmp"' EXIT
-
-          # 两份都注入成功才替换；任一失败，旧文件保持不动。
-          op inject --in-file "${envTpl}" >"$env_tmp"
-          op inject --in-file "${teaTpl}" >"$tea_tmp"
-          # TUI 和 app-server 的内置 openai provider 从 Codex 登录凭据读取网关密钥。
-          (
-            unset OP_SERVICE_ACCOUNT_TOKEN
-            # shellcheck disable=SC1090
-            source "$env_tmp"
-            printf '%s' "$${aiCatalog.gateway.apiKeyEnv}" | ${lib.getExe config.programs.codex.package} login --with-api-key
-          )
-          mv "$env_tmp" "${envFile}"
-          mv "$tea_tmp" "${teaConfig}"
-          echo "op-env: refreshed"
-        '';
-      };
-    in
-    {
-      # 模板只写 op:// 引用；真实密钥由 op-env-refresh 落到本机 0600 文件。
-      xdg.configFile = {
-        "op-env/env.tpl".text = ''
-          ${aiCatalog.gateway.apiKeyEnv}="{{ op://Developer/AI Gateway API/credential }}"
-
-          EXA_API_KEY="{{ op://Developer/Exa API/credential }}"
-          CONTEXT7_API_KEY="{{ op://Developer/Context7 API/credential }}"
-
-          # GitHub API 必须用 token；SSH key 仅负责 git transport。
-          GH_TOKEN="{{ op://Developer/GitHub CLI Token/credential }}"
-        '';
-
-        "op-env/tea.yml.tpl".text = ''
-          logins:
-            - name: furtherverse
-              url: https://git.furtherverse.com
-              token: "{{ op://Developer/Gitea CLI Token/credential }}"
-              default: true
-              ssh_host: git.furtherverse.net
-              version_check: true
-              user: imbytecat
-        '';
-      };
-
-      home.packages = [ opEnvRefresh ];
-
       home.sessionPath = [
         "$HOME/go/bin"
         "$HOME/.bun/bin"
@@ -118,14 +45,9 @@ in
           # 也拿不到 zoxide 接管的 cd（目标不存在时会跳去历史目录，`cd 不存在的目录 && rm -rf …` 会删错地方）。
           (lib.mkOrder 0 "[[ -o interactive ]] || return")
           ''
-            _op_env_load() { [[ -f "${envFile}" ]] && { set -a; source "${envFile}"; set +a; } }
-            _op_env_load
-            # 包一层，让当前 shell 也拿到新值；token 来自 local.zsh，只在这次调用里导出。
-            op-env-refresh() { OP_SERVICE_ACCOUNT_TOKEN=$OP_SERVICE_ACCOUNT_TOKEN command op-env-refresh && _op_env_load; }
-
             [[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"
-            # service account token 能读整个 vault：去掉导出标记，agent 等子进程不继承（omp 会把环境写进 daemon spec）。
-            [[ -v OP_SERVICE_ACCOUNT_TOKEN ]] && typeset +x OP_SERVICE_ACCOUNT_TOKEN
+            # 迁移期间旧 local.zsh 仍可能 export 这个 token，避免 agent 子进程继承。
+            unset OP_SERVICE_ACCOUNT_TOKEN
           ''
         ];
       };

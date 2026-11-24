@@ -18,6 +18,46 @@ _guard host: (_valid host)
     fi
 
 
+# 只在首次激活时安装同一 SSH 身份派生的解密密钥，SSH 登录私钥留在调用端。
+_agent_key host remote="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case {{ quote(host) }} in awesome-macbook-air|awesome-pc|agent-server) ;; *) exit 0 ;; esac
+    remote={{ quote(remote) }}
+    if [[ -n "$remote" ]]; then
+      run=(ssh -T -o StrictHostKeyChecking=ask "root@$remote")
+    else
+      run=(sudo)
+    fi
+    actual=$("${run[@]}" hostname -s)
+    [[ "$actual" == {{ quote(host) }} ]] || { echo "refuse: hostname=$actual != {{host}}" >&2; exit 1; }
+    key=/var/lib/sops-nix/agents-key.txt
+    if "${run[@]}" test -s "$key"; then exit 0; fi
+    # 在发送任何秘密前检查调用端的私钥与密文匹配。
+    identity=$(nix develop -c bash -ec 'sops decrypt secrets/agents.yaml >/dev/null; exec "$SOPS_AGE_KEY_CMD"')
+    install_key='set -eu
+      umask 077
+      dir=/var/lib/sops-nix
+      mkdir -p "$dir"
+      tmp=$(mktemp "$dir/.agents-key.XXXXXX")
+      trap "rm -f -- $tmp" EXIT
+      IFS= read -r identity
+      case "$identity" in AGE-SECRET-KEY-1*) ;; *) exit 1 ;; esac
+      echo "$identity" > "$tmp"
+      ln "$tmp" "$dir/agents-key.txt" || cmp -s "$tmp" "$dir/agents-key.txt"'
+    if [[ -n "$remote" ]]; then
+      printf '%s\n' "$identity" | ssh -T -o StrictHostKeyChecking=yes "root@$remote" "$install_key"
+    else
+      printf '%s\n' "$identity" | sudo sh -c "$install_key"
+    fi
+
+[doc('用本机 SSH 私钥编辑 agent 密钥，保存后部署到需要更新的主机')]
+[group('nix')]
+secrets:
+    # SOPS 用 200 表示关闭编辑器且内容没有变化。
+    nix develop -c sops edit secrets/agents.yaml || { rc=$?; [ "$rc" -eq 200 ] || exit "$rc"; }
+
+
 [doc('构建 {{host}} 配置（不激活，产 result/）')]
 [macos]
 [group('build')]
@@ -33,19 +73,19 @@ build host: (_valid host)
 [doc('用 {{host}} 配置激活本机（hostname 不匹配会拒绝）')]
 [macos]
 [group('build')]
-switch host: (_guard host)
+switch host: (_guard host) (_agent_key host)
     sudo darwin-rebuild switch --flake .#{{ host }}
 
 [doc('用 {{host}} 配置激活本机（hostname 不匹配会拒绝）')]
 [linux]
 [group('build')]
-switch host: (_guard host)
+switch host: (_guard host) (_agent_key host)
     sudo nixos-rebuild switch --flake .#{{ host }}
 
 [doc('用 {{host}} 配置注册下次启动 generation，不激活（hostname 不匹配会拒绝）')]
 [linux]
 [group('build')]
-boot host: (_guard host)
+boot host: (_guard host) (_agent_key host)
     sudo nixos-rebuild boot --flake .#{{ host }}
 
 [doc('回滚到上一个 generation（NixOS 本机）')]
@@ -148,7 +188,7 @@ install host remote: (_valid host) (_valid_remote remote)
 [doc('远程更新（同架构，本机构建后 SCP 推送）')]
 [linux]
 [group('remote')]
-deploy host remote: (_valid host) (_valid_remote remote)
+deploy host remote: (_valid host) (_valid_remote remote) (_agent_key host remote)
     nixos-rebuild switch \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
@@ -158,7 +198,7 @@ deploy host remote: (_valid host) (_valid_remote remote)
 [doc('远程更新（同架构，仅注册下次启动 generation）')]
 [linux]
 [group('remote')]
-deploy-boot host remote: (_valid host) (_valid_remote remote)
+deploy-boot host remote: (_valid host) (_valid_remote remote) (_agent_key host remote)
     nixos-rebuild boot \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
@@ -169,7 +209,7 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
 [doc('远程更新（跨架构，目标机自己 build）')]
 [macos]
 [group('remote')]
-deploy host remote: (_valid host) (_valid_remote remote)
+deploy host remote: (_valid host) (_valid_remote remote) (_agent_key host remote)
     nix run nixpkgs#nixos-rebuild -- switch \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \
@@ -181,7 +221,7 @@ deploy host remote: (_valid host) (_valid_remote remote)
 [doc('远程更新（跨架构，仅注册下次启动 generation）')]
 [macos]
 [group('remote')]
-deploy-boot host remote: (_valid host) (_valid_remote remote)
+deploy-boot host remote: (_valid host) (_valid_remote remote) (_agent_key host remote)
     nix run nixpkgs#nixos-rebuild -- boot \
       --flake ".#{{ host }}" \
       --target-host "root@{{ remote }}" \

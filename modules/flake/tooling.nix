@@ -10,9 +10,14 @@
       formatter = treefmt.config.build.wrapper;
 
       devShells.default = pkgs.mkShell {
+        SOPS_AGE_KEY_CMD = pkgs.writeShellScript "sops-ssh-identity" ''
+          exec ${pkgs.ssh-to-age}/bin/ssh-to-age -private-key -i "$HOME/.ssh/id_ed25519"
+        '';
         packages = [
           pkgs.actionlint
           pkgs.just
+          pkgs.sops
+          pkgs.ssh-to-age
           pkgs.nixd
           # .vscode 里 nixd 格式化调用裸 nixfmt；取 treefmt 的同一份，保存结果与 nix fmt 一致。
           treefmt.config.programs.nixfmt.package

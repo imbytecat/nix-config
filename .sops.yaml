@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: '^secrets/agents\.yaml$'
+    age: age1w74wqpmum6xa3mk5p7ya620e8mhn9afdyf30gh3fk44javxsmvssm4hs64

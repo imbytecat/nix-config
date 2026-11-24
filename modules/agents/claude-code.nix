@@ -27,7 +27,7 @@
         settings = {
           model = "opus";
           effortLevel = aiCatalog.effortFor aiCatalog.models.opus "xhigh";
-          # 密钥只留在 op-env 的网关变量里，不另设 ANTHROPIC_AUTH_TOKEN。
+          # 密钥只留在 网关环境变量里，不另设 ANTHROPIC_AUTH_TOKEN。
           apiKeyHelper = "printf %s \"\$${aiCatalog.gateway.apiKeyEnv}\"";
 
           permissions.defaultMode = "bypassPermissions";

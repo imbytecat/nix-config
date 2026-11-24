@@ -36,10 +36,7 @@ in
       ...
     }:
     {
-      programs.t3code.server = {
-        extraArgs = lib.mkBefore [ "--lan" ];
-        environmentFile = "${config.xdg.cacheHome}/op-env/env";
-      };
+      programs.t3code.server.extraArgs = lib.mkBefore [ "--lan" ];
 
       # 服务占着 ~/.t3，桌面端的本地环境会抢同一把锁（弹 "This T3 home is unavailable" 后退出），只当客户端。
       home.activation.t3codeDesktopClient = lib.hm.dag.entryAfter [ "linkGeneration" ] (

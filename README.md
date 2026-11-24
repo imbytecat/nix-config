@@ -121,12 +121,7 @@ tailscale up
 tailscale serve --bg http://127.0.0.1:3773
 ```
 
-将 `FURTHERVERSE_API_KEY` 写入服务账号的 `~/.config/t3code/env`（dotenv 格式，权限 0600）；使用 OMP 的 Exa 搜索时加入 `EXA_API_KEY`。修改后用该账号同步 Codex 登录凭据，再重启 daemon：
-
-```bash
-sudo -Hu t3code bash -c '. ~/.config/t3code/env && printf "%s" "$FURTHERVERSE_API_KEY" | /etc/profiles/per-user/t3code/bin/codex login --with-api-key'
-systemctl --user --machine=t3code@.host restart t3code
-```
+从 Mac 或 PC 运行 `just deploy agent-server <remote>`。首次部署会配置解密身份，以后随系统部署更新网关和 Exa 凭据。T3 服务启动时同步 Codex 登录；空机仍可先配对，首次部署后模型可用。密钥轮换见下文「Agent 密钥」。
 
 在服务器上生成一次性配对链接，把 `<tailnet>` 替换为 `tailscale serve status` 显示的域名后缀。手机或桌面端连上同一 tailnet，在 **Add environment** 粘贴链接：
 
@@ -174,16 +169,18 @@ zstd -dc /opt/stacks/.dumps/<container>.sql.zst \
 
 RAID1 不是备份；restic 仓库必须位于异地。
 
-## 本地密钥
+## Agent 密钥
 
-在 `~/.config/zsh/local.zsh` 设置 1Password Service Account token：
+Mac、PC 和 agent-server 共用 `secrets/agents.yaml` 的一个 SOPS 接收者，由日常登录的 Ed25519 私钥派生。Mac 或 PC 上有对应的 `~/.ssh/id_ed25519` 就能编辑。日常机使用 `agents.env`、`daily.env` 和 Tea 配置，服务器只给 `t3code` 提供 `agents.env`。两个 env 块保持 shell 和 systemd 均可读取的 dotenv 格式。
 
-```zsh
-export OP_SERVICE_ACCOUNT_TOKEN="your-service-account-token"
+```sh
+just secrets                         # 编辑并保存密文
+just switch awesome-macbook-air      # 在 Mac 上激活；PC 上换成 awesome-pc
+just deploy agent-server <remote>    # 从 Mac 或 PC 更新 NixOS 服务器
 ```
 
-然后运行 `op-env-refresh`，刷新运行时密钥并同步 Codex 的登录凭据。Codex 使用内置 `openai` provider，API 地址由 Nix 指向 Furtherverse。
+将密文提交到 Git 以便另一台开发机取得更新。新终端会读取新值，已打开的交互 shell 可运行 `exec zsh`。更新密文后，部署会重启 T3 并同步 Codex 凭据。服务重启可能中断正在运行的 agent 会话。
 
-```bash
-op-env-refresh
-```
+首次 `switch`、`boot` 或 `deploy` 会从调用端的 SSH 私钥派生 age 解密身份，写入目标机的 `/var/lib/sops-nix/agents-key.txt`（root，0600）。远程首次登记会核对 SSH 主机身份和主机名。重装后用同一把私钥重新部署即可。拥有任一目标机的 root 权限即可解密整份密文；请备份原始 SSH 私钥。NixOS 首装后先运行一次 `just deploy`，安装器不携带解密身份。
+
+从 1Password 迁移时，首次部署验证成功后可从 `~/.config/zsh/local.zsh` 删除 `OP_SERVICE_ACCOUNT_TOKEN` 并撤销旧 service account。迁移保留原来的 op-env 缓存和服务器手写 env，旧 generation 回滚时仍可读取。

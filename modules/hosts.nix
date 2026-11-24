@@ -69,6 +69,7 @@ in
 
   flake.nixosConfigurations = {
     agent-server = server "agent-server" [
+      aspects.nixos.agent-server-secrets
       aspects.nixos.grub-raid
       aspects.nixos.home-manager
       { home-manager.users.t3code.imports = [ aspects.homeManager.agent ]; }
