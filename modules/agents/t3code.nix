@@ -70,7 +70,6 @@ in
             commandArgs = [ "acp" ];
           };
         };
-        # 不登录 T3 Connect：桌面端与手机都用 `t3 pair` 配对后直连，配对 token 是唯一门槛。
         server = {
           enable = true;
           extraArgs = [

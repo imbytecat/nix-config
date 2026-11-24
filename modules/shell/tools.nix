@@ -1,4 +1,10 @@
+let
+  systemTools = { pkgs, ... }: { environment.systemPackages = [ pkgs.cloudflared ]; };
+in
 {
+  aspects.darwin.daily = systemTools;
+  aspects.nixos.daily = systemTools;
+
   aspects.homeManager.daily =
     { config, pkgs, ... }:
 
