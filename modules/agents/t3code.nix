@@ -17,16 +17,46 @@ let
     };
 in
 {
-  # 桌面端在 Settings → Sharing & access 开 Network access 后监听全部地址（默认 3773），NixOS 只在 tailscale0 放行。
-  aspects.nixos.daily.networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
+  # --lan 监听全部地址：NixOS 防火墙只在 tailscale0 放行；用户服务开 linger，重启后不登录也起来。
+  aspects.nixos.daily =
+    { username, ... }:
+    {
+      networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
+      users.users.${username}.linger = true;
+    };
 
   aspects.nixos.desktop = desktop;
   aspects.darwin.desktop = desktop;
 
   aspects.homeManager.daily =
-    { pkgs, ... }:
     {
-      # 不开 server：桌面端要独占 ~/.t3 起自己的服务器，后台服务占着时它报错退出。
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      # 遥测默认开，服务与交互 shell 里的 `t3` CLI 都要关。
+      telemetryOff.T3CODE_TELEMETRY_ENABLED = "false";
+      # 服务不经 login shell，补上终端里的 PATH，T3 与它起的 agent 才找得到 omp、codex、git。
+      serviceEnv = telemetryOff // {
+        PATH = lib.concatStringsSep ":" (
+          map (lib.replaceStrings [ "$HOME" ] [ config.home.homeDirectory ]) config.home.sessionPath
+          ++ [
+            "${config.home.profileDirectory}/bin"
+            "/run/wrappers/bin"
+            "/run/current-system/sw/bin"
+            "/nix/var/nix/profiles/default/bin"
+            "/usr/local/bin"
+            "/usr/bin"
+            "/bin"
+            "/usr/sbin"
+            "/sbin"
+          ]
+        );
+      };
+    in
+    {
       programs.t3code = {
         enable = true;
         package = t3codeFor pkgs;
@@ -40,9 +70,42 @@ in
             commandArgs = [ "acp" ];
           };
         };
+        # 不登录 T3 Connect：桌面端与手机都用 `t3 pair` 配对后直连，配对 token 是唯一门槛。
+        server = {
+          enable = true;
+          extraArgs = [
+            "--lan"
+            "--port"
+            (toString port)
+            config.home.homeDirectory
+          ];
+          environmentFile = "${config.xdg.cacheHome}/op-env/env";
+        };
       };
 
-      # 免费的开关就关上：它同时停掉产品事件与 relay trace，桌面端经 `zsh -ilc` 也读到它。
-      home.sessionVariables.T3CODE_TELEMETRY_ENABLED = "false";
+      home.sessionVariables = telemetryOff;
+
+      # 服务占着 ~/.t3，桌面端的本地环境会抢同一把锁（弹 "This T3 home is unavailable" 后退出），只当客户端。
+      home.activation.t3codeDesktopClient = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+        lib.hm.generators.mkImpureConfigMerger {
+          inherit pkgs;
+          format = "json";
+          empty = "{}";
+          jqOperation = "$dynamic * $static";
+          path = "${config.home.homeDirectory}/.t3/userdata/desktop-settings.json";
+          staticSettings = (pkgs.formats.json { }).generate "t3code-desktop-settings.json" {
+            localEnvironmentEnabled = false;
+          };
+        }
+      );
+
+      launchd.agents.t3code.config = {
+        EnvironmentVariables = serviceEnv;
+        # 模块默认 Background 会被 macOS 限流；agent 在里面跑，照 `t3 service install` 用 Interactive。
+        ProcessType = lib.mkForce "Interactive";
+      };
+      systemd.user.services.t3code.Service.Environment = lib.mapAttrsToList (
+        name: value: "${name}=${value}"
+      ) serviceEnv;
     };
 }

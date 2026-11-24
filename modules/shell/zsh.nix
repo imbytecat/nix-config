@@ -20,7 +20,7 @@ in
       envTpl = "${config.xdg.configHome}/op-env/env.tpl";
       teaTpl = "${config.xdg.configHome}/op-env/tea.yml.tpl";
       envDir = "${config.xdg.cacheHome}/op-env";
-      # zsh 用 set -a 载入；Paseo 的 systemd 服务当 EnvironmentFile 读。
+      # zsh 用 set -a 载入；T3、Paseo 服务当 EnvironmentFile 读。
       envFile = "${envDir}/env";
       teaDir = "${config.xdg.configHome}/tea";
       teaConfig = "${teaDir}/config.yml";
