@@ -1,12 +1,25 @@
 {
   aspects.darwin.base =
-    { inputs, username, ... }:
+    {
+      inputs,
+      lib,
+      username,
+      ...
+    }:
+    let
+      # nix-homebrew 只从它自己的 flake.lock 读 brew 版本号；brew-src 换成本仓 input 后得从本仓 lock 取。
+      brewVersion = (lib.importJSON ../../flake.lock).nodes.brew-src.original.ref;
+    in
     {
       imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
       # Brew/taps 由 flake pin；自动接管已有安装，禁止命令行新增 tap。
       nix-homebrew = {
         enable = true;
+        package = inputs.brew-src // {
+          name = "brew-${brewVersion}";
+          version = brewVersion;
+        };
         user = username;
         enableRosetta = true;
         autoMigrate = true;

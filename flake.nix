@@ -77,7 +77,17 @@
     };
 
     # taps 由 flake pin；非官方 tap 在 Darwin 模块标记 trusted。
-    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    nix-homebrew = {
+      url = "github:zhaofengli/nix-homebrew";
+      inputs.brew-src.follows = "brew-src";
+    };
+
+    # homebrew-core 跟上游 master，新的 bottle DSL 只有最新 release 的 brew 认；nix-homebrew 自带的 brew-src 跟得慢。
+    # `just update` 先把 tag 改成最新 release 再更新 lock。
+    brew-src = {
+      url = "github:Homebrew/brew/7.0.16";
+      flake = false;
+    };
 
     homebrew-core = {
       url = "github:homebrew/homebrew-core";

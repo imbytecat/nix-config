@@ -65,6 +65,7 @@
 ## Homebrew / Darwin
 
 - Homebrew itself is declarative via `nix-homebrew` with `autoMigrate = true`, `mutableTaps = false`; bare machines should not run Homebrew install scripts manually.
+- Brew itself is the `brew-src` flake input (a Homebrew/brew release tag), wired into nix-homebrew with `follows`. homebrew-core tracks master and adopts new bottle DSL as soon as a brew release supports it, while nix-homebrew's own pin lags; a stale brew fails `Homebrew bundle` with `undefined method 'manifest_sha256' for an instance of BottleSpecification`. So `just update` (also run by the weekly workflow, which commits `flake.nix` with the lock) first moves the tag to the latest release. nix-homebrew reads the brew version from its own `flake.lock`, so `modules/darwin/homebrew.nix` sets `nix-homebrew.package` with the version from this repo's lock.
 - `homebrew.onActivation.cleanup = "zap"` uninstalls undeclared brews/casks including their prefs — removing a cask from the list is destructive on next switch. Darwin casks/MAS live in `modules/desktop/apps.nix` and in the feature files that own an app; taps and brews stay in `modules/darwin/homebrew.nix`; host-only casks stay under `hosts/<host>/`.
 - Brew 6 requires non-official taps to be trusted. Keep `goooler/repo` and `imbytecat/tap` as `{ name = ...; trusted = true; }` and list all nix-homebrew-managed taps.
 - Do not use removed Homebrew quarantine knobs (`caskArgs.no_quarantine`) or add automatic `xattr` bypass scripts; Gatekeeper exceptions are manual.

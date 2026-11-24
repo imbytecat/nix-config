@@ -191,9 +191,16 @@ deploy-boot host remote: (_valid host) (_valid_remote remote)
       --no-reexec
 
 
-[doc('更新 flake 输入')]
+[doc('更新 flake 输入（brew-src 先跟到 Homebrew/brew 最新 release）')]
 [group('nix')]
 update:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # sed 读完整个输出，不像 head 提前关管道让 git 吃 SIGPIPE。
+    tag="$(git ls-remote --tags --refs --sort=-version:refname https://github.com/Homebrew/brew '[0-9]*' | sed -n '1s|.*refs/tags/||p')"
+    : "${tag:?no Homebrew/brew release tag}"
+    sed -i.bak -E "s|github:Homebrew/brew/[0-9.]+|github:Homebrew/brew/${tag}|" flake.nix
+    rm flake.nix.bak
     nix flake update
 
 [doc('更新单个 flake 输入')]
