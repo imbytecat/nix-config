@@ -1,45 +1,53 @@
-# OMP models.yml 与 DSH llm-pi-ai 共用 catalog→gateway provider 投影，单一化于此；
-# OMP 整体写入，DSH 只取 api/baseUrl/apiKey。
+# 原生 provider 继承客户端自带的模型和协议；只有网关 ID 不同的模型需要额外声明。
 { aiCatalog, lib }:
-
 let
-  projectModel = m: {
-    inherit (m) id name reasoning;
-    input = builtins.filter (
-      x:
-      builtins.elem x [
-        "text"
-        "image"
-      ]
-    ) m.input;
-    contextWindow = m.context;
-    maxTokens = m.maxOutput;
+  apis = {
+    anthropic = "anthropic-messages";
+    openai = "openai-responses";
+    deepseek = "openai-completions";
+    moonshotai = "openai-completions";
+    xai = "openai-responses";
   };
 
-  # path 是各 wire API 的版本前缀，挂在 gateway endpoint 后。
-  apis = {
-    anthropic = {
-      api = "anthropic-messages";
-      path = "";
-    };
-    openai = {
-      api = "openai-responses";
-      path = "/v1";
-    };
-    furtherverse = {
-      api = "openai-completions";
-      path = "/v1";
-    };
-  };
+  routes = lib.mapAttrs (_: api: {
+    inherit api;
+    baseUrl = aiCatalog.gateway.endpoint + lib.optionalString (api != "anthropic-messages") "/v1";
+  }) apis;
 in
 {
-  # apiKey → { <family> = { api, baseUrl, models, apiKey }; }
+  inherit routes;
+
   mkProviders =
-    apiKey:
-    builtins.mapAttrs (family: spec: {
-      inherit (spec) api;
-      inherit apiKey;
-      baseUrl = "${aiCatalog.gateway.endpoint}${spec.path}";
-      models = map projectModel (lib.attrValues aiCatalog.providers.${family});
-    }) apis;
+    {
+      apiKey,
+      aliasFields ? _: { },
+    }:
+    lib.mapAttrs (
+      provider: models:
+      let
+        route = routes.${provider};
+        aliases = builtins.filter (m: m.id != m.nativeId) (lib.attrValues models);
+        alias =
+          m:
+          {
+            inherit (route) api;
+            inherit (m) id name reasoning;
+            input = builtins.filter (
+              type:
+              builtins.elem type [
+                "text"
+                "image"
+              ]
+            ) m.input;
+            contextWindow = m.context;
+            maxTokens = m.maxOutput;
+          }
+          // aliasFields m;
+      in
+      {
+        inherit apiKey;
+        inherit (route) baseUrl;
+      }
+      // lib.optionalAttrs (aliases != [ ]) { models = map alias aliases; }
+    ) aiCatalog.providers;
 }

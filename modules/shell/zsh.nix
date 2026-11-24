@@ -43,6 +43,13 @@ in
           # 两份都注入成功才替换；任一失败，旧文件保持不动。
           op inject --in-file "${envTpl}" >"$env_tmp"
           op inject --in-file "${teaTpl}" >"$tea_tmp"
+          # TUI 和 app-server 的内置 openai provider 从 Codex 登录凭据读取网关密钥。
+          (
+            unset OP_SERVICE_ACCOUNT_TOKEN
+            # shellcheck disable=SC1090
+            source "$env_tmp"
+            printf '%s' "$${aiCatalog.gateway.apiKeyEnv}" | ${lib.getExe config.programs.codex.package} login --with-api-key
+          )
           mv "$env_tmp" "${envFile}"
           mv "$tea_tmp" "${teaConfig}"
           echo "op-env: refreshed"
@@ -56,7 +63,6 @@ in
           ${aiCatalog.gateway.apiKeyEnv}="{{ op://Developer/AI Gateway API/credential }}"
 
           EXA_API_KEY="{{ op://Developer/Exa API/credential }}"
-          DEEPSEEK_API_KEY="{{ op://Developer/DeepSeek API/credential }}"
           CONTEXT7_API_KEY="{{ op://Developer/Context7 API/credential }}"
 
           # GitHub API 必须用 token；SSH key 仅负责 git transport。

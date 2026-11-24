@@ -1,11 +1,19 @@
 {
   aspects.homeManager.agent =
-    { inputs, pkgs, ... }:
+    {
+      inputs,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       agentPackages = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
     in
     {
-      _module.args.aiCatalog = import ./_ai-catalog.nix;
+      _module.args.aiCatalog = import ./_ai-catalog.nix {
+        inherit lib;
+        modelsDev = inputs.models-dev;
+      };
 
       # 直接使用上游 packages，保留 cache.numtide.com 命中。
       home.packages = [

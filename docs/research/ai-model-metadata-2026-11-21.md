@@ -1,5 +1,7 @@
 # AI 模型元数据：去哪查、catalog 记多少（2026-11-21）
 
+> 2026-11-24 更新：Pi 对自定义模型会把缺少显式映射的 `max` 降到 `high`。Pi/OMP 现在用原生 provider 名接 Furtherverse，沿用内置模型元数据。DeepSeek 的原生 ID `deepseek-flash` 在网关返回 `model_not_found`，该网关别名与 DSH 才从 catalog 生成推理能力；catalog 使用 `flake.lock` 固定的 models.dev TOML，并覆盖 DeepSeek 在网关上无法关闭思考的差异。下文的选型结论保留调查当日的判断。
+
 ## 结论
 
 - **模型本身的事实（上下文、输出上限、模态、推理档位、能否关思考、reasoning 字段名、价格）首选 models.dev。** 仓库 `github:anomalyco/models.dev`（默认分支 `dev`）每个模型一份 `providers/<provider>/models/<id>.toml`（`schema = 2`），文件头注释写明出处和实测日期；聚合 JSON 在 `https://models.dev/api.json`（6.8 MB，324 个 provider）。`_ai-catalog.nix` 的 11 个模型它全都有。

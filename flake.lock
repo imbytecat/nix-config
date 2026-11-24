@@ -319,6 +319,23 @@
         "type": "github"
       }
     },
+    "models-dev": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795508813,
+        "narHash": "sha256-REMx1xaOeX4YPMSiV1Iv2wXzDxA0M98rB8xUj7fR5ME=",
+        "owner": "anomalyco",
+        "repo": "models.dev",
+        "rev": "8eb615a0f56d912a991e3b5bf2181c2994d02b6c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "ref": "dev",
+        "repo": "models.dev",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -568,6 +585,7 @@
         "homebrew-imbytecat": "homebrew-imbytecat",
         "llm-agents": "llm-agents",
         "mattpocock-skills": "mattpocock-skills",
+        "models-dev": "models-dev",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nixos-anywhere": "nixos-anywhere",

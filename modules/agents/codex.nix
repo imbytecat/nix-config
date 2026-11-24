@@ -28,12 +28,14 @@
         package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
         settings = {
-          model_provider = "furtherverse";
+          model_provider = "openai";
+          openai_base_url = "${aiCatalog.gateway.endpoint}/v1";
+          cli_auth_credentials_store = "file";
           model = aiCatalog.models.sol.id;
           forced_login_method = "api";
           check_for_update_on_startup = false;
 
-          model_reasoning_effort = "xhigh";
+          model_reasoning_effort = aiCatalog.effortFor aiCatalog.models.sol "xhigh";
           model_reasoning_summary = "auto";
 
           approval_policy = "never";
@@ -46,12 +48,6 @@
           analytics.enabled = false;
           feedback.enabled = false;
 
-          model_providers.furtherverse = {
-            name = "Furtherverse";
-            base_url = "${aiCatalog.gateway.endpoint}/v1";
-            env_key = aiCatalog.gateway.apiKeyEnv;
-            wire_api = "responses";
-          };
         };
       };
 

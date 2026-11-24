@@ -121,9 +121,10 @@ tailscale up
 tailscale serve --bg http://127.0.0.1:3773
 ```
 
-将 `FURTHERVERSE_API_KEY` 写入服务账号的 `~/.config/t3code/env`（dotenv 格式，权限 0600）；使用 DSH 搜索或 OMP 的 Exa 搜索时，分别加入 `DEEPSEEK_API_KEY` 或 `EXA_API_KEY`。修改后重启 daemon：
+将 `FURTHERVERSE_API_KEY` 写入服务账号的 `~/.config/t3code/env`（dotenv 格式，权限 0600）；使用 OMP 的 Exa 搜索时加入 `EXA_API_KEY`。修改后用该账号同步 Codex 登录凭据，再重启 daemon：
 
 ```bash
+sudo -Hu t3code bash -c '. ~/.config/t3code/env && printf "%s" "$FURTHERVERSE_API_KEY" | /etc/profiles/per-user/t3code/bin/codex login --with-api-key'
 systemctl --user --machine=t3code@.host restart t3code
 ```
 
@@ -181,7 +182,7 @@ RAID1 不是备份；restic 仓库必须位于异地。
 export OP_SERVICE_ACCOUNT_TOKEN="your-service-account-token"
 ```
 
-然后手动刷新本地环境变量缓存：
+然后运行 `op-env-refresh`，刷新运行时密钥并同步 Codex 的登录凭据。Codex 使用内置 `openai` provider，API 地址由 Nix 指向 Furtherverse。
 
 ```bash
 op-env-refresh

@@ -13,26 +13,31 @@
 
       gatewayProviders = import ./_gateway-providers.nix { inherit aiCatalog lib; };
 
-      # Pi 的 apiKey 支持 $NAME 环境变量插值，密钥只留在 op-env。
-      providers = gatewayProviders.mkProviders ("$" + aiCatalog.gateway.apiKeyEnv);
-
-      # 与内置 provider 同名会改写内置那份；加前缀，/login 的官方 provider 保持原样。
-      piModels.providers = {
-        furtherverse-anthropic = providers.anthropic;
-        furtherverse-openai = providers.openai;
-        furtherverse = providers.furtherverse // {
-          compat.supportsDeveloperRole = false;
-          # 自定义模型要显式映射 max，否则 Pi 会降到 high。
-          models = map (
-            model: model // lib.optionalAttrs (model.id == deepseek.id) { thinkingLevelMap.max = "max"; }
-          ) providers.furtherverse.models;
+      # Pi 会给省略的常规档位补默认值；显式 null 才会从可选档位中排除。
+      piEfforts = [
+        "minimal"
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+        "max"
+      ];
+      piModels.providers = gatewayProviders.mkProviders {
+        apiKey = "$" + aiCatalog.gateway.apiKeyEnv;
+        aliasFields = model: {
+          thinkingLevelMap =
+            lib.genAttrs piEfforts (level: if builtins.elem level model.efforts then level else null)
+            // {
+              off = if model.canDisableThinking then "none" else null;
+            };
         };
       };
 
       piSettings = {
         defaultProvider = deepseek.provider;
+        enabledModels = map aiCatalog.ref (builtins.attrNames aiCatalog.models);
         defaultModel = deepseek.id;
-        defaultThinkingLevel = "max";
+        defaultThinkingLevel = aiCatalog.effortFor deepseek "max";
         enableInstallTelemetry = false;
       };
     in
