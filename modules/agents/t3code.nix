@@ -17,8 +17,20 @@ let
     };
 in
 {
-  # 用户服务开 linger，重启后不登录也起来。
-  aspects.nixos.workstation = { username, ... }: { users.users.${username}.linger = true; };
+  aspects.nixos.workstation =
+    { username, ... }:
+    {
+      # 用户服务开 linger，重启后不登录也起来。
+      users.users.${username}.linger = true;
+
+      # 用户服务读不到 system 级 restartUnits；已登录的会话在解密成功后重新载入 dotenv。
+      systemd.services.sops-install-secrets.postStart = ''
+        uid=$(id -u ${username})
+        if [ -S "/run/user/$uid/bus" ] && systemctl --user --machine=${username}@.host cat t3code.service >/dev/null 2>&1; then
+          systemctl --user --machine=${username}@.host --no-block restart t3code.service
+        fi
+      '';
+    };
 
   aspects.nixos.desktop = {
     imports = [ desktop ];
@@ -54,9 +66,11 @@ in
 
   aspects.homeManager.workstation =
     {
+      aiCatalog,
       config,
       lib,
       pkgs,
+      sessionEnvFile,
       ...
     }:
     let
@@ -79,6 +93,20 @@ in
           ]
         );
       };
+
+      # Codex 的 TUI 和 app-server 都读原生登录文件。密钥经 stdin 传入。
+      login = pkgs.writeShellScript "codex-api-login" ''
+        set -euo pipefail
+        ${pkgs.coreutils}/bin/printenv ${aiCatalog.gateway.apiKeyEnv} | ${lib.getExe config.programs.codex.package} login --with-api-key
+      '';
+      # launchd 没有 EnvironmentFile：先载入会话 env 并登录 Codex，再 exec 服务。
+      launch = pkgs.writeShellScript "t3code-with-secrets" ''
+        set -ea
+        source ${sessionEnvFile}
+        set +a
+        ${login}
+        exec "$@"
+      '';
     in
     {
       programs.t3code = {
@@ -107,12 +135,18 @@ in
       home.sessionVariables = telemetryOff;
 
       launchd.agents.t3code.config = {
+        ProgramArguments = lib.mkBefore [ "${launch}" ];
         EnvironmentVariables = serviceEnv;
         # 模块默认 Background 会被 macOS 限流；agent 在里面跑，照 `t3 service install` 用 Interactive。
         ProcessType = lib.mkForce "Interactive";
       };
-      systemd.user.services.t3code.Service.Environment = lib.mapAttrsToList (
-        name: value: "${name}=${value}"
-      ) serviceEnv;
+      systemd.user.services.t3code = {
+        Unit.ConditionPathExists = sessionEnvFile;
+        Service = {
+          Environment = lib.mapAttrsToList (name: value: "${name}=${value}") serviceEnv;
+          EnvironmentFile = sessionEnvFile;
+          ExecStartPre = "${login}";
+        };
+      };
     };
 }

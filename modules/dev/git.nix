@@ -1,4 +1,17 @@
+let
+  teaConfig =
+    { config, username, ... }:
+    {
+      sops.secrets."tea.yml" = {
+        owner = username;
+        path = "${config.home-manager.users.${username}.xdg.configHome}/tea/config.yml";
+      };
+    };
+in
 {
+  aspects.nixos.workstation = teaConfig;
+  aspects.darwin.workstation = teaConfig;
+
   aspects.homeManager.workstation =
     { pkgs, ... }:
 

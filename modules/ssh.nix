@@ -1,6 +1,17 @@
+let
+  # 私有主机条目（含公网地址）只放在 SOPS 密文里，HM 的 ssh 配置 Include 它。
+  privateHosts =
+    { username, ... }:
+    {
+      sops.secrets.ssh_config.owner = username;
+    };
+in
 {
   aspects.nixos.base.services.openssh.enable = true;
   aspects.darwin.base.services.openssh.enable = true;
+
+  aspects.nixos.workstation = privateHosts;
+  aspects.darwin.workstation = privateHosts;
 
   # 只用密钥登录的 root；服务器与需要 root 部署的工作站在 modules/hosts.nix 组合。
   aspects.nixos.root-ssh =
