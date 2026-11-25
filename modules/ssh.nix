@@ -1,10 +1,8 @@
-{ config, ... }:
 {
   aspects.nixos.base.services.openssh.enable = true;
   aspects.darwin.base.services.openssh.enable = true;
 
-  aspects.nixos.server.imports = [ config.aspects.nixos.root-ssh ];
-
+  # 只用密钥登录的 root；服务器与需要 root 部署的工作站在 modules/hosts.nix 组合。
   aspects.nixos.root-ssh =
     { sshKeys, ... }:
     {

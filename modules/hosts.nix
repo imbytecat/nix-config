@@ -57,6 +57,7 @@ let
       modules = [
         aspects.nixos.base
         aspects.nixos.server
+        aspects.nixos.root-ssh
       ]
       ++ roles
       ++ machine hostname;
