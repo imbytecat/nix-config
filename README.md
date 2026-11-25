@@ -112,7 +112,7 @@ EOF"
 
 ### T3 Code（agent-server）
 
-开发机和服务器共用 Home Manager 的 `agent` 角色，包含 Codex、Claude Code、OMP、Pi、DSH、插件、skills 和 T3 daemon。服务器以 `t3code` 账号运行，家目录是 `/var/lib/t3code`，重启后由 systemd 用户服务自动启动。
+开发机和服务器共用 Home Manager 的 `agent` 角色，包含 Codex、Claude Code、OMP、Pi、DSH、插件、skills、T3 daemon，以及 mise 和 Android 工具等开发工具链。NixOS 的 `agent` 角色为这些机器开启 nix-ld，让 mise 的预编译运行时和无头 Android Emulator 直接运行；带窗口模拟器所需的库只装在桌面机。服务器以 `t3code` 账号运行，家目录是 `/var/lib/t3code`，重启后由 systemd 用户服务自动启动。
 
 首次部署后，以 root 在服务器上启用 tailnet HTTPS。下面的映射会跨重启保留：
 

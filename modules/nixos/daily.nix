@@ -9,8 +9,5 @@
       i18n.extraLocaleSettings.LC_TIME = "zh_CN.UTF-8";
 
       virtualisation.docker.enable = true;
-
-      # VS Code/Cursor Remote 等预编译二进制需要。
-      programs.nix-ld.enable = true;
     };
 }

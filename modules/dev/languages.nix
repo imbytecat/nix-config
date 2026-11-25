@@ -1,5 +1,6 @@
 {
-  aspects.homeManager.daily =
+  # agent 角色：日常用户和 agent-server 的 t3code 都在开发。
+  aspects.homeManager.agent =
     { config, pkgs, ... }:
 
     {
