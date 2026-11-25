@@ -37,7 +37,6 @@ in
       "videofusion"
       "wechatwork"
       "windows-app"
-      "xcodes-app"
     ];
 
     homebrew.masApps = {

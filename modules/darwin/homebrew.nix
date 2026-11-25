@@ -59,10 +59,7 @@
           }
         ];
 
-        brews = [
-          "cocoapods"
-          "mole"
-        ];
+        brews = [ "mole" ];
 
         onActivation = {
           # brew 版本已 pin，禁止运行时更新。
