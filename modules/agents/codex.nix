@@ -52,22 +52,16 @@
 
       # Home Manager 默认把 config.toml 链到只读 store，Codex 无法持久化项目与 hook 信任。
       home.file."${configDir}/config.toml".enable = lib.mkForce false;
-      home.activation.mutableCodexConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        configPath=${lib.escapeShellArg "${codexHome}/config.toml"}
-        ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg codexHome}
-
-        if [ -e "$configPath" ]; then
-          dynamic="$(${pkgs.remarshal}/bin/remarshal --if toml --of json "$configPath")"
-        else
-          dynamic='{}'
-        fi
-        static="$(${pkgs.remarshal}/bin/remarshal --if toml --of json ${lib.escapeShellArg managedConfig})"
-        merged="$(${pkgs.jq}/bin/jq -n '$dynamic * $static' --argjson dynamic "$dynamic" --argjson static "$static")"
-
-        tmp="$configPath.tmp"
-        printf '%s\n' "$merged" | ${pkgs.remarshal}/bin/remarshal --if json --of toml - "$tmp"
-        ${pkgs.coreutils}/bin/mv "$tmp" "$configPath"
-      '';
+      home.activation.mutableCodexConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+        lib.hm.generators.mkImpureConfigMerger {
+          inherit pkgs;
+          format = "toml";
+          empty = "{}";
+          jqOperation = "$dynamic * $static";
+          path = "${codexHome}/config.toml";
+          staticSettings = managedConfig;
+        }
+      );
 
       # Codex 0.146 不把 HM cache symlink 视为已安装，激活后落成可清理实体目录。
       home.activation.materializeCodexPlugins = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
