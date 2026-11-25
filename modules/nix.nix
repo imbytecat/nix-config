@@ -72,5 +72,15 @@ in
   aspects.nixos.workstation = trustUser;
   aspects.darwin.workstation = trustUser;
 
+  aspects.homeManager.workstation =
+    { pkgs, ... }:
+    {
+      home.packages = with pkgs; [
+        just
+        nix-output-monitor
+        nvd
+      ];
+    };
+
   aspects.nixos.server.nix.optimise.automatic = true;
 }

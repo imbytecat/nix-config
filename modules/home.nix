@@ -41,44 +41,9 @@ in
   aspects.nixos.desktop = desktopUser;
   aspects.darwin.desktop = desktopUser;
 
-  aspects.homeManager.workstation =
-    {
-      pkgs,
-      username,
-      ...
-    }:
-    {
-      home = {
-        inherit username;
-        homeDirectory =
-          if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${username}" else "/home/${username}";
-        stateVersion = "26.05";
-      };
-
-      home.packages = with pkgs; [
-        dust
-        jq
-        sd
-        socat
-        wget
-        yq
-
-        ouch
-
-        just
-        nix-output-monitor
-        nvd
-
-        ffmpeg
-        pandoc
-        libredwg # FreeCAD DWG
-
-        trzsz-ssh
-        tsshd
-      ];
-
-      programs.fastfetch.enable = true;
-
-      xdg.enable = true;
-    };
+  # username 与 homeDirectory 由 HM 的 OS 集成从 users.users 推导。
+  aspects.homeManager.workstation = {
+    home.stateVersion = "26.05";
+    xdg.enable = true;
+  };
 }

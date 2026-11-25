@@ -33,9 +33,16 @@ in
       config,
       lib,
       osConfig,
+      pkgs,
       ...
     }:
     {
+      # tssh 的 UDP 模式需要对端也有 tsshd。
+      home.packages = [
+        pkgs.trzsz-ssh
+        pkgs.tsshd
+      ];
+
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;

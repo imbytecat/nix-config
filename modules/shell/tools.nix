@@ -3,6 +3,23 @@
     { config, pkgs, ... }:
 
     {
+      home.packages = with pkgs; [
+        dust
+        jq
+        sd
+        socat
+        wget
+        yq
+
+        ouch
+
+        ffmpeg
+        pandoc
+        libredwg # FreeCAD DWG
+      ];
+
+      programs.fastfetch.enable = true;
+
       programs.fzf = {
         enable = true;
         defaultCommand = "fd --type f --hidden --follow --exclude .git";
