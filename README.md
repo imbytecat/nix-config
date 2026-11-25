@@ -181,6 +181,8 @@ just switch awesome-macbook-air      # 在 Mac 上激活；PC 上换成 awesome-
 just deploy awesome-devbox <remote>    # 从 Mac 或 PC 更新无头工作站
 ```
 
+私有 SSH 主机条目放在同一份密文的 `ssh_config` 字段，运行 `just secrets` 即可增改标准 OpenSSH `Host` 段。工作站激活后，`ssh awesome-devbox` 以 `imbytecat` 通过公网 IPv4 登录。
+
 将密文提交到 Git 以便另一台开发机取得更新。新终端会读取新值，已打开的交互 shell 可运行 `exec zsh`。更新密文后，部署会重启 T3 并同步 Codex 凭据。服务重启可能中断正在运行的 agent 会话。
 
 首次 `switch`、`boot` 或 `deploy` 会从调用端的 SSH 私钥派生 age 解密身份，写入目标机的 `/var/lib/sops-nix/agents-key.txt`（root，0600）。远程首次登记会核对 SSH 主机身份和主机名。重装后用同一把私钥重新部署即可。拥有任一目标机的 root 权限即可解密整份密文；请备份原始 SSH 私钥。NixOS 首装后先运行一次 `just deploy`，安装器不携带解密身份。

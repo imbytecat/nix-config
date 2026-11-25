@@ -20,11 +20,17 @@
     };
 
   aspects.homeManager.workstation =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      osConfig,
+      ...
+    }:
     {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
+        includes = [ osConfig.sops.secrets.ssh_config.path ];
         settings."*" = {
           IdentityFile = "~/.ssh/id_ed25519";
           AddKeysToAgent = "yes";

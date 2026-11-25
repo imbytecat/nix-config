@@ -18,6 +18,7 @@ let
         secrets = {
           "agents.env" = { inherit owner; };
           "workstation.env" = { inherit owner; };
+          ssh_config = { inherit owner; };
           "tea.yml" = {
             inherit owner;
             path = "${config.home-manager.users.${owner}.xdg.configHome}/tea/config.yml";
