@@ -3,8 +3,8 @@
     {
       aiCatalog,
       config,
-      inputs,
       lib,
+      llmAgents,
       pkgs,
       ...
     }:
@@ -25,7 +25,7 @@
     {
       programs.codex = {
         enable = true;
-        package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+        package = llmAgents.codex;
 
         settings = {
           model_provider = "openai";

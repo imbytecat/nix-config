@@ -65,7 +65,7 @@ in
     ".omp/agent/commands/caveman.md".source = "${inputs.caveman}/commands/caveman.md";
   };
 
-  claude = inputs.caveman;
+  claude.plugin = inputs.caveman;
 
   # cavecrew 依赖 Claude subagent，caveman-stats 依赖 session hook；OMP/Codex 均无法运行。
   skills = removeAttrs skills [

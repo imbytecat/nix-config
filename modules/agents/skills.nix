@@ -1,16 +1,13 @@
 {
   aspects.homeManager.workstation =
     {
+      agentBundles,
       inputs,
       lib,
-      pkgs,
       ...
     }:
 
     let
-      bundles = import ./_bundles { inherit inputs lib pkgs; };
-      bundleSkills = lib.foldl' (skills: bundle: skills // (bundle.skills or { })) { } bundles;
-
       skillsIn =
         dir:
         lib.mapAttrs (name: _: "${dir}/${name}") (
@@ -18,7 +15,7 @@
         );
 
       managedSkills =
-        bundleSkills
+        agentBundles.skills
         // skillsIn "${inputs.agent-browser}/skills"
         # mattpocock skills 多一层分类，故逐类扁平链接；只接官方 engineering/productivity 清单。
         # 隐式调用开关由各 provider 原生策略处理。

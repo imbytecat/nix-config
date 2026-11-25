@@ -11,5 +11,10 @@ in
 
   omp.extensions = [ "${inputs.ponytail}" ];
 
-  claude = inputs.ponytail;
+  claude = {
+    plugin = inputs.ponytail;
+    # SessionStart hook 见 settings.json 没有 statusLine 就催一次，而 HM 的 settings 是只读
+    # symlink，加不进去；预置它的一次性标记。
+    files.".claude/.ponytail-statusline-nudged".text = "";
+  };
 }

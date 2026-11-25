@@ -1,27 +1,25 @@
 {
   aspects.homeManager.workstation =
     {
+      agentBundles,
       aiCatalog,
-      inputs,
       lib,
-      pkgs,
+      llmAgents,
       ...
     }:
     let
-      bundles = import ./_bundles { inherit inputs lib pkgs; };
-      claudePlugins = map (bundle: bundle.claude) (builtins.filter (bundle: bundle ? claude) bundles);
-
       # 网关不会替 Claude Code 确认扩展上下文；catalog 标为 1M 的模型加 [1m] 选择标记。
       modelId = model: if model.context == 1000000 then "${model.id}[1m]" else model.id;
     in
     {
       programs.claude-code = {
         enable = true;
-        package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+        package = llmAgents.claude-code;
         plugins = lib.listToAttrs (
           map (
-            plugin: lib.nameValuePair (lib.importJSON "${plugin}/.claude-plugin/plugin.json").name plugin
-          ) claudePlugins
+            { plugin, ... }:
+            lib.nameValuePair (lib.importJSON "${plugin}/.claude-plugin/plugin.json").name plugin
+          ) agentBundles.claude
         );
 
         settings = {
@@ -60,8 +58,6 @@
         };
       };
 
-      # ponytail 的 SessionStart hook 见 settings.json 没有 statusLine 就催一次，而这份 settings 是只读
-      # symlink，加不进去；预置它的一次性标记。
-      home.file.".claude/.ponytail-statusline-nudged".text = "";
+      home.file = lib.mergeAttrsList (map (bundle: bundle.files or { }) agentBundles.claude);
     };
 }

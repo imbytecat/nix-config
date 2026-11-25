@@ -2,16 +2,15 @@
   aspects.homeManager.workstation =
     {
       aiCatalog,
-      inputs,
+      gatewayProviders,
       lib,
+      llmAgents,
       pkgs,
       ...
     }:
     let
       jsonFormat = pkgs.formats.json { };
       deepseek = aiCatalog.models.deepseek;
-
-      gatewayProviders = import ./_gateway-providers.nix { inherit aiCatalog lib; };
 
       # Pi 会给省略的常规档位补默认值；显式 null 才会从可选档位中排除。
       piEfforts = [
@@ -42,7 +41,7 @@
       };
     in
     {
-      home.packages = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi ];
+      home.packages = [ llmAgents.pi ];
 
       # 版本只随 Nix input 更新，启动时不查上游。
       home.sessionVariables.PI_SKIP_VERSION_CHECK = "1";

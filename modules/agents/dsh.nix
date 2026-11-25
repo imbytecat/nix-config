@@ -2,9 +2,10 @@
   aspects.homeManager.workstation =
     {
       aiCatalog,
-      pkgs,
+      gatewayProviders,
       lib,
-      inputs,
+      llmAgents,
+      pkgs,
       ...
     }:
 
@@ -12,7 +13,6 @@
       yamlFormat = pkgs.formats.yaml { };
 
       model = aiCatalog.models.deepseek;
-      gatewayProviders = import ./_gateway-providers.nix { inherit aiCatalog lib; };
       gateway = gatewayProviders.routes.${model.provider};
 
       # home 级 patch 叠在每个 profile 之后；按 id 整行替换 config，
@@ -98,7 +98,7 @@
       ];
     in
     {
-      home.packages = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.dsh ];
+      home.packages = [ llmAgents.dsh ];
 
       home.file.".dsh/cordis.patch.yml".source = yamlFormat.generate "dsh-cordis.patch.yml" dshPatch;
     };

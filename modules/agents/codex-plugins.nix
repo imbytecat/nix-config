@@ -1,8 +1,8 @@
 {
   aspects.homeManager.workstation =
     {
+      agentBundles,
       config,
-      inputs,
       lib,
       pkgs,
       ...
@@ -14,8 +14,7 @@
           "${config.xdg.configHome}/codex"
         else
           "${config.home.homeDirectory}/.codex";
-      bundles = import ./_bundles { inherit inputs lib pkgs; };
-      codexPlugins = map (bundle: bundle.codex) (builtins.filter (bundle: bundle ? codex) bundles);
+      codexPlugins = agentBundles.codex;
       pluginCaches = map (
         plugin: "${codexHome}/plugins/cache/home-manager/${plugin.name}/${plugin.version}"
       ) codexPlugins;

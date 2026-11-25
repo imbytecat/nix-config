@@ -1,22 +1,20 @@
 {
   aspects.homeManager.workstation =
     {
+      agentBundles,
       aiCatalog,
-      pkgs,
+      gatewayProviders,
       lib,
-      inputs,
+      llmAgents,
+      pkgs,
       ...
     }:
 
     let
       yamlFormat = pkgs.formats.yaml { };
 
-      bundles = import ./_bundles { inherit inputs lib pkgs; };
-      ompBundles = map (bundle: bundle.omp) (builtins.filter (bundle: bundle ? omp) bundles);
-      bundleExtensions = lib.concatMap (bundle: bundle.extensions or [ ]) ompBundles;
-      bundleFiles = lib.foldl' (files: bundle: files // (bundle.files or { })) { } ompBundles;
-
-      gatewayProviders = import ./_gateway-providers.nix { inherit aiCatalog lib; };
+      bundleExtensions = lib.concatMap (bundle: bundle.extensions or [ ]) agentBundles.omp;
+      bundleFiles = lib.mergeAttrsList (map (bundle: bundle.files or { }) agentBundles.omp);
 
       # apiKey 仅记录密钥环境变量名。
       # OMP 的原生 ID 是 moonshot，Pi 和 models.dev 用 moonshotai。
@@ -55,7 +53,7 @@
 
     in
     {
-      home.packages = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp ];
+      home.packages = [ llmAgents.omp ];
 
       home.file = {
         ".omp/agent/models.yml".source = yamlFormat.generate "omp-models.yml" ompModels;
