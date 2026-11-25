@@ -8,7 +8,7 @@
 {
   imports = [ ./hardware-configuration.nix ];
 
-  # disko-install 不读这里的 device，以命令行 --disk main <path> 为准。
+  # just install（nixos-anywhere）用这里的 device；Live 上的 disko-install 只认命令行 --disk main <path>。
   disko.devices.disk.main = {
     device = lib.mkDefault "/dev/disk/by-id/nvme-HS-SSD-C2000Pro_1024G_AA000000000000001070";
     content.partitions.ESP.size = "1G";
