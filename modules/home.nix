@@ -9,11 +9,16 @@ let
   };
 
   workstationUser =
-    { username, ... }:
+    {
+      lib,
+      pkgs,
+      username,
+      ...
+    }:
     {
       home-manager = {
-        backupFileExtension = "bak";
-        overwriteBackup = true;
+        # 配置以 Nix 为准：与托管文件冲突的已有文件直接删除再链接，不留 .bak。
+        backupCommand = "${lib.getExe' pkgs.coreutils "rm"} -f";
         extraSpecialArgs = { inherit username; };
         users.${username}.imports = [ aspects.homeManager.workstation ];
       };

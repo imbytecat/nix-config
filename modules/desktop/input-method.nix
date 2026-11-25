@@ -66,18 +66,15 @@ in
           "Hotkey/AltTriggerKeys"."0" = "";
         };
 
-        # 设置界面用 os.replace 原子写，会把软链换成普通文件；force 让 switch 收回，长期设置只写这里。
-        xdg.configFile."fcitx5/conf/wowtype.conf" = {
-          force = true;
-          # 开关只认 True/False 字符串，Nix 布尔值会被当成写错而回落默认。
-          text = lib.generators.toKeyValue { } {
-            Shuangpin = "True";
-            ShuangpinScheme = "Xiaohe";
-            # 中英只由 CapsLock 切换，与上面禁用 Shift 临时切换一致。
-            ShiftToggle = "Off";
-            # 版本由 flake input 管理。
-            CheckUpdate = "False";
-          };
+        # 设置界面用 os.replace 原子写，会把软链换成普通文件；下次 switch 按冲突直接替换收回，长期设置只写这里。
+        # 开关只认 True/False 字符串，Nix 布尔值会被当成写错而回落默认。
+        xdg.configFile."fcitx5/conf/wowtype.conf".text = lib.generators.toKeyValue { } {
+          Shuangpin = "True";
+          ShuangpinScheme = "Xiaohe";
+          # 中英只由 CapsLock 切换，与上面禁用 Shift 临时切换一致。
+          ShiftToggle = "Off";
+          # 版本由 flake input 管理。
+          CheckUpdate = "False";
         };
       };
     };
