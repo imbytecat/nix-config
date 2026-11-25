@@ -14,4 +14,6 @@
     "result/**"
     ".direnv/**"
   ];
+  # 否则 ruff 在仓库根留下 .ruff_cache。
+  settings.formatter.ruff-format.options = [ "--no-cache" ];
 }
