@@ -72,7 +72,6 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3
 - **ponytail**（`inputs.ponytail`，`flake = false`）：OMP 把上游仓库根列进 `extensions`，loader 认 `package.json` 的 `pi.extensions`，`before_agent_start` 每轮注入 ruleset 并注册 `/ponytail` 档位与 `/ponytail-*` 命令。Codex 经 HM marketplace/cache 加载上游正式 plugin，Claude Code 直接挂上游 plugin。skill 由各家 plugin 自带，不铺共享副本。
 - **caveman**（`inputs.caveman`）：上游没有 Pi adapter。bundle 给 OMP 提供 always-apply rule 与 `/caveman` command，给 Codex 生成封装上游 `.codex/hooks.json` 的最小 lifecycle plugin，给 Claude Code 挂上游 `.claude-plugin`。上游命令从 git 根目录找 `codex-sessionstart.js`，只在 caveman 自己的仓库里成立；bundle 改指 store 中的脚本，上游改写法时求值报错。`cavecrew`（依赖 Claude subagent）与 `caveman-stats`（依赖 Claude session hook）不铺进共享目录，Claude Code 经 plugin 自带；`caveman-shrink` 保持 opt-in。
 - `skills.nix` 把 bundle 与 skill-only 输入逐项 link 到 `~/.agents/skills`，父目录保持可写，CLI 仍可装其他 skill。
-- **mattpocock/skills** 是 skill-only distribution，不是 behavior bundle：只取 `skills/{engineering,productivity}`（= 上游 `.claude-plugin/plugin.json` 清单），不铺 `deprecated`、`in-progress`、`misc`、`personal`。13 个带 `disable-model-invocation` 的 skill 只能显式调用，实测 Codex 与 OMP 都只暴露同 9 个 model-invocable skill。每仓先跑一次 `/skill:setup-matt-pocock-skills` 生成 `docs/agents/{issue-tracker,domain,triage-labels}.md`；升级用 `nix flake update mattpocock-skills`。
 
 ## 遥测
 
