@@ -8,7 +8,7 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDRTOo48gzzRGT+bF9dzJCFJu61YgsQVONFtxU9kTPIg"
   ];
 
-  # 机器事实（硬件、磁盘、单机覆盖）在 hosts/<host>；flake attr、目录与 hostName 同名。
+  # 机器事实（硬件、磁盘设备、单机覆盖）在 hosts/<host>；flake attr、目录与 hostName 同名。
   machine = hostname: [
     ../hosts/${hostname}
     { networking.hostName = hostname; }
@@ -77,17 +77,20 @@ in
     awesome-pc = workstation "awesome-pc" "x86_64-linux" [
       aspects.nixos.desktop
       aspects.nixos.systemd-boot
+      aspects.nixos.single-disk
     ];
 
     homelab-server = server "homelab-server" [
       aspects.nixos.qemu-guest
       aspects.nixos.systemd-boot
+      aspects.nixos.single-disk
     ];
 
     mihomo-gateway = server "mihomo-gateway" [
       aspects.nixos.gateway
       aspects.nixos.qemu-guest
       aspects.nixos.systemd-boot
+      aspects.nixos.single-disk
     ];
 
     ovh-ks-5 = server "ovh-ks-5" [ aspects.nixos.grub-raid ];

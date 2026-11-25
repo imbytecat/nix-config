@@ -1,10 +1,18 @@
-{ pkgs, username, ... }:
+{
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
-  imports = [
-    ./disko.nix
-    ./hardware-configuration.nix
-  ];
+  imports = [ ./hardware-configuration.nix ];
+
+  # disko-install 不读这里的 device，以命令行 --disk main <path> 为准。
+  disko.devices.disk.main = {
+    device = lib.mkDefault "/dev/disk/by-id/nvme-HS-SSD-C2000Pro_1024G_AA000000000000001070";
+    content.partitions.ESP.size = "1G";
+  };
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 

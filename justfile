@@ -139,7 +139,7 @@ diff host: (_guard host) (build host)
     nvd diff /run/current-system result/
 
 
-# 警告：disko 会按 hosts/<host>/disko.nix 全盘重建，目标机数据全部丢失
+# 警告：disko 会按该 host 的磁盘布局（single-disk / grub-raid adapter 加 hosts/<host> 的设备）全盘重建，目标机数据全部丢失
 # 装完 SSH host key 会变，记得 `ssh-keygen -R <remote>`
 [doc('远程首装：引导 kexec → 自建同内核 kexec → disko 全盘 → install → reboot')]
 [group('remote')]

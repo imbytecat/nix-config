@@ -14,6 +14,7 @@ let
       "qemu-guest"
       "grub-raid"
       "systemd-boot"
+      "single-disk"
     ];
     darwin = [
       "base"

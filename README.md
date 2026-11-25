@@ -83,7 +83,7 @@ just switch awesome-macbook-air
 just install <host> <remote>
 ```
 
-> `just install` 会按 `hosts/<host>/disko.nix` 重建整盘，目标数据全部丢失。执行前必须核对 host、磁盘型号、容量和序列号。
+> `just install` 会按该 host 的磁盘布局重建整盘，目标数据全部丢失。布局在 `modules/nixos/single-disk.nix` 或 `modules/nixos/grub-raid.nix`，设备与差异在 `hosts/<host>/default.nix`。执行前必须核对 host、磁盘型号、容量和序列号。
 
 安装会先用 `ssh-copy-id` 把本机公钥装进目标机（rescue 只有密码时会提示输入），再 kexec 两次：第一次进上游镜像拿到 Nix，第二次进本仓按目标机 LTS 内核构建的镜像，再分区安装。RAID 阵列必须由不比目标新的内核创建，否则目标机组装不了。
 
@@ -95,7 +95,7 @@ ssh-keygen -R <remote>
 
 关键机器差异：
 
-- `awesome-pc`：单盘 UEFI + systemd-boot；磁盘默认使用 `hosts/awesome-pc/disko.nix` 中的 by-id。
+- `awesome-pc`：单盘 UEFI + systemd-boot；磁盘默认使用 `hosts/awesome-pc/default.nix` 中的 by-id。
 - `homelab-server`：PVE QEMU VM，默认 `/dev/sda`；PVE 呈现其他设备时先改 host 内默认值。
 - `mihomo-gateway`：默认 `/dev/sda`，安装后必须补 `/etc/mihomo/env`。
 - `ovh-ks-5`：两块 NVMe 全盘组成 RAID1；从 OVH Rescue 安装前确认以 UEFI 启动。
