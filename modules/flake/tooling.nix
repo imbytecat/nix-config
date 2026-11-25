@@ -2,7 +2,7 @@
 
 {
   perSystem =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     let
       treefmt = inputs.treefmt-nix.lib.evalModule pkgs ../../treefmt.nix;
       # scripts/lint.sh 用到的工具；devShell 与 checks.lint 共用这一份。
@@ -18,9 +18,13 @@
       formatter = treefmt.config.build.wrapper;
 
       devShells.default = pkgs.mkShell {
-        SOPS_AGE_KEY_CMD = pkgs.writeShellScript "sops-ssh-identity" ''
-          exec ${pkgs.ssh-to-age}/bin/ssh-to-age -private-key -i "$HOME/.ssh/id_ed25519"
-        '';
+        SOPS_AGE_KEY_CMD = lib.getExe (
+          pkgs.writeShellApplication {
+            name = "sops-ssh-identity";
+            runtimeInputs = [ pkgs.ssh-to-age ];
+            text = ''exec ssh-to-age -private-key -i "$HOME/.ssh/id_ed25519"'';
+          }
+        );
         packages = linters ++ [
           pkgs.just
           pkgs.sops

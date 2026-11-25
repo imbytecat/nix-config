@@ -103,130 +103,135 @@
             cp "$src" "$out"
           '';
 
-      subscribeScript = pkgs.writeShellScript "mihomo-subscribe" ''
-        set -euo pipefail
+      subscribe = pkgs.writeShellApplication {
+        name = "mihomo-subscribe";
+        # 校验与运行必须使用同一 mihomo 包。
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.curl
+          pkgs.yq-go
+          config.services.mihomo.package
+          config.systemd.package
+        ];
+        text = ''
+          # 临时文件含节点凭据与 API secret，统一限制为 0600。
+          umask 077
 
-        # 临时文件含节点凭据与 API secret，统一限制为 0600。
-        umask 077
+          if [ -z "''${CONFIG_URL:-}" ]; then
+            echo "CONFIG_URL not set in ${envFile}"
+            exit 0
+          fi
 
-        if [ -z "''${CONFIG_URL:-}" ]; then
-          echo "CONFIG_URL not set in ${envFile}"
-          exit 0
-        fi
+          if [ -z "''${SECRET:-}" ]; then
+            echo "SECRET not set in ${envFile}; required for external-controller API authentication"
+            exit 1
+          fi
 
-        if [ -z "''${SECRET:-}" ]; then
-          echo "SECRET not set in ${envFile}; required for external-controller API authentication"
-          exit 1
-        fi
+          # 清理 SIGKILL 或断电留下的历史凭据临时文件。
+          rm -f "${stateDir}"/.mihomo-config.*.yaml
 
-        # 清理 SIGKILL 或断电留下的历史凭据临时文件。
-        rm -f "${stateDir}"/.mihomo-config.*.yaml
+          tmp="$(mktemp -p "${stateDir}" .mihomo-config.XXXXXX.yaml)"
 
-        tmp="$(mktemp -p "${stateDir}" .mihomo-config.XXXXXX.yaml)"
-
-        # root 运行 mihomo -t 必须用独立目录，否则 geo/cache 会写成 root 所有。
-        # 软链已有 geo 避免重复下载；新机在临时目录验证。
-        validateDir="$(mktemp -d)"
-        for f in "${stateDir}"/*.dat "${stateDir}"/*.mmdb "${stateDir}"/*.metadb; do
-          if [ -e "$f" ]; then ln -s "$f" "$validateDir/"; fi
-        done
-
-        cleanup() {
-          rm -f "$tmp"
-          rm -rf "$validateDir"
-        }
-        trap cleanup EXIT
-
-        echo "Fetching subscription..."
-        curl -fsSL --connect-timeout 30 --max-time 120 \
-          --retry 3 --retry-delay 2 --retry-all-errors \
-          -o "$tmp" "$CONFIG_URL"
-
-        echo "Sanitizing subscription..."
-        # 订阅是外部输入：删除所有监听/API/权限字段，包括不校验 secret 的 unix/pipe/DoH。
-        # `*` 仅让 base 覆盖声明键；代理、规则和 dns.nameserver 仍来自订阅。
-        yq -i '
-          del(.routing-mark) |
-          del(.tun) |
-          del(.listeners) |
-          del(.tunnels) |
-          del(.port) |
-          del(.socks-port) |
-          del(.redir-port) |
-          del(.mixed-port) |
-          del(.tproxy-port) |
-          del(.allow-lan) |
-          del(.bind-address) |
-          del(.lan-allowed-ips) |
-          del(.lan-disallowed-ips) |
-          del(.authentication) |
-          del(.skip-auth-prefixes) |
-          del(.external-controller) |
-          del(.external-controller-tls) |
-          del(.external-controller-unix) |
-          del(.external-controller-pipe) |
-          del(.external-doh-server) |
-          del(.external-ui) |
-          del(.external-ui-name) |
-          del(.external-ui-url) |
-          del(.tls) |
-          del(.secret)
-        ' "$tmp"
-
-        yq -i '. * load("${baseConfigYaml}")' "$tmp"
-
-        SECRET="$SECRET" yq -i '.secret = strenv(SECRET)' "$tmp"
-
-        echo "Validating configuration..."
-        if ! output=$(mihomo -t -f "$tmp" -d "$validateDir" 2>&1); then
-          echo "Validation failed:"
-          echo "$output"
-          exit 1
-        fi
-        echo "$output"
-
-        if [ -f "${configFile}" ] && [ "$(sha256sum < "$tmp")" = "$(sha256sum < "${configFile}")" ]; then
-          echo "No changes; skip restart"
-          exit 0
-        fi
-
-        if [ -f "${configFile}" ]; then
-          install -m 0600 "${configFile}" "${configFile}.bak"
-        fi
-        mv -f "$tmp" "${configFile}"
-
-        # -t 只校验静态配置；轮询 10 秒捕获 RestartSec=5s 的崩溃并触发回滚。
-        wait_healthy() {
-          for _ in $(seq 10); do
-            systemctl is-active --quiet mihomo || return 1
-            sleep 1
+          # root 运行 mihomo -t 必须用独立目录，否则 geo/cache 会写成 root 所有。
+          # 软链已有 geo 避免重复下载；新机在临时目录验证。
+          validateDir="$(mktemp -d)"
+          for f in "${stateDir}"/*.dat "${stateDir}"/*.mmdb "${stateDir}"/*.metadb; do
+            if [ -e "$f" ]; then ln -s "$f" "$validateDir/"; fi
           done
-          return 0
-        }
 
-        echo "Configuration updated; restarting mihomo"
-        # 必须忽略 restart 返回值，否则 set -e 会跳过下方回滚。
-        systemctl restart mihomo || true
+          trap 'rm -f "$tmp"; rm -rf "$validateDir"' EXIT
 
-        if wait_healthy; then
-          exit 0
-        fi
+          echo "Fetching subscription..."
+          curl -fsSL --connect-timeout 30 --max-time 120 \
+            --retry 3 --retry-delay 2 --retry-all-errors \
+            -o "$tmp" "$CONFIG_URL"
 
-        echo "mihomo failed to start with new config"
-        if [ ! -f "${configFile}.bak" ]; then
-          echo "No previous configuration to roll back to"
+          echo "Sanitizing subscription..."
+          # 订阅是外部输入：删除所有监听/API/权限字段，包括不校验 secret 的 unix/pipe/DoH。
+          # `*` 仅让 base 覆盖声明键；代理、规则和 dns.nameserver 仍来自订阅。
+          yq -i '
+            del(.routing-mark) |
+            del(.tun) |
+            del(.listeners) |
+            del(.tunnels) |
+            del(.port) |
+            del(.socks-port) |
+            del(.redir-port) |
+            del(.mixed-port) |
+            del(.tproxy-port) |
+            del(.allow-lan) |
+            del(.bind-address) |
+            del(.lan-allowed-ips) |
+            del(.lan-disallowed-ips) |
+            del(.authentication) |
+            del(.skip-auth-prefixes) |
+            del(.external-controller) |
+            del(.external-controller-tls) |
+            del(.external-controller-unix) |
+            del(.external-controller-pipe) |
+            del(.external-doh-server) |
+            del(.external-ui) |
+            del(.external-ui-name) |
+            del(.external-ui-url) |
+            del(.tls) |
+            del(.secret)
+          ' "$tmp"
+
+          yq -i '. * load("${baseConfigYaml}")' "$tmp"
+
+          SECRET="$SECRET" yq -i '.secret = strenv(SECRET)' "$tmp"
+
+          echo "Validating configuration..."
+          if ! output=$(mihomo -t -f "$tmp" -d "$validateDir" 2>&1); then
+            echo "Validation failed:"
+            echo "$output"
+            exit 1
+          fi
+          echo "$output"
+
+          if [ -f "${configFile}" ] && [ "$(sha256sum < "$tmp")" = "$(sha256sum < "${configFile}")" ]; then
+            echo "No changes; skip restart"
+            exit 0
+          fi
+
+          if [ -f "${configFile}" ]; then
+            install -m 0600 "${configFile}" "${configFile}.bak"
+          fi
+          mv -f "$tmp" "${configFile}"
+
+          # -t 只校验静态配置；轮询 10 秒捕获 RestartSec=5s 的崩溃并触发回滚。
+          wait_healthy() {
+            for _ in $(seq 10); do
+              systemctl is-active --quiet mihomo || return 1
+              sleep 1
+            done
+            return 0
+          }
+
+          echo "Configuration updated; restarting mihomo"
+          # 必须忽略 restart 返回值，否则 set -e 会跳过下方回滚。
+          systemctl restart mihomo || true
+
+          if wait_healthy; then
+            exit 0
+          fi
+
+          echo "mihomo failed to start with new config"
+          if [ ! -f "${configFile}.bak" ]; then
+            echo "No previous configuration to roll back to"
+            exit 1
+          fi
+          echo "Rolling back to previous configuration"
+          install -m 0600 "${configFile}.bak" "${configFile}"
+          systemctl restart mihomo || true
+          if wait_healthy; then
+            echo "Rolled back; mihomo running on previous configuration"
+          else
+            echo "Rollback failed too; mihomo is down"
+          fi
           exit 1
-        fi
-        echo "Rolling back to previous configuration"
-        install -m 0600 "${configFile}.bak" "${configFile}"
-        systemctl restart mihomo || true
-        if wait_healthy; then
-          echo "Rolled back; mihomo running on previous configuration"
-        else
-          echo "Rollback failed too; mihomo is down"
-        fi
-        exit 1
-      '';
+        '';
+      };
     in
     {
       services.mihomo = {
@@ -252,15 +257,9 @@
         ];
         wants = [ "network-online.target" ];
         unitConfig.ConditionPathExists = envFile;
-        # 校验与运行必须使用同一 mihomo 包。
-        path = [
-          pkgs.curl
-          pkgs.yq-go
-          config.services.mihomo.package
-        ];
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = subscribeScript;
+          ExecStart = lib.getExe subscribe;
           EnvironmentFile = [ "-${envFile}" ];
 
           # root 解析外部 YAML，尽量收紧沙箱。

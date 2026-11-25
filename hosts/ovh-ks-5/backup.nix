@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -7,7 +8,53 @@
 let
   stacksDir = "/opt/stacks";
   dumpsDir = "${stacksDir}/.dumps";
-  docker = "${config.virtualisation.docker.package}/bin/docker";
+
+  # tar 一个活着的 PG 数据目录只是崩溃一致；能保证恢复的是逻辑 dump。
+  # pg_dumpall 连 role 和密码一起带走，恢复端不用重配账号。
+  dumpPostgres = pkgs.writeShellApplication {
+    name = "restic-dump-postgres";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.zstd
+      config.virtualisation.docker.package
+    ];
+    text = ''
+      rm -rf ${dumpsDir}
+      mkdir -p ${dumpsDir}
+      chmod 700 ${dumpsDir}
+
+      for id in $(docker ps -q); do
+        docker exec "$id" pg_isready -q 2>/dev/null || continue
+        name=$(docker inspect -f '{{.Name}}' "$id" | tr -d /)
+        user=$(docker exec "$id" printenv POSTGRES_USER 2>/dev/null || echo postgres)
+        pass=$(docker exec "$id" printenv POSTGRES_PASSWORD 2>/dev/null || true)
+        if ! docker exec -e PGUSER="$user" -e PGPASSWORD="$pass" "$id" \
+             pg_dumpall --no-password --clean --if-exists \
+             | zstd -q -f -o ${dumpsDir}/"$name".sql.zst; then
+          echo "pg_dumpall 失败: $name" >&2
+          touch ${dumpsDir}/FAILED-"$name"
+        fi
+      done
+    '';
+  };
+
+  # 先让快照照常落地（残缺也比没有强），再把单元标红——绿色的残缺备份才是真事故。
+  checkDumps = pkgs.writeShellApplication {
+    name = "restic-check-dumps";
+    text = ''
+      for f in ${dumpsDir}/FAILED-*; do
+        [ -e "$f" ] || continue
+        echo "dump 失败，本次快照不含完整数据库: $f" >&2
+        exit 1
+      done
+    '';
+  };
+
+  # restic 模块把命令写成独立脚本直接执行，需要 shebang。
+  run = script: ''
+    #!${pkgs.runtimeShell}
+    exec ${lib.getExe script}
+  '';
 in
 {
   systemd.tmpfiles.rules = [ "d ${stacksDir} 0755 root root -" ];
@@ -34,39 +81,8 @@ in
     ];
     exclude = [ "/var/lib/docker/volumes/backingFsBlockDev" ];
 
-    # tar 一个活着的 PG 数据目录只是崩溃一致；能保证恢复的是逻辑 dump。
-    # pg_dumpall 连 role 和密码一起带走，恢复端不用重配账号。
-    backupPrepareCommand = ''
-      #!${pkgs.runtimeShell}
-      set -euo pipefail
-
-      rm -rf ${dumpsDir}
-      mkdir -p ${dumpsDir}
-      chmod 700 ${dumpsDir}
-
-      for id in $(${docker} ps -q); do
-        ${docker} exec "$id" pg_isready -q 2>/dev/null || continue
-        name=$(${docker} inspect -f '{{.Name}}' "$id" | tr -d /)
-        user=$(${docker} exec "$id" printenv POSTGRES_USER 2>/dev/null || echo postgres)
-        pass=$(${docker} exec "$id" printenv POSTGRES_PASSWORD 2>/dev/null || true)
-        if ! ${docker} exec -e PGUSER="$user" -e PGPASSWORD="$pass" "$id" \
-             pg_dumpall --no-password --clean --if-exists \
-             | ${pkgs.zstd}/bin/zstd -q -f -o ${dumpsDir}/"$name".sql.zst; then
-          echo "pg_dumpall 失败: $name" >&2
-          touch ${dumpsDir}/FAILED-"$name"
-        fi
-      done
-    '';
-
-    # 先让快照照常落地（残缺也比没有强），再把单元标红——绿色的残缺备份才是真事故。
-    backupCleanupCommand = ''
-      #!${pkgs.runtimeShell}
-      for f in ${dumpsDir}/FAILED-*; do
-        [ -e "$f" ] || continue
-        echo "dump 失败，本次快照不含完整数据库: $f" >&2
-        exit 1
-      done
-    '';
+    backupPrepareCommand = run dumpPostgres;
+    backupCleanupCommand = run checkDumps;
 
     pruneOpts = [
       "--keep-daily 14"

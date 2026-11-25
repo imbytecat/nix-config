@@ -105,18 +105,30 @@ in
       };
 
       # Codex 的 TUI 和 app-server 都读原生登录文件。密钥经 stdin 传入。
-      login = pkgs.writeShellScript "codex-api-login" ''
-        set -euo pipefail
-        ${pkgs.coreutils}/bin/printenv ${aiCatalog.gateway.apiKeyEnv} | ${lib.getExe config.programs.codex.package} login --with-api-key
-      '';
+      login = pkgs.writeShellApplication {
+        name = "codex-api-login";
+        runtimeInputs = [ pkgs.coreutils ];
+        text = ''
+          printenv ${aiCatalog.gateway.apiKeyEnv} | ${lib.getExe config.programs.codex.package} login --with-api-key
+        '';
+      };
       # launchd 没有 EnvironmentFile：先载入会话 env 并登录 Codex，再 exec 服务。
-      launch = pkgs.writeShellScript "t3code-with-secrets" ''
-        set -ea
-        source ${sessionEnvFile}
-        set +a
-        ${login}
-        exec "$@"
-      '';
+      launch = pkgs.writeShellApplication {
+        name = "t3code-with-secrets";
+        # 与交互 zsh 一样由 shell 解释 dotenv，不开 nounset。
+        bashOptions = [
+          "errexit"
+          "pipefail"
+        ];
+        text = ''
+          set -a
+          # shellcheck source=/dev/null
+          source ${sessionEnvFile}
+          set +a
+          ${lib.getExe login}
+          exec "$@"
+        '';
+      };
     in
     {
       programs.t3code = {
@@ -145,7 +157,7 @@ in
       home.sessionVariables = telemetryOff;
 
       launchd.agents.t3code.config = {
-        ProgramArguments = lib.mkBefore [ "${launch}" ];
+        ProgramArguments = lib.mkBefore [ (lib.getExe launch) ];
         EnvironmentVariables = serviceEnv;
         # 模块默认 Background 会被 macOS 限流；agent 在里面跑，照 `t3 service install` 用 Interactive。
         ProcessType = lib.mkForce "Interactive";
@@ -155,7 +167,7 @@ in
         Service = {
           Environment = lib.mapAttrsToList (name: value: "${name}=${value}") serviceEnv;
           EnvironmentFile = sessionEnvFile;
-          ExecStartPre = "${login}";
+          ExecStartPre = lib.getExe login;
         };
       };
     };
