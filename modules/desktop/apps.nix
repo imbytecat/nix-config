@@ -45,6 +45,15 @@ in
     };
   };
 
+  # cask 不把 `code` 链进 PATH（NixOS 的 vscode 包自带），排在工具链路径之后。
+  aspects.homeManager.desktop =
+    { lib, pkgs, ... }:
+    {
+      home.sessionPath = lib.mkAfter (
+        lib.optional pkgs.stdenv.hostPlatform.isDarwin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+      );
+    };
+
   aspects.nixos.desktop =
     { pkgs, ... }:
     {

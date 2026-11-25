@@ -8,14 +8,8 @@ in
   aspects.darwin.workstation = enable;
 
   aspects.homeManager.workstation =
-    { lib, pkgs, ... }:
+    { lib, ... }:
     {
-      home.sessionPath = [
-        "$HOME/go/bin"
-        "$HOME/.bun/bin"
-      ]
-      ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin";
-
       programs.zsh = {
         enable = true;
         autosuggestion.enable = true;

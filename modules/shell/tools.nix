@@ -1,4 +1,6 @@
 {
+  aspects.darwin.workstation.homebrew.brews = [ "mole" ];
+
   aspects.homeManager.workstation =
     { config, pkgs, ... }:
 
