@@ -1,3 +1,4 @@
+# 首装与远程安装用的工具链，由 justfile 的 install 配方和 Live 环境调用。
 { inputs, ... }:
 
 {
