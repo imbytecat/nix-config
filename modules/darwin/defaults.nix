@@ -50,8 +50,6 @@
             DSDontWriteNetworkStores = true;
           };
           "NSGlobalDomain" = {
-            # 1 = CapsLock 切到 ABC
-            TISRomanSwitchState = 1;
             CGDisableCursorLocationMagnification = true;
             "com.apple.mouse.linear" = true; # 关闭鼠标加速度
           };

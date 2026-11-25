@@ -56,7 +56,6 @@
               )
             ];
           }).config.system.build.kexecInstallerTarball;
-        wowtype = inputs.wowtype.packages.${system}.default;
       };
     };
 }

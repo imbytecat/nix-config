@@ -1,9 +1,23 @@
+{ inputs, ... }:
+
+let
+  wowtypeFor = pkgs: inputs.wowtype.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in
 {
+  # 每周依赖更新先构建它再自动合并，避免升级后才在本机编译失败。
+  perSystem =
+    { lib, pkgs, ... }:
+    {
+      packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux { wowtype = wowtypeFor pkgs; };
+    };
+
+  # 1 = CapsLock 切到 ABC，与 NixOS 上 CapsLock 单击切换中英一致。
+  aspects.darwin.desktop.system.defaults.CustomUserPreferences.NSGlobalDomain.TISRomanSwitchState = 1;
+
   aspects.nixos.desktop =
     {
       lib,
       pkgs,
-      inputs,
       username,
       ...
     }:
@@ -13,7 +27,7 @@
         type = "fcitx5";
         fcitx5 = {
           waylandFrontend = true;
-          addons = [ inputs.wowtype.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+          addons = [ (wowtypeFor pkgs) ];
         };
       };
 
