@@ -45,7 +45,7 @@ accept-flake-config = true
 ### 中文输入
 
 `awesome-pc` 使用 Fcitx5 + [WowType](https://github.com/Gloridust/WowType) 小鹤双拼；单击 CapsLock 切换中英，`nihc` 输入“你好”。
-配置在 `modules/nixos/input-method.nix`。`~/.config/fcitx5/conf/wowtype.conf` 由 Nix 强制接管：
+配置在 `modules/desktop/input-method.nix`。`~/.config/fcitx5/conf/wowtype.conf` 由 Nix 强制接管：
 设置界面里的改动会在下次 switch 时被覆盖，长期设置写进该模块；自定义词在 `~/.local/share/wowtype/custom.tsv`，不受影响。
 WowType 跟随上游 `release` 分支，随 `just update` 更新，没有二进制缓存，每次升级都在本地编译。
 switch 不会重启 fcitx5，插件升级后重新登录生效；KDE Wayland 下不要用 `fcitx5 -r` 重启，否则之后新开的程序无法输入。
