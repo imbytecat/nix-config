@@ -77,15 +77,10 @@ dry host: (_valid host)
 diff host: (_guard host) (build host)
     nvd diff /run/current-system result/
 
-[doc('lint：actionlint 工作流 + statix 反模式 + deadnix 死代码')]
+[doc('lint：actionlint、statix、deadnix、shellcheck、ruff（与 checks.lint 同一脚本）')]
 [group('check')]
 lint:
-    actionlint .github/workflows/*.yml
-    statix check
-    deadnix --fail --exclude \
-      ./hosts/awesome-devbox/hardware-configuration.nix \
-      ./hosts/awesome-pc/hardware-configuration.nix \
-      ./hosts/ovh-ks-5/hardware-configuration.nix
+    scripts/lint.sh
 
 # 警告：disko 会按该 host 的磁盘布局（single-disk / grub-raid adapter 加 hosts/<host> 的设备）全盘重建，目标机数据全部丢失
 # 装完 SSH host key 会变，记得 `ssh-keygen -R <remote>`

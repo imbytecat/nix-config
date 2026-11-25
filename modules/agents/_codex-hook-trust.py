@@ -68,7 +68,11 @@ def main(codex):
         edit = {key: {"trusted_hash": current} for key, current in stale.items()}
         request(
             "config/batchWrite",
-            {"edits": [{"keyPath": "hooks.state", "value": edit, "mergeStrategy": "upsert"}]},
+            {
+                "edits": [
+                    {"keyPath": "hooks.state", "value": edit, "mergeStrategy": "upsert"}
+                ]
+            },
         )
         remaining = stale_hooks()
         if remaining:
