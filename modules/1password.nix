@@ -4,8 +4,8 @@ let
   };
 in
 {
-  aspects.nixos.daily = cli;
-  aspects.darwin.daily = cli;
+  aspects.nixos.workstation = cli;
+  aspects.darwin.workstation = cli;
 
   aspects.nixos.desktop =
     { username, ... }:

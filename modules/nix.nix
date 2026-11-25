@@ -69,8 +69,8 @@ in
     };
   };
 
-  aspects.nixos.daily = trustUser;
-  aspects.darwin.daily = trustUser;
+  aspects.nixos.workstation = trustUser;
+  aspects.darwin.workstation = trustUser;
 
   aspects.nixos.server.nix.optimise.automatic = true;
 }

@@ -17,7 +17,7 @@ let
 
         secrets = {
           "agents.env" = { inherit owner; };
-          "daily.env" = { inherit owner; };
+          "workstation.env" = { inherit owner; };
           "tea.yml" = {
             inherit owner;
             path = "${config.home-manager.users.${owner}.xdg.configHome}/tea/config.yml";
@@ -26,7 +26,7 @@ let
 
         templates.${envName} = {
           inherit owner;
-          content = config.sops.placeholder."agents.env" + "\n" + config.sops.placeholder."daily.env";
+          content = config.sops.placeholder."agents.env" + "\n" + config.sops.placeholder."workstation.env";
         };
       };
 
@@ -93,8 +93,8 @@ let
   };
 in
 {
-  aspects.nixos.daily = { username, ... }: { imports = [ (linuxFor username) ]; };
-  aspects.darwin.daily = { username, ... }: {
+  aspects.nixos.workstation = { username, ... }: { imports = [ (linuxFor username) ]; };
+  aspects.darwin.workstation = { username, ... }: {
     imports = [
       inputs.sops-nix.darwinModules.sops
       (secretsFor username darwinEnv)

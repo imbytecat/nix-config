@@ -2,10 +2,10 @@ let
   systemTools = { pkgs, ... }: { environment.systemPackages = [ pkgs.cloudflared ]; };
 in
 {
-  aspects.darwin.daily = systemTools;
-  aspects.nixos.daily = systemTools;
+  aspects.darwin.workstation = systemTools;
+  aspects.nixos.workstation = systemTools;
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     { config, pkgs, ... }:
 
     {

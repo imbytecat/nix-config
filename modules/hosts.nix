@@ -29,20 +29,20 @@ let
           };
         }
         aspects.darwin.base
-        aspects.darwin.daily
+        aspects.darwin.workstation
       ]
       ++ roles
       ++ machine hostname;
     };
 
-  daily =
+  workstation =
     hostname: system: roles:
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs username sshKeys; };
       modules = [
         aspects.nixos.base
-        aspects.nixos.daily
+        aspects.nixos.workstation
       ]
       ++ roles
       ++ machine hostname;
@@ -68,12 +68,12 @@ in
   };
 
   flake.nixosConfigurations = {
-    agent-server = daily "agent-server" "x86_64-linux" [
+    awesome-devbox = workstation "awesome-devbox" "x86_64-linux" [
       aspects.nixos.grub-raid
       aspects.nixos.root-ssh
     ];
 
-    awesome-pc = daily "awesome-pc" "x86_64-linux" [
+    awesome-pc = workstation "awesome-pc" "x86_64-linux" [
       aspects.nixos.desktop
       aspects.nixos.systemd-boot
     ];

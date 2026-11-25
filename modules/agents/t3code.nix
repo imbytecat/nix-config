@@ -18,7 +18,7 @@ let
 in
 {
   # 用户服务开 linger，重启后不登录也起来。
-  aspects.nixos.daily = { username, ... }: { users.users.${username}.linger = true; };
+  aspects.nixos.workstation = { username, ... }: { users.users.${username}.linger = true; };
 
   aspects.nixos.desktop = {
     imports = [ desktop ];
@@ -52,7 +52,7 @@ in
       );
     };
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     {
       config,
       lib,

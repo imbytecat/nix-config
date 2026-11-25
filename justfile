@@ -22,7 +22,7 @@ _guard host: (_valid host)
 _agent_key host remote="":
     #!/usr/bin/env bash
     set -euo pipefail
-    case {{ quote(host) }} in awesome-macbook-air|awesome-pc|agent-server) ;; *) exit 0 ;; esac
+    case {{ quote(host) }} in awesome-macbook-air|awesome-pc|awesome-devbox) ;; *) exit 0 ;; esac
     remote={{ quote(remote) }}
     if [[ -n "$remote" ]]; then
       run=(ssh -T -o StrictHostKeyChecking=ask "root@$remote")
@@ -105,7 +105,7 @@ eval:
 [linux]
 [group('check')]
 eval:
-    @nix eval .#nixosConfigurations.agent-server.config.system.build.toplevel > /dev/null && echo "agent-server: ok"
+    @nix eval .#nixosConfigurations.awesome-devbox.config.system.build.toplevel > /dev/null && echo "awesome-devbox: ok"
     @nix eval .#nixosConfigurations.awesome-pc.config.system.build.toplevel > /dev/null && echo "awesome-pc: ok"
     @nix eval .#nixosConfigurations.homelab-server.config.system.build.toplevel > /dev/null && echo "homelab-server: ok"
     @nix eval .#nixosConfigurations.mihomo-gateway.config.system.build.toplevel > /dev/null && echo "mihomo-gateway: ok"
@@ -279,7 +279,7 @@ lint:
     actionlint .github/workflows/*.yml
     statix check
     deadnix --fail --exclude \
-      ./hosts/agent-server/hardware-configuration.nix \
+      ./hosts/awesome-devbox/hardware-configuration.nix \
       ./hosts/awesome-pc/hardware-configuration.nix \
       ./hosts/ovh-ks-5/hardware-configuration.nix
 

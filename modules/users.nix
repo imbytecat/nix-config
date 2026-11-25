@@ -1,5 +1,5 @@
 {
-  aspects.nixos.daily =
+  aspects.nixos.workstation =
     {
       pkgs,
       username,

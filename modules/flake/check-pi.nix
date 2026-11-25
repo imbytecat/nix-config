@@ -8,7 +8,7 @@
       ...
     }:
     let
-      host = config.flake.nixosConfigurations.agent-server;
+      host = config.flake.nixosConfigurations.awesome-devbox;
       files = host.config.home-manager.users.${host._module.specialArgs.username}.home.file;
     in
     {

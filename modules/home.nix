@@ -8,14 +8,14 @@ let
     extraSpecialArgs = { inherit inputs; };
   };
 
-  dailyUser =
+  workstationUser =
     { username, ... }:
     {
       home-manager = {
         backupFileExtension = "bak";
         overwriteBackup = true;
         extraSpecialArgs = { inherit username; };
-        users.${username}.imports = [ aspects.homeManager.daily ];
+        users.${username}.imports = [ aspects.homeManager.workstation ];
       };
     };
 
@@ -26,22 +26,22 @@ let
     };
 in
 {
-  aspects.nixos.daily.imports = [
+  aspects.nixos.workstation.imports = [
     inputs.home-manager.nixosModules.home-manager
     integration
-    dailyUser
+    workstationUser
   ];
 
-  aspects.darwin.daily.imports = [
+  aspects.darwin.workstation.imports = [
     inputs.home-manager.darwinModules.home-manager
     integration
-    dailyUser
+    workstationUser
   ];
 
   aspects.nixos.desktop = desktopUser;
   aspects.darwin.desktop = desktopUser;
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     {
       pkgs,
       username,

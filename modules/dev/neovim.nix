@@ -1,5 +1,5 @@
 {
-  aspects.homeManager.daily = {
+  aspects.homeManager.workstation = {
     programs.neovim = {
       enable = true;
       defaultEditor = true;

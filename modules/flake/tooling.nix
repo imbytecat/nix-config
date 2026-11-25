@@ -47,7 +47,7 @@
               statix check
               # hardware-configuration.nix 由 nixos-generate-config 生成，不由我们维护
               deadnix --fail --exclude \
-                ./hosts/agent-server/hardware-configuration.nix \
+                ./hosts/awesome-devbox/hardware-configuration.nix \
                 ./hosts/awesome-pc/hardware-configuration.nix \
                 ./hosts/ovh-ks-5/hardware-configuration.nix
               touch $out

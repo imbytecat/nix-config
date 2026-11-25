@@ -4,10 +4,10 @@ let
   };
 in
 {
-  aspects.nixos.daily = enable;
-  aspects.darwin.daily = enable;
+  aspects.nixos.workstation = enable;
+  aspects.darwin.workstation = enable;
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     { lib, pkgs, ... }:
     {
       home.sessionPath = [

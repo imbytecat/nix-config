@@ -19,7 +19,7 @@
       };
     };
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     { config, lib, ... }:
     {
       programs.ssh = {

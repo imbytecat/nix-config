@@ -14,7 +14,7 @@ in
       inherit catppuccin;
     };
 
-  aspects.homeManager.daily =
+  aspects.homeManager.workstation =
     { inputs, ... }:
     {
       imports = [ inputs.catppuccin.homeModules.catppuccin ];

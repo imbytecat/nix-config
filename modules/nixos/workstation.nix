@@ -1,5 +1,5 @@
 {
-  aspects.nixos.daily =
+  aspects.nixos.workstation =
     { inputs, ... }:
     {
       nixpkgs.config.allowUnfree = true;
