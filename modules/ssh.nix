@@ -1,8 +1,11 @@
+{ config, ... }:
 {
   aspects.nixos.base.services.openssh.enable = true;
   aspects.darwin.base.services.openssh.enable = true;
 
-  aspects.nixos.server =
+  aspects.nixos.server.imports = [ config.aspects.nixos.root-ssh ];
+
+  aspects.nixos.root-ssh =
     { sshKeys, ... }:
     {
       services.openssh.settings = {

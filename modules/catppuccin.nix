@@ -7,7 +7,7 @@ let
   };
 in
 {
-  aspects.nixos.daily =
+  aspects.nixos.desktop =
     { inputs, ... }:
     {
       imports = [ inputs.catppuccin.nixosModules.catppuccin ];

@@ -1,6 +1,6 @@
 {
   # SDK 里的 emulator 经 nix-ld 找库；列表与模块默认库合并，桌面机同时拿到两份。
-  aspects.nixos.agent =
+  aspects.nixos.daily =
     { pkgs, ... }:
     {
       # 启动器和 -headless qemu 都链接 libX11.so.6，-no-window 也要。

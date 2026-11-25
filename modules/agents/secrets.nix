@@ -6,8 +6,8 @@ let
   identity = "/var/lib/sops-nix/agents-key.txt";
 
   secretsFor =
-    owner: daily: envName:
-    { config, lib, ... }:
+    owner: envName:
+    { config, ... }:
     {
       sops = {
         defaultSopsFile = file;
@@ -17,8 +17,6 @@ let
 
         secrets = {
           "agents.env" = { inherit owner; };
-        }
-        // lib.optionalAttrs daily {
           "daily.env" = { inherit owner; };
           "tea.yml" = {
             inherit owner;
@@ -28,10 +26,7 @@ let
 
         templates.${envName} = {
           inherit owner;
-          content =
-            config.sops.placeholder."agents.env"
-            + "\n"
-            + lib.optionalString daily config.sops.placeholder."daily.env";
+          content = config.sops.placeholder."agents.env" + "\n" + config.sops.placeholder."daily.env";
         };
       };
 
@@ -48,7 +43,6 @@ let
           # Codex 的 TUI 和 app-server 都读原生登录文件。密钥经 stdin 传入。
           login = pkgs.writeShellScript "codex-api-login" ''
             set -euo pipefail
-            ${lib.optionalString (!daily) "[[ -r ${envFile} ]] || exit 0"}
             ${pkgs.coreutils}/bin/printenv ${aiCatalog.gateway.apiKeyEnv} | ${lib.getExe config.programs.codex.package} login --with-api-key
           '';
           launch = pkgs.writeShellScript "t3code-with-secrets" ''
@@ -60,7 +54,7 @@ let
           '';
         in
         {
-          programs.zsh.initContent = lib.mkIf daily ''
+          programs.zsh.initContent = ''
             if [[ -r ${envFile} ]]; then
               set -a
               source ${envFile}
@@ -68,9 +62,9 @@ let
             fi
           '';
           systemd.user.services.t3code = {
-            Unit.ConditionPathExists = lib.mkIf daily envFile;
+            Unit.ConditionPathExists = envFile;
             Service = {
-              EnvironmentFile = lib.optionalString (!daily) "-" + envFile;
+              EnvironmentFile = envFile;
               ExecStartPre = "${login}";
             };
           };
@@ -78,10 +72,10 @@ let
         };
     };
 
-  linuxFor = owner: daily: {
+  linuxFor = owner: {
     imports = [
       inputs.sops-nix.nixosModules.sops
-      (secretsFor owner daily "agents.env")
+      (secretsFor owner "agents.env")
     ];
     # 首装不向 kexec 安装器传密钥；第一次 switch/deploy 会在正式系统上写入。
     sops.useSystemdActivation = true;
@@ -99,12 +93,11 @@ let
   };
 in
 {
-  aspects.nixos.daily = { username, ... }: { imports = [ (linuxFor username true) ]; };
-  aspects.nixos.agent-server-secrets = linuxFor "t3code" false;
+  aspects.nixos.daily = { username, ... }: { imports = [ (linuxFor username) ]; };
   aspects.darwin.daily = { username, ... }: {
     imports = [
       inputs.sops-nix.darwinModules.sops
-      (secretsFor username true darwinEnv)
+      (secretsFor username darwinEnv)
     ];
   };
 }

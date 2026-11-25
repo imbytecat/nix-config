@@ -15,21 +15,20 @@ let
         backupFileExtension = "bak";
         overwriteBackup = true;
         extraSpecialArgs = { inherit username; };
-        users.${username}.imports = [
-          aspects.homeManager.daily
-          aspects.homeManager.agent
-        ];
+        users.${username}.imports = [ aspects.homeManager.daily ];
       };
+    };
+
+  desktopUser =
+    { username, ... }:
+    {
+      home-manager.users.${username}.imports = [ aspects.homeManager.desktop ];
     };
 in
 {
-  aspects.nixos.home-manager.imports = [
+  aspects.nixos.daily.imports = [
     inputs.home-manager.nixosModules.home-manager
     integration
-  ];
-
-  aspects.nixos.daily.imports = [
-    aspects.nixos.home-manager
     dailyUser
   ];
 
@@ -38,6 +37,9 @@ in
     integration
     dailyUser
   ];
+
+  aspects.nixos.desktop = desktopUser;
+  aspects.darwin.desktop = desktopUser;
 
   aspects.homeManager.daily =
     {

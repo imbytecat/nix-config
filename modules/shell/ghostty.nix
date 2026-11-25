@@ -8,7 +8,7 @@
 
   aspects.darwin.desktop.homebrew.casks = [ "ghostty" ];
 
-  aspects.homeManager.daily =
+  aspects.homeManager.desktop =
     { pkgs, ... }:
     {
       programs.ghostty = {

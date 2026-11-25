@@ -48,7 +48,7 @@ let
       ++ machine hostname;
     };
 
-  # 服务器不传 username：服务器闭包里不该有任何东西需要它。
+  # 生产服务器只有 root 账号，因此不传 username。
   server =
     hostname: roles:
     inputs.nixpkgs.lib.nixosSystem {
@@ -68,12 +68,9 @@ in
   };
 
   flake.nixosConfigurations = {
-    agent-server = server "agent-server" [
-      aspects.nixos.agent
-      aspects.nixos.agent-server-secrets
+    agent-server = daily "agent-server" "x86_64-linux" [
       aspects.nixos.grub-raid
-      aspects.nixos.home-manager
-      { home-manager.users.t3code.imports = [ aspects.homeManager.agent ]; }
+      aspects.nixos.root-ssh
     ];
 
     awesome-pc = daily "awesome-pc" "x86_64-linux" [

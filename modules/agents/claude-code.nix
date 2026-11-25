@@ -1,5 +1,5 @@
 {
-  aspects.homeManager.agent =
+  aspects.homeManager.daily =
     {
       aiCatalog,
       inputs,

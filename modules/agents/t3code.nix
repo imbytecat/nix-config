@@ -17,18 +17,17 @@ let
     };
 in
 {
-  # --lan 监听全部地址：NixOS 防火墙只在 tailscale0 放行；用户服务开 linger，重启后不登录也起来。
-  aspects.nixos.daily =
-    { username, ... }:
-    {
-      networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
-      users.users.${username}.linger = true;
-    };
+  # 用户服务开 linger，重启后不登录也起来。
+  aspects.nixos.daily = { username, ... }: { users.users.${username}.linger = true; };
 
-  aspects.nixos.desktop = desktop;
+  aspects.nixos.desktop = {
+    imports = [ desktop ];
+    # --lan 监听全部地址，NixOS 防火墙只在 tailscale0 放行。
+    networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
+  };
   aspects.darwin.desktop = desktop;
 
-  aspects.homeManager.daily =
+  aspects.homeManager.desktop =
     {
       config,
       lib,
@@ -53,7 +52,7 @@ in
       );
     };
 
-  aspects.homeManager.agent =
+  aspects.homeManager.daily =
     {
       config,
       lib,

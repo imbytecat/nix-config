@@ -8,7 +8,8 @@
       ...
     }:
     let
-      files = config.flake.nixosConfigurations.agent-server.config.home-manager.users.t3code.home.file;
+      host = config.flake.nixosConfigurations.agent-server;
+      files = host.config.home-manager.users.${host._module.specialArgs.username}.home.file;
     in
     {
       checks = lib.optionalAttrs (system == "x86_64-linux") {

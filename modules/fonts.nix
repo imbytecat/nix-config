@@ -9,13 +9,14 @@ let
     };
 in
 {
-  aspects.nixos.daily = terminal;
-  aspects.darwin.daily = terminal;
+  aspects.darwin.desktop = terminal;
 
   # SC 字族需排在默认 Noto 前，避免 en_US 选到日文字形。
   aspects.nixos.desktop =
     { pkgs, lib, ... }:
     {
+      imports = [ terminal ];
+
       fonts = {
         packages = with pkgs; [
           noto-fonts-cjk-sans

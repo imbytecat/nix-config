@@ -11,9 +11,11 @@
 | `awesome-macbook-air` | 移动与 Apple 平台构建 | aarch64-darwin |
 | `mihomo-gateway` | 单臂透明代理网关 | x86_64-linux |
 | `ovh-ks-5` | root-only Docker 服务器 | x86_64-linux |
-| `agent-server` | T3 Code daemon，服务只经 tailnet | x86_64-linux |
+| `agent-server` | 无头日用机，T3 通过 tailnet 访问 | x86_64-linux |
 
 flake 目标、`hosts/<host>` 目录和 `networking.hostName` 必须同名。
+
+`daily` 给 Mac、PC 和 `agent-server` 提供同一个 `imbytecat` 账号及日用环境。Mac 和 PC 叠加 `desktop`，安装图形应用和桌面集成。业务服务器和网关使用 root-only 的 `server` 基线。
 
 ## 日常使用
 
@@ -112,7 +114,7 @@ EOF"
 
 ### T3 Code（agent-server）
 
-开发机和服务器共用 Home Manager 的 `agent` 角色，包含 Codex、Claude Code、OMP、Pi、DSH、插件、skills、T3 daemon，以及 mise 和 Android 工具等开发工具链。NixOS 的 `agent` 角色为这些机器开启 nix-ld，让 mise 的预编译运行时和无头 Android Emulator 直接运行；带窗口模拟器所需的库只装在桌面机。服务器以 `t3code` 账号运行，家目录是 `/var/lib/t3code`，重启后由 systemd 用户服务自动启动。
+三台日用机共享 T3 daemon、编程助手和开发工具链。`agent-server` 的 T3 以 `imbytecat` 账号运行，状态存放在 `/home/imbytecat/.t3`，重启后由 systemd 用户服务自动启动。远程部署使用 `root`，交互登录用 `ssh imbytecat@<remote>`。
 
 首次部署后，以 root 在服务器上启用 tailnet HTTPS。下面的映射会跨重启保留：
 
@@ -121,12 +123,12 @@ tailscale up
 tailscale serve --bg http://127.0.0.1:3773
 ```
 
-从 Mac 或 PC 运行 `just deploy agent-server <remote>`。首次部署会配置解密身份，以后随系统部署更新网关和 Exa 凭据。T3 服务启动时同步 Codex 登录；空机仍可先配对，首次部署后模型可用。密钥轮换见下文「Agent 密钥」。
+从 Mac 或 PC 运行 `just deploy agent-server <remote>`。首次部署会配置解密身份，T3 在 SOPS 渲染凭据后启动并同步 Codex 登录。密钥轮换见下文「Agent 密钥」。
 
 在服务器上生成一次性配对链接，把 `<tailnet>` 替换为 `tailscale serve status` 显示的域名后缀。手机或桌面端连上同一 tailnet，在 **Add environment** 粘贴链接：
 
 ```bash
-sudo -Hu t3code /etc/profiles/per-user/t3code/bin/t3 auth pairing create \
+t3 auth pairing create \
   --base-url 'https://agent-server.<tailnet>.ts.net'
 ```
 
@@ -171,7 +173,7 @@ RAID1 不是备份；restic 仓库必须位于异地。
 
 ## Agent 密钥
 
-Mac、PC 和 agent-server 共用 `secrets/agents.yaml` 的一个 SOPS 接收者，由日常登录的 Ed25519 私钥派生。Mac 或 PC 上有对应的 `~/.ssh/id_ed25519` 就能编辑。日常机使用 `agents.env`、`daily.env` 和 Tea 配置，服务器只给 `t3code` 提供 `agents.env`。两个 env 块保持 shell 和 systemd 均可读取的 dotenv 格式。
+Mac、PC 和 `agent-server` 共用 `secrets/agents.yaml` 的一个 SOPS 接收者，由日常登录的 Ed25519 私钥派生。持有对应私钥的机器可编辑。三台日用机都把 `agents.env`、`daily.env` 和 Tea 配置交给 `imbytecat`。两个 env 块保持 shell 和 systemd 均可读取的 dotenv 格式。
 
 ```sh
 just secrets                         # 编辑并保存密文

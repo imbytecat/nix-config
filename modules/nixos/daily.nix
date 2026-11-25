@@ -9,5 +9,8 @@
       i18n.extraLocaleSettings.LC_TIME = "zh_CN.UTF-8";
 
       virtualisation.docker.enable = true;
+
+      # mise 的预编译运行时、Android SDK 工具和 VS Code/Cursor Remote 都需要。
+      programs.nix-ld.enable = true;
     };
 }
