@@ -28,7 +28,7 @@ _sops_key class host remote="":
 [group('nix')]
 secrets:
     # SOPS 用 200 表示关闭编辑器且内容没有变化。
-    nix develop -c sops edit secrets/agents.yaml || { rc=$?; [ "$rc" -eq 200 ] || exit "$rc"; }
+    nix develop -c sops edit secrets/workstation.yaml || { rc=$?; [ "$rc" -eq 200 ] || exit "$rc"; }
 
 [doc('构建 {{host}} 配置（不激活，产 result/）')]
 [group('build')]

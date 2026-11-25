@@ -1,10 +1,10 @@
 { inputs, ... }:
 
 let
-  file = ../secrets/agents.yaml;
-  identity = "/var/lib/sops-nix/agents-key.txt";
+  file = ../secrets/workstation.yaml;
+  identity = "/var/lib/sops-nix/key.txt";
   # Darwin 先激活 HM 再解密。路径随密文变化，让 launchd 重启后只可能读到本代文件。
-  darwinEnv = "agents-${builtins.substring 0 16 (builtins.hashFile "sha256" file)}.env";
+  darwinEnv = "session-${builtins.substring 0 16 (builtins.hashFile "sha256" file)}.env";
 
   # 一个接收者解密整份密文；各 feature 在自己的文件里声明要用的 sops.secrets。
   common =
@@ -39,7 +39,7 @@ in
     {
       imports = [
         inputs.sops-nix.nixosModules.sops
-        (common "agents.env")
+        (common "session.env")
       ];
       # 首装不向 kexec 安装器传密钥；第一次 switch/deploy 会在正式系统上写入。
       sops.useSystemdActivation = true;

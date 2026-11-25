@@ -173,7 +173,7 @@ RAID1 不是备份；restic 仓库必须位于异地。
 
 ## Agent 密钥
 
-Mac、PC 和 `awesome-devbox` 共用 `secrets/agents.yaml` 的一个 SOPS 接收者，由日常登录的 Ed25519 私钥派生。持有对应私钥的机器可编辑。三台日用机都把 `agents.env`、`workstation.env` 和 Tea 配置交给 `imbytecat`。两个 env 块保持 shell 和 systemd 均可读取的 dotenv 格式。
+Mac、PC 和 `awesome-devbox` 共用 `secrets/workstation.yaml` 的一个 SOPS 接收者，由日常登录的 Ed25519 私钥派生。持有对应私钥的机器可编辑。三台日用机都把 `agents.env`、`workstation.env` 和 Tea 配置交给 `imbytecat`。两个 env 块保持 shell 和 systemd 均可读取的 dotenv 格式。
 
 ```sh
 just secrets                         # 编辑并保存密文
@@ -185,6 +185,6 @@ just deploy awesome-devbox <remote>    # 从 Mac 或 PC 更新无头工作站
 
 将密文提交到 Git 以便另一台开发机取得更新。新终端会读取新值，已打开的交互 shell 可运行 `exec zsh`。更新密文后，部署会重启 T3 并同步 Codex 凭据。服务重启可能中断正在运行的 agent 会话。
 
-首次 `switch`、`boot` 或 `deploy` 会从调用端的 SSH 私钥派生 age 解密身份，写入目标机的 `/var/lib/sops-nix/agents-key.txt`（root，0600）。远程首次登记会核对 SSH 主机身份和主机名。重装后用同一把私钥重新部署即可。拥有任一目标机的 root 权限即可解密整份密文；请备份原始 SSH 私钥。NixOS 首装后先运行一次 `just deploy`，安装器不携带解密身份。
+首次 `switch`、`boot` 或 `deploy` 会从调用端的 SSH 私钥派生 age 解密身份，写入目标机的 `/var/lib/sops-nix/key.txt`（root，0600）。远程首次登记会核对 SSH 主机身份和主机名。重装后用同一把私钥重新部署即可。拥有任一目标机的 root 权限即可解密整份密文；请备份原始 SSH 私钥。NixOS 首装后先运行一次 `just deploy`，安装器不携带解密身份。
 
 从 1Password 迁移时，首次部署验证成功后可从 `~/.config/zsh/local.zsh` 删除 `OP_SERVICE_ACCOUNT_TOKEN` 并撤销旧 service account。迁移保留原来的 op-env 缓存和服务器手写 env，旧 generation 回滚时仍可读取。
