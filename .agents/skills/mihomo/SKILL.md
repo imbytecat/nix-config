@@ -200,6 +200,20 @@ root 根本不往 state dir 写东西，属主问题从根上消失。
 | 订阅 sanitize 覆盖全部监听/API 字段 | 订阅是外部输入。`external-controller-unix`/`-pipe` 和 `external-doh-server` 都**不校验 secret**，能开监听或放权限的字段一律 del |
 | 换配置后校验 `is-active` 并回滚 `.bak` | `mihomo -t` 只查静态语法；端口占用、节点字段组合非法只在运行时暴露。无人值守必须能自己退回上一份 |
 | nft 关键规则常驻 `counter` | 本文排查流程第 2 步就要计数器，事后加要改规则、丢现场 |
+| 常量放 `_constants.nix` 纯 attrs | 只被 `mihomo.nix` 与 `tproxy.nix` 直接 import；没有真实需求前不做成 NixOS option |
+| `firewall.enable = false` | nftables 规则全部由 `tproxy.nix` 管理 |
+| TPROXY 规则排除 `th dport 53` | DNS 只交给 `mihomo-dns` 的 dstnat。不排除也能工作（mangle 先于 dstnat，NAT 改写胜出），但那是实现细节，不是约定 |
+| `Restart=always` + `startLimitIntervalSec=0` | 网关是单点；systemd 默认 10 秒 5 次的限制会把崩溃循环的 Mihomo 永久停在 `failed` |
+| 不做 fail-open（不在 `ExecStopPost` 拆表） | 明文绕过 GFW 比显式断网更糟 |
+| `external-controller = 0.0.0.0:9090` | 单臂网关没有 WAN 口，通配地址就是 LAN；API 要 `SECRET`，桌面经 LAN 用 zashboard。审计常报，属有意决定，不要收窄到 loopback |
+| `/etc/mihomo/env` 在机器上手写 | 订阅 URL 与 API secret 不走 Nix、agenix、sops-nix 或 `op inject`+scp；曾被提议并明确否决 |
+| 订阅脚本 `systemctl restart mihomo \|\| true` | 脚本开着 errexit，restart 失败会直接退出，下方回滚永远走不到 |
+| `wait_healthy` 轮询约 10 秒 | `RestartSec=5s` 时单次 `is-active` 可能撞上崩溃循环里的 `activating`，误判成功 |
+| `mihomo -t` 在独立临时目录跑 | 在 state dir 里以 root 校验会留下 root 所有的 geo/cache.db，`geo-auto-update` 随后失败 |
+| 订阅脚本不加 `flock` | systemd 本就串行同一 unit 的 job，timer、path unit 与手动 start 不会重叠 |
+| 不调 socket buffer sysctl | 内核已有 4 MiB 上限；订阅出站是 ss/vless，本机不跑 quic-go，不会要 7 MiB。换 hysteria2/tuic 且 journal 真出现告警再说 |
+| 网关不进 tailnet | 加固的单点上不跑外部控制面；网关自身出站按设计不走代理，穿 GFW 的 Tailscale 也不稳定。经 LAN 访问 |
+| 只加固网关 | 威胁模型不对称：网关面对 GFW（只用加密 DNS、净化外部输入、沙箱化 unit）；日用机以便利为先，不要"加固"它们 |
 
 ### 隔离故障回归
 
