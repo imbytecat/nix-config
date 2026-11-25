@@ -9,6 +9,13 @@ let
       providerPackages = [ ];
     };
 
+  # T3 Connect 的中继隧道；每台机器手动 `t3 connect link` 授权。
+  cloudflared =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [ pkgs.cloudflared ];
+    };
+
   # Nix 构建以未打包形式运行 Electron，不会自更新。
   desktop =
     { pkgs, ... }:
@@ -17,9 +24,12 @@ let
     };
 in
 {
+  aspects.darwin.workstation = cloudflared;
   aspects.nixos.workstation =
     { username, ... }:
     {
+      imports = [ cloudflared ];
+
       # 用户服务开 linger，重启后不登录也起来。
       users.users.${username}.linger = true;
 

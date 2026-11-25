@@ -1,10 +1,4 @@
-let
-  systemTools = { pkgs, ... }: { environment.systemPackages = [ pkgs.cloudflared ]; };
-in
 {
-  aspects.darwin.workstation = systemTools;
-  aspects.nixos.workstation = systemTools;
-
   aspects.homeManager.workstation =
     { config, pkgs, ... }:
 
