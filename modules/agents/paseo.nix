@@ -1,5 +1,17 @@
 { inputs, ... }:
 let
+  # 0.17.3 没有 daemon 级默认模式配置。补丁改已打包的 JS，保留上游二进制缓存。
+  paseoFor =
+    pkgs:
+    pkgs.applyPatches {
+      src = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.paseo;
+      patches = [ ./_paseo-default-modes.patch ];
+      postPatch = ''
+        substituteInPlace bin/paseo bin/paseo-server --replace-fail "$src/libexec/paseo" "$out/libexec/paseo"
+        ${pkgs.nodejs_22}/bin/node ${./_paseo-default-modes.test.mjs} "$PWD/libexec/paseo"
+      '';
+    };
+
   mergeSettings =
     lib: pkgs: path: name: settings:
     lib.hm.dag.entryAfter [ "linkGeneration" ] (
@@ -29,7 +41,7 @@ in
       imports = [ inputs.paseo.nixosModules.paseo ];
       services.paseo = {
         enable = true;
-        package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.paseo;
+        package = paseoFor pkgs;
         user = username;
         group = config.users.users.${username}.group;
         relay.enable = false;
@@ -88,7 +100,6 @@ in
       aiCatalog,
       config,
       lib,
-      llmAgents,
       pkgs,
       withSessionEnv,
       ...
@@ -98,7 +109,7 @@ in
         enable = true;
         config = {
           ProgramArguments = [
-            (withSessionEnv "paseo-with-secrets" "exec ${lib.getExe' llmAgents.paseo "paseo-server"}")
+            (withSessionEnv "paseo-with-secrets" "exec ${lib.getExe' (paseoFor pkgs) "paseo-server"}")
           ];
           EnvironmentVariables.PATH = import ./_service-path.nix lib config.home;
           RunAtLoad = true;

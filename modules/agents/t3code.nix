@@ -108,6 +108,7 @@ in
       programs.t3code = {
         enable = true;
         package = t3codeFor pkgs;
+        userSettings.defaultRuntimeMode = "full-access";
         # 命令名必须是 omp，T3 才对它套用 omp 专用的提问表单解析。
         userSettings.providerInstances.omp = {
           driver = "acpRegistry";

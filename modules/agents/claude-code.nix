@@ -30,6 +30,7 @@
 
           permissions.defaultMode = "bypassPermissions";
           skipDangerousModePermissionPrompt = true;
+          enableAllProjectMcpServers = true;
           # 否则每个新域名先发给 api.anthropic.com 做安全检查。
           skipWebFetchPreflight = true;
           attribution = false;
@@ -43,7 +44,7 @@
             ANTHROPIC_DEFAULT_HAIKU_MODEL = modelId aiCatalog.models.haiku;
             CLAUDE_CODE_SUBAGENT_MODEL = modelId aiCatalog.models.sonnet;
 
-            # 网关会丢 Anthropic 的 server tool（见 dsh.nix 的 web_search），tool search 一并关掉。
+            # 网关会丢 Anthropic 的 server tool（web_search 已实测），tool search 一并关掉。
             ENABLE_TOOL_SEARCH = "false";
 
             # 遥测、错误上报、自动更新、/feedback 等非必要流量全关；版本只随 Nix 更新。

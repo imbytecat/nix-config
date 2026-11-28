@@ -79,6 +79,7 @@
       };
 
       piSettings = {
+        defaultProjectTrust = "always";
         defaultProvider = deepseek.provider;
         enabledModels = map aiCatalog.ref (builtins.attrNames aiCatalog.models);
         defaultModel = deepseek.id;

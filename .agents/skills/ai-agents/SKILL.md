@@ -1,6 +1,6 @@
 ---
 name: ai-agents
-description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3 Code、Paseo）与 Furtherverse 网关、模型 catalog、behavior bundle 的约定。修改 modules/agents/*、模型或网关、ponytail/caveman/共享 skills 前先读。触发词: codex, claude code, omp, pi, dsh, t3, paseo, catalog, gateway, ponytail, caveman, skills。"
+description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code、Paseo）与 Furtherverse 网关、模型 catalog、behavior bundle 的约定。修改 modules/agents/*、模型或网关、ponytail/caveman/共享 skills 前先读。触发词: codex, claude code, omp, pi, t3, paseo, catalog, gateway, ponytail, caveman, skills。"
 ---
 
 # AI agent 配置
@@ -10,14 +10,14 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3
 两条轴：
 
 - **behavior bundle**（`_bundles/`）：跨 agent 的行为包。每个 bundle 按 agent 分键（`codex` / `claude` / `omp` / `skills`），`_bundles/default.nix` 按键取列。pin 相关的打包、OMP 文件和 skill 取舍只在各自 bundle 改。
-- **agent 映射**：`codex.nix`、`claude-code.nix`、`omp.nix`、`pi.nix`、`dsh.nix`、`t3code.nix`、`paseo.nix`、`skills.nix` 只把 catalog 与 bundle 映射到各客户端的原生配置。
+- **agent 映射**：`codex.nix`、`claude-code.nix`、`omp.nix`、`pi.nix`、`t3code.nix`、`paseo.nix`、`skills.nix` 只把 catalog 与 bundle 映射到各客户端的原生配置。
 
 `agents/default.nix` 经 `_module.args` 向 HM `workstation` 注入：
 
 | 参数 | 内容 |
 |------|------|
 | `aiCatalog` | `_ai-catalog.nix`：网关 endpoint、provider 身份、模型 ID 与元数据的唯一来源 |
-| `gatewayProviders` | `_gateway-providers.nix`：catalog → 网关 provider 的投影（`routes` 与 `mkProviders`），OMP、Pi、DSH 共用 |
+| `gatewayProviders` | `_gateway-providers.nix`：catalog → 网关 provider 的投影（`mkProviders`），OMP、Pi 共用 |
 | `agentBundles` | 按 agent 分列的 bundle |
 | `llmAgents` | `inputs.llm-agents.packages.<system>`。不加 overlay、不 follows 本仓 nixpkgs，否则 miss `cache.numtide.com` |
 
@@ -27,7 +27,7 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3
 
 - 模型位于 `providers.<family>.<nick>`，family 用客户端内置的厂商标识（anthropic、openai、deepseek、xai、moonshotai）。映射文件经扁平的 `models.<nick>`（含 `provider`）、`ref "<nick>"`（→ `provider/id`）或 `providers.<family>` 消费。模型与 endpoint 只在 catalog 改。
 - 新增模型时引用 `models-dev` input 的厂商与条目 ID；catalog 合并 provider 与 base model 的元数据，网关 ID、显示名或实测的能力差异在条目旁覆盖。
-- Pi 与 OMP 的原生模型继承客户端内置元数据，只有网关 ID 与原生 ID 不同时才生成额外条目。Pi 的 `thinkingLevelMap`、DSH 的 `reasoningEfforts` 从 catalog 生成；各 agent 自选默认档位，用 `effortFor` 校验。
+- Pi 与 OMP 的原生模型继承客户端内置元数据，只有网关 ID 与原生 ID 不同时才生成额外条目。Pi 的 `thinkingLevelMap` 从 catalog 生成；各 agent 自选默认档位，用 `effortFor` 校验。
 - 模型可用性只认网关 `/v1/models`；网关路由是否遵守推理参数只能实测。来源与命令见 `docs/research/ai-model-metadata-2026-11-21.md`。
 
 ## 各客户端
@@ -41,23 +41,17 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3
 
 ### Claude Code（`claude-code.nix`）
 
+- 用户级 `permissions.defaultMode = "bypassPermissions"` 覆盖独立 CLI；`enableAllProjectMcpServers` 单独批准项目 `.mcp.json`。首次进入新仓库的交互式工作区信任独立于工具审批。
 - HM `programs.claude-code`。bundle 的 `claude.plugin` 是自带 `.claude-plugin/` 的上游仓库根，整目录 link 成 personal plugin，hooks/skills/commands 随 manifest 生效；`claude.files` 放 bundle 额外需要的文件。
 - 模型只经 settings `env` 的 `ANTHROPIC_DEFAULT_{FABLE,OPUS,SONNET,HAIKU}_MODEL` 指到 catalog；context 1M 的加 `[1m]`，因为网关不替它确认扩展上下文。`apiKeyHelper` 读网关变量，不另设 `ANTHROPIC_AUTH_TOKEN`。
 - 遥测开关全开：`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` 外加冗余的单项开关（政策见 AGENTS.md 的 Telemetry）。`ENABLE_TOOL_SEARCH=false`：网关会丢 Anthropic server tool（`web_search` 实测，tool search 未实测）。这些放 settings `env` 而非 session 变量，从 T3 服务起的会话也生效。
 
 ### OMP（`omp.nix`）与 Pi（`pi.nix`）
 
+- OMP 要显式设 `tools.approvalMode = "yolo"`，否则 ACP 仍可能询问。Pi 的内置工具直接执行；`defaultProjectTrust = "always"` 让新项目的扩展和 MCP 默认加载，已有的项目授权决定优先。
 - 都用原生 provider ID 接网关，路由只覆盖 base URL 和凭据，provider 整体来自 `gatewayProviders.mkProviders`。OMP 的 Moonshot ID 是 `moonshot`，Pi 与 models.dev 用 `moonshotai`。
 - OMP 生成 `~/.omp/agent/{models,config}.yml` 并合并 bundle 的 extension 与文件。`config.yml` 只读，所以关掉会写 `setupVersion` 的向导。
 - Pi 的 `enabledModels` 取自 catalog，apiKey 写成网关变量的 `$NAME` 插值，`enableInstallTelemetry = false`（不管更新检查），`PI_SKIP_VERSION_CHECK=1` 只放在 HM session 变量里。Pi 对不可用的默认档位会静默回退，`checks.pi-default` 在新会话里核对实际默认值。
-
-### DeepSeek Harness（`dsh.nix`）
-
-- 装 `llm-agents` 的 `dsh`：跨平台且命中 `cache.numtide.com`；nixpkgs 的 `deepseek-harness` 仅 Linux 且版本更旧。只写 home 级 `~/.dsh/cordis.patch.yml`，叠在每个 profile 之后。patch 按 id 整行替换 config，UI 在 profile patch 里改的同名行会被覆盖。
-- 用 `llm-pi-ai` 的 `deepseek` 路由（`openai-completions`，api/baseUrl 取自 `gatewayProviders.routes`）挂 catalog 的 `deepseek`，并设为 `agent-default-model`。不用原生 `llm-deepseek`：它默认把整段 `dsh_session_log`（每请求至多 8 MiB）作为额外字段发给 `baseURL`。不声明 `off` 档：网关把 DeepSeek 转给 `commandcode`，它不理会任何关思考参数（2026-11-21 实测）。
-- 隐私：`session-telemetry-otel` 行 `disabled: true`，等同 `DSH_TELEMETRY_DISABLED` 生成的启动 patch；默认 `FEEDBACK_ONLY` 会在点赞、点踩或 `/feedback` 后把整段 session log 上传到 `dsh-otel-collector.deepseeksvc.com`。只有 `desktop` profile 才挂的 product analytics 不处理。
-- 搜索：DSH 的官方 API key、账号与两个 DeepSeek 搜索后端都禁用。网关的 `/v1/tools/search` 与 `/v1/tools/fetch` 返回 503（2026-11-24 实测），所以关 `web_search`，`web_fetch` 用内置 HTTP 抓取；它的 SSRF 校验会拒绝 mihomo fake-ip。
-- 权限：`permission` 行把新会话默认预设设为 `danger-full-access`，对齐 Codex 的 `never` + 完全访问。DSH 的 `never` 是自动拒绝而非自动批准，只因完全访问下没有要升权的操作才等于免授权。该行整行替换，必须照抄上游 `read-only`、`workspace-write`、`danger-full-access` 三个预设。`/permission` 与 `dsh headless --permission-mode` 仍可逐会话切换。不用 `DSH_PERMISSION_MODE`：它只在带 HM 会话变量的 shell 里生效。
 
 ### T3 Code（`t3code.nix`）
 
@@ -70,6 +64,7 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、DSH、T3
 ### Paseo（`paseo.nix`）
 
 - NixOS 使用 `inputs.paseo.nixosModules.paseo`，系统服务以工作站用户运行，直接读取 SOPS 模板。上游 `services.paseo.settings` 会在重启时覆盖可写配置，因此只用 HM 合并 `~/.paseo/config.json`。
+- 工作站 daemon 在 provider snapshot 中为 Codex、Claude、OMP 指定新会话默认模式，供客户端、CLI、MCP 和定时任务共用。客户端保存的模式、显式选择和受限父会话沿用上游行为。Pi 没有权限模式。升级 Paseo 时核对 `_paseo-default-modes.patch`。
 - macOS 用 HM LaunchAgent 运行 llm-agents 的 `paseo-server`，cask 提供 GUI 和 CLI。两个桌面端均关闭 `manageBuiltInDaemon`，本机直连，devbox 经 SSH 隧道连接。
 
 ## Bundle 与共享 skill

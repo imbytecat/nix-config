@@ -36,6 +36,8 @@
         enableInstallTelemetry = false;
         telemetry.otlpExportEnabled = false;
         dev.autoqa = false;
+        # ACP 只有显式配置 yolo 才跳过客户端的工具审批。
+        tools.approvalMode = "yolo";
         theme = {
           dark = "dark-catppuccin";
           light = "light-catppuccin";

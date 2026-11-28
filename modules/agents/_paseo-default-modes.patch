@@ -1,0 +1,47 @@
+--- a/libexec/paseo/packages/server/dist/server/server/agent/provider-snapshot-manager.js
++++ b/libexec/paseo/packages/server/dist/server/server/agent/provider-snapshot-manager.js
+@@ -18,6 +18,11 @@
+ import { convertLegacyClaudeUltracode, resolveAdapter } from "./option-controls.js";
+ import { ProviderInstallations } from "./provider-installation/provider-installations.js";
+ import { ProviderRefreshSchedule, systemProviderRefreshTimers, } from "./provider-refresh-schedule.js";
++const workstationModes = new Map([
++    ["claude", "bypassPermissions"],
++    ["codex", "full-access"],
++    ["omp", "full"],
++]);
+ const DEFAULT_REFRESH_TIMEOUT_MS = 120000;
+ const MAX_REFRESH_TIMEOUT_MS = 2147483647;
+ const DEFAULT_DIAGNOSTIC_TIMEOUT_MS = 120000;
+@@ -422,9 +427,12 @@
+         });
+         const definition = this.requireProvider(input.provider);
+         const parent = input.parent ? this.resolveParent(input.parent) : null;
++        // 显式收紧过权限的父会话继续走上游的继承与校验。
++        const useDefault = !parent?.modeId || parent.modeId === workstationModes.get(parent.provider);
++        const defaultMode = useDefault ? workstationModes.get(input.provider) : undefined;
+         return definition.resolveCreateConfig({
+             provider: input.provider,
+-            requestedMode: input.requestedMode,
++            requestedMode: input.requestedMode ?? defaultMode,
+             providerOptions: input.providerOptions,
+             parent,
+             unattended: input.unattended || parent?.isUnattended === true,
+@@ -678,7 +686,7 @@
+                     description: definition.description,
+                     iconSvg: definition.iconSvg,
+                     docsUrl: definition.docsUrl,
+-                    defaultModeId: definition.defaultModeId ?? null,
++                    defaultModeId: workstationModes.get(provider) ?? definition.defaultModeId ?? null,
+                 }),
+             });
+         }
+@@ -869,7 +877,8 @@
+             }
+             setEntry({
+                 ...base,
+-                defaultModeId: catalog.defaultModeId === undefined ? base.defaultModeId : catalog.defaultModeId,
++                defaultModeId: workstationModes.get(provider) ??
++                    (catalog.defaultModeId === undefined ? base.defaultModeId : catalog.defaultModeId),
+                 status: "ready",
+                 enabled: true,
+                 models,
