@@ -34,6 +34,12 @@
     # 不 follows nixpkgs，避免 cache.numtide.com miss。
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    # 只使用上游的 NixOS 服务模块，daemon 与桌面端继续取自 llm-agents。
+    paseo = {
+      url = "github:getpaseo/paseo/v0.17.3";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     models-dev = {
       url = "github:anomalyco/models.dev/dev";
       flake = false;

@@ -30,7 +30,7 @@
 - `dev/mobile.nix`: Android, iOS and Flutter. No Android Studio and no `androidenv`: the SDK stays mutable at `ANDROID_HOME` because AGP and Flutter download NDK/platform packages into it, and Android CLI and Flutter are pinned by each project's mise. `android-tools` covers adb/fastboot; systemd 258 uaccess replaced `programs.adb`, `adbusers` and udev rules. Emulator libraries for nix-ld are split by role (headless `libx11`, windowed set on desktops); verified 2026-11-25 on emulator 37.3.10 (104 Gradle Managed Device tests headless, windowed boot on Xvfb). Evidence: `docs/research/android-{cli,emulator}-2026-11-22.md`.
 - `agents/`: read `.agents/skills/ai-agents/SKILL.md` first. Model IDs, endpoints and metadata change only in `agents/_ai-catalog.nix`.
 - `gateway/` + `hosts/mihomo-gateway`: read `.agents/skills/mihomo/SKILL.md` first; its decision table records rejected proposals, so do not re-propose them. Gateway business config comes only from those two places; keep it isolated from workstation features.
-- `secrets.nix` is the SOPS base. Each feature declares the `sops.secrets` it uses (`ssh.nix`: `ssh_config`; `dev/git.nix`: `tea.yml`), and `agents/t3code.nix` consumes the session env.
+- `secrets.nix` is the SOPS base. Each feature declares the `sops.secrets` it uses (`ssh.nix`: `ssh_config`; `dev/git.nix`: `tea.yml`). T3 and Paseo share the session env.
 - Repo-local packages: `overlays/default.nix` `callPackage`s `pkgs/*` and exposes `pkgs.<name>`; `flake.packages` reuses the same attrs. Modules only consume `pkgs`; never `callPackage ../../pkgs/...` from a module.
 - Do not create a Docker wrapper or aspect while its shared implementation is one native line: NixOS workstations enable Docker in `nixos/workstation.nix`, `users.nix` grants the `docker` group, root-only servers enable it in their host modules. The default Docker package carries the Compose plugin; do not add `docker-compose`. `services.tailscale.enable` follows the same pattern: `tailscale.nix` for workstations (plus the Darwin cask), host-local on servers that want it, never on `mihomo-gateway`.
 - Shell longer than a few lines goes into `scripts/*.sh` (shellchecked by `just lint`) or `pkgs.writeShellApplication` (shellchecked at build time), never into `writeShellScript` or long inline just recipes.
@@ -82,7 +82,7 @@
 ## Secrets
 
 - Workstation secrets use one SOPS recipient derived from the personal Ed25519 SSH key; `just secrets` edits `secrets/workstation.yaml`. One recipient decrypts the whole file.
-- `just switch`/`boot`/`deploy` run `scripts/sops-key.sh`, which installs the derived age identity at the host's `sops.age.keyFile` (`/var/lib/sops-nix/key.txt`, root 0600) the first time; the SSH login key stays on the caller. On Linux sops restarts T3 after decryption; on Darwin the rendered env path carries the ciphertext hash because HM activates before sops-nix.
+- `just switch`/`boot`/`deploy` run `scripts/sops-key.sh`, which installs the derived age identity at the host's `sops.age.keyFile` (`/var/lib/sops-nix/key.txt`, root 0600) the first time; the SSH login key stays on the caller. On Linux sops restarts T3's user service after decryption and Paseo's system service on env changes. On Darwin the rendered env path carries the ciphertext hash because HM activates before sops-nix.
 - Server-side files are hand-written on purpose and kept in 1Password: `/etc/mihomo/env`, `/etc/restic/{repository,password}` and ovh-ks-5's `/root/.ssh/id_ed25519`. Do not move them into sops-nix.
 
 ## Hosts

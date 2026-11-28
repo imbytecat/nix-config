@@ -133,6 +133,12 @@ t3 auth pairing create \
   --base-url 'https://awesome-devbox.<tailnet>.ts.net'
 ```
 
+### Paseo 试用
+
+三台工作站都在后台运行 Paseo，监听 `127.0.0.1:6767`，关闭 relay。PC 和 devbox 开机时由 `paseo.service` 启动，Mac 在用户登录时由 launchd 启动。关闭 GUI 后会话继续运行，可用 `paseo daemon status` 查看状态。
+
+在 Mac 或 PC 的 Paseo 桌面端打开 **Settings → Add host**。连本机选 **Direct connection**，填 `127.0.0.1:6767`；连 devbox 选 **Remote SSH**，填 `ssh://imbytecat@awesome-devbox`。Linux 桌面包首次启动会从 Google 下载 React DevTools，下载完成后才显示窗口。
+
 ### OVH 备份与灾难恢复
 
 业务数据放在 `/opt/stacks`。系统每天用 restic 备份该目录、Docker named volumes，并为运行中的 PostgreSQL 容器生成逻辑 dump。
@@ -184,7 +190,7 @@ just deploy awesome-devbox <remote>    # 从 Mac 或 PC 更新无头工作站
 
 私有 SSH 主机条目放在同一份密文的 `ssh_config` 字段，运行 `just secrets` 即可增改标准 OpenSSH `Host` 段。工作站激活后，`ssh awesome-devbox` 以 `imbytecat` 通过公网 IPv4 登录。
 
-将密文提交到 Git 以便另一台开发机取得更新。新终端会读取新值，已打开的交互 shell 可运行 `exec zsh`。更新密文后，部署会重启 T3 并同步 Codex 凭据。服务重启可能中断正在运行的 agent 会话。
+将密文提交到 Git 以便另一台开发机取得更新。新终端会读取新值，已打开的交互 shell 可运行 `exec zsh`。会话密钥更新后，T3 和 Paseo 服务会重新加载环境，T3 同时同步 Codex 凭据。服务重启可能中断正在运行的 agent 会话。
 
 首次 `switch`、`boot` 或 `deploy` 会从调用端的 SSH 私钥派生 age 解密身份，写入目标机的 `/var/lib/sops-nix/key.txt`（root，0600）。远程首次登记会核对 SSH 主机身份和主机名。重装后用同一把私钥重新部署即可。拥有任一目标机的 root 权限即可解密整份密文；请备份原始 SSH 私钥。NixOS 首装后先运行一次 `just deploy`，安装器不携带解密身份。
 

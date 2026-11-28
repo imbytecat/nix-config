@@ -29,7 +29,7 @@ let
         };
       };
 
-      # 交互 shell 与 T3 服务读同一份会话 env。
+      # 交互 shell 与 agent 服务读同一份会话 env。
       home-manager.extraSpecialArgs.sessionEnvFile = config.sops.templates.${envName}.path;
     };
 in
@@ -53,8 +53,33 @@ in
   ];
 
   aspects.homeManager.workstation =
-    { lib, sessionEnvFile, ... }:
     {
+      lib,
+      pkgs,
+      sessionEnvFile,
+      ...
+    }:
+    {
+      # launchd 没有 EnvironmentFile。与交互 zsh 一样由 shell 解释 dotenv，不开 nounset。
+      _module.args.withSessionEnv =
+        name: command:
+        lib.getExe (
+          pkgs.writeShellApplication {
+            inherit name;
+            bashOptions = [
+              "errexit"
+              "pipefail"
+            ];
+            text = ''
+              set -a
+              # shellcheck source=/dev/null
+              source ${lib.escapeShellArg sessionEnvFile}
+              set +a
+              ${command}
+            '';
+          }
+        );
+
       # 放在最后，覆盖 local.zsh 等先前 export 的同名变量。
       programs.zsh.initContent = lib.mkAfter ''
         if [[ -r ${sessionEnvFile} ]]; then

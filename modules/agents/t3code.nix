@@ -81,27 +81,14 @@ in
       lib,
       pkgs,
       sessionEnvFile,
+      withSessionEnv,
       ...
     }:
     let
       # 遥测默认开，服务与交互 shell 里的 `t3` CLI 都要关。
       telemetryOff.T3CODE_TELEMETRY_ENABLED = "false";
-      # 服务不经 login shell，补上终端里的 PATH，T3 与它起的 agent 才找得到 omp、codex、git。
       serviceEnv = telemetryOff // {
-        PATH = lib.concatStringsSep ":" (
-          map (lib.replaceStrings [ "$HOME" ] [ config.home.homeDirectory ]) config.home.sessionPath
-          ++ [
-            "${config.home.profileDirectory}/bin"
-            "/run/wrappers/bin"
-            "/run/current-system/sw/bin"
-            "/nix/var/nix/profiles/default/bin"
-            "/usr/local/bin"
-            "/usr/bin"
-            "/bin"
-            "/usr/sbin"
-            "/sbin"
-          ]
-        );
+        PATH = import ./_service-path.nix lib config.home;
       };
 
       # Codex 的 TUI 和 app-server 都读原生登录文件。密钥经 stdin 传入。
@@ -112,23 +99,10 @@ in
           printenv ${aiCatalog.gateway.apiKeyEnv} | ${lib.getExe config.programs.codex.package} login --with-api-key
         '';
       };
-      # launchd 没有 EnvironmentFile：先载入会话 env 并登录 Codex，再 exec 服务。
-      launch = pkgs.writeShellApplication {
-        name = "t3code-with-secrets";
-        # 与交互 zsh 一样由 shell 解释 dotenv，不开 nounset。
-        bashOptions = [
-          "errexit"
-          "pipefail"
-        ];
-        text = ''
-          set -a
-          # shellcheck source=/dev/null
-          source ${sessionEnvFile}
-          set +a
-          ${lib.getExe login}
-          exec "$@"
-        '';
-      };
+      launch = withSessionEnv "t3code-with-secrets" ''
+        ${lib.getExe login}
+        exec "$@"
+      '';
     in
     {
       programs.t3code = {
@@ -157,7 +131,7 @@ in
       home.sessionVariables = telemetryOff;
 
       launchd.agents.t3code.config = {
-        ProgramArguments = lib.mkBefore [ (lib.getExe launch) ];
+        ProgramArguments = lib.mkBefore [ launch ];
         EnvironmentVariables = serviceEnv;
         # 模块默认 Background 会被 macOS 限流；agent 在里面跑，照 `t3 service install` 用 Interactive。
         ProcessType = lib.mkForce "Interactive";

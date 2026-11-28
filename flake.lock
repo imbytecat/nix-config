@@ -513,6 +513,27 @@
         "type": "github"
       }
     },
+    "paseo": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795365292,
+        "narHash": "sha256-CO3XY6opy1I2kjSj1BPHJ03H5+vCJhrLgxRpO8WQYe8=",
+        "owner": "getpaseo",
+        "repo": "paseo",
+        "rev": "dd7c0499a8c311fae7b3244722a64d73cc178e4a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "getpaseo",
+        "ref": "v0.17.3",
+        "repo": "paseo",
+        "type": "github"
+      }
+    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -575,6 +596,7 @@
         "nixos-images": "nixos-images_2",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "paseo": "paseo",
         "plasma-manager": "plasma-manager",
         "ponytail": "ponytail",
         "sops-nix": "sops-nix",
