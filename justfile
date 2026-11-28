@@ -77,7 +77,7 @@ dry host: (_valid host)
 diff host: (_guard host) (build host)
     nvd diff /run/current-system result/
 
-[doc('lint：actionlint、statix、deadnix、shellcheck、ruff（与 checks.lint 同一脚本）')]
+[doc('lint：statix、deadnix、shellcheck、ruff（与 checks.lint 同一脚本）')]
 [group('check')]
 lint:
     scripts/lint.sh

@@ -4,7 +4,7 @@ let
   wowtypeFor = pkgs: inputs.wowtype.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
-  # 每周依赖更新先构建它再自动合并，避免升级后才在本机编译失败。
+  # 可以单独构建 WowType，验证它与当前 fcitx5 的兼容性。
   perSystem =
     { lib, pkgs, ... }:
     {

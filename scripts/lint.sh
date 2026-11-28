@@ -3,7 +3,6 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-actionlint .github/workflows/*.yml
 statix check
 
 # hardware-configuration.nix 由 nixos-generate-config 生成，不由我们维护。

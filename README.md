@@ -27,13 +27,14 @@ just check                         # 格式、lint、全部 host eval
 
 just deploy <host> <remote>        # 更新远程 NixOS
 just deploy-boot <host> <remote>   # 仅注册远程下次启动 generation
+just up <input>                    # 只更新一个 flake 输入
 just update                        # 更新 flake 输入
 ```
 
 `just` 可查看全部命令。进入仓库后使用 `nix develop` 获取项目工具。
 
-每周依赖更新工作流使用同一入口：构建 WowType、通过 `just check`、完整构建三台服务器后自动合并；
-字体和 kexec 引导镜像（`kexec-bootstrap`）的 hash 仍需人工维护。
+依赖按需手动更新。用 `git diff -- flake.nix flake.lock` 审阅变更，运行 `just check`，再用 `just diff <本机 host>` 构建并查看系统差异，确认后再 switch。
+字体和 kexec 引导镜像（`kexec-bootstrap`）的 hash 单独维护。
 
 首次运行 flake 命令若提示忽略仓库 cache，添加 `--accept-flake-config`，或在
 `~/.config/nix/nix.conf` 写入：

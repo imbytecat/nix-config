@@ -7,7 +7,6 @@
       treefmt = inputs.treefmt-nix.lib.evalModule pkgs ../../treefmt.nix;
       # scripts/lint.sh 用到的工具；devShell 与 checks.lint 共用这一份。
       linters = with pkgs; [
-        actionlint
         deadnix
         ruff
         shellcheck
