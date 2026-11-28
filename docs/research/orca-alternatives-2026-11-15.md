@@ -1,4 +1,4 @@
-# Orca 替代方案调研：herdr、T3 Code、Paseo 与同类工具（2026-11-15）
+# Orca 替代方案调研：herdr、Paseo 与同类工具（2026-11-15）
 
 ## 决策
 
@@ -14,23 +14,23 @@
 
 ## 调研结论（决策前）
 
-**可以替代，前提是接受失去内置浏览器面板。** 推荐两台机器都改用 herdr TUI，Linux 补上 Ghostty 作宿主终端。浏览器面板或手机端不可放弃时，GUI 首选 Paseo，其次 T3 Code；两者都让 `omp` 以聊天线程运行，不再是原生 TUI。能在 GUI 里保留 `omp` TUI 的只有 Kandev，但它以看板为中心、社区小。
+**可以替代，前提是接受失去内置浏览器面板。** 推荐两台机器都改用 herdr TUI，Linux 补上 Ghostty 作宿主终端。浏览器面板或手机端不可放弃时，GUI 首选 Paseo，让 `omp` 以聊天线程运行，不再是原生 TUI。能在 GUI 里保留 `omp` TUI 的只有 Kandev，但它以看板为中心、社区小。
 
-| 需求 | Orca 1.4.258 | herdr TUI 0.9.5 | herdr-app 0.1.15 | T3 Code 0.1.9 | Paseo 0.15.4 | agent-deck 1.16 |
-|---|---|---|---|---|---|---|
-| `omp` 原生 TUI + 状态 | ✅ 注入 extension | ✅ 需 integration | ✅ OSC 7501 | ⚠️ 仅 ACP 聊天 | ⚠️ 仅 RPC 聊天 | ✅ |
-| Codex 状态 | ✅ 写 `hooks.json` | ✅ 屏幕识别 | ✅ OSC 7501 | ✅ app-server | ✅ app-server | ✅ `notify` |
-| `dsh` 状态 | ⚠️ 依赖 `dsh-tui`，且 HM 只读冲突 | ❌ | ⚠️ 仅 `dsh-tui` | ⚠️ ACP | ⚠️ ACP，需先建 profile | ✅ |
-| 系统通知 | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ 状态栏 / web push |
-| worktree 创建与清理 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 浏览器预览 | ✅ | ❌ | ❌ | ✅ | ✅ 仅桌面端 | ❌ |
-| 关窗不停 | ✅ | ✅ | ✅ | ⚠️ 需 `t3 service install` | ⚠️ daemon，退出行为未核实 | ✅ tmux |
-| 主机重启后 resume | ❌ | ✅ | ❌ | 未核实 | ⚠️ `omp` 恢复有 bug | 未核实 |
-| 手机 | ✅ | ⚠️ SSH 客户端 | ✅ | ✅ | ✅ 免费 App | ⚠️ PWA |
-| 写入 agent 配置 | `~/.omp`、`~/.dsh`、`~/.codex` | 可选 integration | 无 | 无（手动模式） | 无（终端 hook 默认关） | `config.toml` 的 `notify` |
-| 遥测默认 | 开 | 无 | Nix 构建无 | 开 | 无 | 关 |
-| llm-agents 缓存 | ✅ | ✅ | ✅ | ✅ | ⚠️ 桌面包需先更新 input | ✅ |
-| 成熟度 | 每周约 5 版 | 约 8 个月；10-29 后无提交 | 约 1 个月，每日提交 | stable 约 1 个月 | 0.x，60 天 22 个 stable | 每 2 天约 1 版 |
+| 需求 | Orca 1.4.258 | herdr TUI 0.9.5 | herdr-app 0.1.15 | Paseo 0.15.4 | agent-deck 1.16 |
+|---|---|---|---|---|---|
+| `omp` 原生 TUI + 状态 | ✅ 注入 extension | ✅ 需 integration | ✅ OSC 7501 | ⚠️ 仅 RPC 聊天 | ✅ |
+| Codex 状态 | ✅ 写 `hooks.json` | ✅ 屏幕识别 | ✅ OSC 7501 | ✅ app-server | ✅ `notify` |
+| `dsh` 状态 | ⚠️ 依赖 `dsh-tui`，且 HM 只读冲突 | ❌ | ⚠️ 仅 `dsh-tui` | ⚠️ ACP，需先建 profile | ✅ |
+| 系统通知 | ✅ | ✅ | ❌ | ✅ | ⚠️ 状态栏 / web push |
+| worktree 创建与清理 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 浏览器预览 | ✅ | ❌ | ❌ | ✅ 仅桌面端 | ❌ |
+| 关窗不停 | ✅ | ✅ | ✅ | ⚠️ daemon，退出行为未核实 | ✅ tmux |
+| 主机重启后 resume | ❌ | ✅ | ❌ | ⚠️ `omp` 恢复有 bug | 未核实 |
+| 手机 | ✅ | ⚠️ SSH 客户端 | ✅ | ✅ 免费 App | ⚠️ PWA |
+| 写入 agent 配置 | `~/.omp`、`~/.dsh`、`~/.codex` | 可选 integration | 无 | 无（终端 hook 默认关） | `config.toml` 的 `notify` |
+| 遥测默认 | 开 | 无 | Nix 构建无 | 无 | 关 |
+| llm-agents 缓存 | ✅ | ✅ | ✅ | ⚠️ 桌面包需先更新 input | ✅ |
+| 成熟度 | 每周约 5 版 | 约 8 个月；10-29 后无提交 | 约 1 个月，每日提交 | 0.x，60 天 22 个 stable | 每 2 天约 1 版 |
 
 理由：
 
@@ -38,7 +38,7 @@
 2. herdr TUI 覆盖全部硬需求，是候选中最成熟的终端型工具；无遥测代码，TOML 配置可由 HM 只读管理，llm-agents 包与上游最新一致。
 3. Orca 向 `~/.omp`、`~/.dsh`、`~/.codex` 注入状态 hook；其中 `~/.dsh/cordis.patch.yml` 由 HM 只读链接，目前仍是 store 链接，Orca 的 `dsh` hook 从未写入。herdr-app 用 OSC 7501 完全不注入，但还太新。
 4. 风险：herdr TUI 自 2026-10-29 无提交，开发重心转向 herdr-app。若 TUI 停滞，退路是 herdr-app（零注入）或 agent-deck（`omp`、`dsh`、Codex 一等支持，基于 tmux），两者都在 llm-agents。切换成本低，herdr TUI 的配置只有一份 TOML。
-5. GUI 路线（Paseo、T3 Code）功能面更接近 Orca，但会把占 92% session 的 `omp` 从原生 TUI 换成聊天线程，接入层还有未修 bug；对以 TUI 为中心的用法是倒退。
+5. GUI 路线（Paseo）功能面更接近 Orca，但会把占 92% session 的 `omp` 从原生 TUI 换成聊天线程，接入层还有未修 bug；对以 TUI 为中心的用法是倒退。
 
 ## 方法与基线
 
@@ -125,25 +125,6 @@ OSC 7501 是终端程序状态协议（[规范](https://www.superlogical.com/rex
 
 判断：herdr-app 是最接近“Orca 去掉浏览器”的替代，`omp` 与 Codex 原生有状态，不碰 `~/.codex`，Linux 上自带终端，手机直连。代价是只有约一个月历史，没有系统通知，重启后不 resume，`dsh` 无状态。herdr TUI 更成熟，系统通知与重启 resume 都有，但 Linux 上要先补宿主终端，且 `omp` 状态要装 integration。
 
-## T3 Code
-
-下文 `T3@v0.1.9/<path>` 指 [`pingdotgg/t3code` v0.1.9](https://github.com/pingdotgg/t3code/tree/v0.1.9) 中的文件。
-
-- **形态**：本地 server `t3` 加 Electron 桌面端、Web、iOS、Android 前端；界面是聊天/线程式，不是终端复用器（[README](https://github.com/pingdotgg/t3code/blob/v0.1.9/README.md)）。MIT；relay 代码也在仓库内，但 T3 Connect 依赖托管的 `relay.t3.codes` 与 Clerk 登录。
-- **成熟度**：README 原文 "We are very very early in this project. Expect bugs."；v0.1.0（2026-10-15）到 [v0.1.9](https://github.com/pingdotgg/t3code/releases/tag/v0.1.9)（2026-11-11）一个月 10 个 stable，另有每日多个 nightly；约 6.1 万 star、3.4k open issue。
-- **Codex**：通过 `codex app-server` JSON-RPC 启动。手动登录模式使用进程的 `CODEX_HOME` 或默认 `~/.codex`，只按线程覆盖 T3 自己的 MCP server 等少数键（`T3@v0.1.9/apps/server/src/provider/Drivers/CodexDriver.ts`、`T3@v0.1.9/apps/server/src/orchestration-v2/Adapters/CodexAdapterV2.ts`），因此 HM 写的 gateway `model_provider` 与 hook trust 应直接生效 `[INFERENCE]`。“Connect with ChatGPT” 托管模式会改用 shadow home 并强制 `model_provider="openai_token_sharing"`（`T3@v0.1.9/apps/server/src/provider/CodexManagedRuntime.ts`），本仓不应使用。未信任的新 hook 会被静默跳过且没有审批 UI（[#5024](https://github.com/pingdotgg/t3code/issues/5024)）。
-- **`omp` / `dsh`**：都走 ACP，聊天式受管。`omp` 以本地 ACP 命令 `omp acp` 接入，上游专门修过 OMP 兼容问题（[PR #33677](https://github.com/pingdotgg/t3code/pull/33677)）；`dsh` 按 [providers-acp.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/providers-acp.md) 以 `--profile`、`acp` 参数接入。ACP 下看不到 `omp` 原生 TUI 与扩展 widget；checkpoint 回滚会新开 ACP 会话。
-- **原生 TUI**：只能在线程的 PTY 抽屉（Cmd+J）里手动运行，不被识别为 agent，没有状态与通知（[terminal.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/terminal.md)）。
-- **worktree**：每线程可开 worktree，默认 `~/.t3/worktrees`，支持按不活跃、settle、合并或无提交自动清理，默认关闭（[project-settings.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/project-settings.md)）。
-- **浏览器预览**：内置 headless Chrome 标签页，自动发现 localhost 端口，项目 action 可写进仓库 `t3.json`，能覆盖 `bun run dev` 用法；agent 可操作页面，人可接管（[remote-access.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/remote-access.md)）。隐藏预览标签不节流，13 个标签约 2.7 GB（[#15579](https://github.com/pingdotgg/t3code/issues/15579)）。
-- **diff / PR**：按 turn 看 diff，线程内 commit、push、开 PR、review 与合并（[source-control.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/source-control.md)）。
-- **远程与手机**：`t3 serve --lan`、`t3 serve --tailscale-serve`、桌面端托管 SSH 或 T3 Connect；原生 iOS/Android app。手机推送需要 T3 Connect 并开启 “Publish agent activity”，项目名和线程标题会发到 relay（[mobile-notifications.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/mobile-notifications.md)）。
-- **Linux Wayland**：发布 AppImage/deb；桌面端没有加 `--enable-wayland-ime` 等开关，fcitx5 需自测 `[INFERENCE]`。仍 open：Wayland 剪贴板 [#31189](https://github.com/pingdotgg/t3code/issues/31189)、主进程 OOM [#21189](https://github.com/pingdotgg/t3code/issues/21189)、后台服务缺 `WAYLAND_DISPLAY` [#35736](https://github.com/pingdotgg/t3code/issues/35736)。
-- **配置与遥测**：状态在 `~/.t3`（`T3CODE_HOME` 可改），`settings.json` 由 server 改写，不适合 HM 只读链接 `[INFERENCE]`；可声明的入口是 `/etc/t3code/policy.json` 与仓库 `t3.json`（[managed-policy.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/managed-policy.md)）。遥测**默认开启**，`T3CODE_TELEMETRY_ENABLED=false` 或 policy `limits.telemetry: false` 关闭，浏览器/移动端的 relay trace 关不掉（[telemetry.md](https://github.com/pingdotgg/t3code/blob/v0.1.9/docs/user/telemetry.md)）。
-- **打包**：已锁 llm-agents 有 `t3code` / `t3code-desktop` 0.1.9（x86_64-linux、aarch64-linux、aarch64-darwin，源码构建，走 numtide cache）。其 wrapper 用 `--prefix PATH` 塞入 llm-agents 自带的 `codex` 等 CLI，会盖过 HM 的 `codex`；需 `override { providerPackages = [ ]; }` 或在 provider 设置里填 binary path。nixpkgs unstable 为 0.1.8；Homebrew cask `t3-code` 为 0.1.9。
-
-判断：T3 Code 是功能面最接近 Orca 的 GUI 候选，Codex 手动模式直接读 HM 管理的 `~/.codex`；但它把 `omp` 变成 ACP 聊天线程、放弃原生 TUI，遥测默认开启，版本极新，Wayland 问题未清。
-
 ## Paseo
 
 下文 `PS/<path>` 指 [`getpaseo/paseo@5a7a60ae`](https://github.com/getpaseo/paseo/tree/5a7a60ae50809d4dcbe2126b24501080fa61f3fe) 中的文件。
@@ -164,7 +145,7 @@ OSC 7501 是终端程序状态协议（[规范](https://www.superlogical.com/rex
 
 判断：Paseo 是 GUI 里最好的选择：无遥测、免费手机端、浏览器、worktree 生命周期完整，Codex 直接读 HM 的 `~/.codex`。但 `omp` 与 `dsh` 都变成聊天线程，`omp` 接入有未修 bug，0.x 迭代很快，锁定的 llm-agents 桌面包要先升级。
 
-## Paseo / T3 Code 同类：自托管 daemon 加多端客户端
+## Paseo 同类：自托管 daemon 加多端客户端
 
 | 工具 | star / 最新版本 | `omp` / Codex / `dsh` | 接入方式 | 打包 | 备注 |
 |---|---|---|---|---|---|
@@ -249,4 +230,4 @@ switch 后要验证：
 观察项：
 
 - herdr-app 补上系统通知与重启 resume 之前，状态提醒只在窗口内和手机 app 打开时可见。
-- herdr-app 不合用时，GUI 退路是 Paseo（需把 `llm-agents` 更新到 `1b7ee581` 之后）或 T3 Code，两者都会把 `omp` 变成聊天界面；TUI 退路是 herdr TUI 或 agent-deck。
+- herdr-app 不合用时，GUI 退路是 Paseo（需把 `llm-agents` 更新到 `1b7ee581` 之后），会把 `omp` 变成聊天界面；TUI 退路是 herdr TUI 或 agent-deck。

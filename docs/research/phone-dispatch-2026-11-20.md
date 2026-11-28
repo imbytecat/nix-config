@@ -1,11 +1,10 @@
-# 手机派活调研：T3 Code、Paseo 与 `omp`（2026-11-20）
+# 手机派活调研：Paseo 与 `omp`（2026-11-20）
 
 ## 结论
 
-场景变了，权重也变了：手机上聊天界面才合适，[11-15](orca-alternatives-2026-11-15.md) 与 [11-18](t3code-alma-2026-11-18.md) 给 T3 Code 扣的主要分（`omp` 变成聊天线程）在这里不成立。桌前继续用 herdr TUI；手机派活另起一个常驻 daemon，两者互不干扰。
+桌前继续用 herdr TUI；手机派活另起一个常驻 daemon，两者互不干扰。
 
 - **首选 Paseo**：`omp` 是一等 provider（`omp --mode rpc-ui`，专用实现 52 个文件）；手机 App 免费、无账号；推送不需要账号、不经 relay；daemon 无遥测；llm-agents 有包，上游 flake 自带 NixOS module。代价：`omp` 的 ask 模式审批有 bug，要用 full 模式（与现在 Codex、`dsh` 的“完全访问 + 不审批”一致）；推送正文（最后回复前 220 字符）经 Expo 与 APNs/FCM；会话记录的模型不可用时 resume 失败（[#9722](https://github.com/getpaseo/paseo/issues/9722)）。
-- **T3 Code 能用，次选**：`omp` 走 Local ACP，T3 带 `omp` 专用表单解析，重启后用 `session/load` 恢复；手机 App 功能最全（commit / PR、Codex 原生驱动）。硬伤：没有 T3 Connect 账号就没有后台推送，开了要把项目与线程标题、模型、状态发给 T3 relay；ACP Steer 坏（[#34267](https://github.com/pingdotgg/t3code/issues/34267)）；线程静默失联（[#36163](https://github.com/pingdotgg/t3code/issues/36163)）仍 open；0.1.x。偏 Codex 与 PR 流程、能接受 T3 Connect 时再选它。
 - **其余不如这两者**：kandev 在 llm-agents 有包、推送可完全自托管，但 `omp` 的 `ask` 答不了，Web Push 还要 ≥0.99.0；herdr mobile 手机上仍是终端、无后台推送；`omp` 自带的 `/collab` 只能盯一个桌前已开的 TUI 会话，不能新建；Sesori 等 `omp` 专属 App 要么强制第三方 relay，要么只有 Android 且极新。
 - **常驻主机用 awesome-pc**：`hosts/awesome-pc/default.nix` 已禁 suspend，PowerDevil 接电不自动睡眠。Mac 有意保留合盖睡眠，不适合当 host。
 - **共同前提是密钥**：`FURTHERVERSE_API_KEY` 等只在 `~/.cache/op-env/env.fish`，且只由 fish 的 `interactiveShellInit` source（`modules/shell/fish.nix`）。systemd 拉起的 daemon 及其 spawn 的 `omp` 都拿不到，ExecStart 必须显式 source。
@@ -26,20 +25,20 @@
 | R8 | 隐私 | 遥测可声明式关闭；Tailscale 直连；relay 可选 |
 | R9 | 不写 agent 配置 | `~/.omp`、`~/.codex`、`~/.dsh` 的只读配置不受影响 |
 
-## 对比
+## Paseo 对各项需求的支持
 
-| 维度 | Paseo 0.16.2 | T3 Code 0.1.10 / main |
-|---|---|---|
-| R1 手机新建任务 | ✅ 项目或新 worktree，选 provider / 模型 / thinking | ✅ 项目、worktree，选 provider / 模型 / thinking / Plan；新增 `omp` provider 只能在 web 上做一次 |
-| R2 并行 | ✅ 无 agent 数量上限 | ✅ 每线程一个 `omp acp` 进程，空闲 30 分钟回收 |
-| R3 手机交互 | ✅ 提问、追问、图片、Stop、diff、归档 worktree；`omp` 的 ask 模式审批有 bug（[#10126](https://github.com/getpaseo/paseo/pull/10126) 只在 0.17 beta，[#10139](https://github.com/getpaseo/paseo/issues/10139) open） | ✅ 提问表单（`omp` 专用解析）、审批、Stop / Resume、diff、commit / PR；ACP Steer 坏，追问要设 Queue |
-| R4 推送 | ✅ 无账号；daemon 直连 `exp.host`，经 Expo 与 APNs/FCM，正文是最后回复或工具输入前 220 字符；daemon 端关不掉 | ❌ 直连 / Tailscale 无后台推送；需 T3 Connect 账号 + relay，发项目与线程标题、模型、状态 |
-| R5 `omp` 接入 | 一等 provider，`omp --mode rpc-ui`，不依赖 `session_settled` | Local ACP `omp acp`，有 `omp` 专用表单解析；`omp` 子 agent 不显示为子线程 |
-| R6 回桌接力 | 会话是 `omp` 原生 JSONL，文档写明 `omp --resume` 能列出 | `omp` 声明 `loadSession`，T3 重启后重新加载；可 List sessions 导入 `omp` 历史 |
-| R7 常驻部署 | llm-agents `paseo`（master 0.16.1）；上游 `nixosModules.paseo`；`agents.resumeOnStartup` 可续跑 | llm-agents `t3code`（master 0.1.10，需 `providerPackages = [ ]`）；自写 systemd user unit 跑 `t3 serve`，避开会自管 runtime 的 `t3 service install` |
-| R8 隐私 | 无遥测；relay 可选、E2E、可自建 | 遥测默认开，可用 env / policy 声明式关闭；不用 T3 Connect 就不经第三方 |
-| R9 不写 agent 配置 | ✅ 不写 `~/.omp`；Codex hooks 选项默认关 | ✅ 不写 `~/.omp`；切模型不持久化 |
-| 成熟度 | 0.x，60 天约 20 个 stable；iOS 最低 16.4 | 0.1.x，README 写 “Expect bugs”；iOS 最低 18.0 |
+| 维度 | Paseo 0.16.2 |
+|---|---|
+| R1 手机新建任务 | ✅ 项目或新 worktree，选 provider / 模型 / thinking |
+| R2 并行 | ✅ 无 agent 数量上限 |
+| R3 手机交互 | ✅ 提问、追问、图片、Stop、diff、归档 worktree；`omp` 的 ask 模式审批有 bug（[#10126](https://github.com/getpaseo/paseo/pull/10126) 只在 0.17 beta，[#10139](https://github.com/getpaseo/paseo/issues/10139) open） |
+| R4 推送 | ✅ 无账号；daemon 直连 `exp.host`，经 Expo 与 APNs/FCM，正文是最后回复或工具输入前 220 字符；daemon 端关不掉 |
+| R5 `omp` 接入 | 一等 provider，`omp --mode rpc-ui`，不依赖 `session_settled` |
+| R6 回桌接力 | 会话是 `omp` 原生 JSONL，文档写明 `omp --resume` 能列出 |
+| R7 常驻部署 | llm-agents `paseo`（master 0.16.1）；上游 `nixosModules.paseo`；`agents.resumeOnStartup` 可续跑 |
+| R8 隐私 | 无遥测；relay 可选、E2E、可自建 |
+| R9 不写 agent 配置 | ✅ 不写 `~/.omp`；Codex hooks 选项默认关 |
+| 成熟度 | 0.x，60 天约 20 个 stable；iOS 最低 16.4 |
 
 ## Paseo 0.16.x
 
@@ -70,7 +69,7 @@
 - 0.16 起 `omp` 是独立 provider（`PS/packages/server/src/server/agent/providers/omp/`），只和 Pi 共享 JSONL 子进程传输层（`PS/docs/providers.md` L151）。最低支持 `omp` 16.3.9（`omp/provider-config.ts` L13）。
 - 启动：`omp --mode rpc-ui [--approval-mode yolo|write|always-ask] [--model M] [--thinking L] [--session <id>] [--append-system-prompt …]`（`omp/runtime.ts` L128–153）。
 - 默认关闭，配置 `agents.providers.omp.enabled = true` 开启（`PS/packages/protocol/src/provider-manifest.ts` L251–257）；二进制默认从 PATH 找，可用 `command` 或 `OMP_COMMAND` 覆盖（`omp/cli-runtime.ts` L49）。
-- 完成判定：`agent_end` 后调 `get_state`，确认 `isSettled`、无 pending async、未 streaming / compacting、队列为空才标 idle（`omp/agent.ts` L1183–1200、L1929–1946）。不依赖 `session_settled` / `agent_settled`，所以 T3 Pi 驱动的问题（[t3code#19490](https://github.com/pingdotgg/t3code/issues/19490)）不存在。
+- 完成判定：`agent_end` 后调 `get_state`，确认 `isSettled`、无 pending async、未 streaming / compacting、队列为空才标 idle（`omp/agent.ts` L1183–1200、L1929–1946）。
 - 模型与 thinking：启动参数设定，运行中可切换，并跟随 `omp` 发出的 `thinking_level_changed`（L1328、L1665–1678）。
 - 审批与提问：full → `yolo`（默认）、write → `write`、ask → `always-ask`。`omp` 的 `extension_ui_request` 转成权限或提问卡片（`omp/rpc-ui-permission-mapper.ts`、`omp/question-ui.ts`）。ask 模式下两个缺陷：0.16.2 把带 session/grant 选项的“允许”当拒绝（[#10126](https://github.com/getpaseo/paseo/pull/10126) 只在 beta）；bash / edit / write 之外的工具审批允许后仍被当作 cancelled（[#10139](https://github.com/getpaseo/paseo/issues/10139) open）。
 - 扩展与 rule：启动参数没有 `--no-extensions`，provider 目录内没有写 `~/.omp` 的代码；Paseo 自己的工具经 RPC 注册为 host tools（`PS/docs/providers.md` L162）。所以 ponytail 扩展与 caveman rule 应照常加载 `[INFERENCE]`。
@@ -125,69 +124,6 @@
 | daemon / CLI | 无。README 与 [why](https://paseo.sh/docs/why)：“no telemetry, tracking, or required Paseo account”；依赖中没有 sentry / posthog。外连只有 `exp.host` 推送、开启后的 relay 与 Hub、用户触发的 npm 插件安装、本地语音模型下载 | 无 |
 | 手机 App | 依赖中没有分析或崩溃上报 SDK，也没有 `expo-updates`（无 OTA）；商店隐私标签未核对 | 跟随商店 |
 
-## T3 Code（main `1c379b6`）
-
-`T3@main/<path>` 指 [`pingdotgg/t3code@1c379b6`](https://github.com/pingdotgg/t3code/tree/1c379b63bafbd5fa54b7fa15282b5900af7bd604)（2026-11-20，比 v0.1.10 多 687 commit）；`omp` 源码指 [`can1357/oh-my-pi@b44ae71`](https://github.com/can1357/oh-my-pi/blob/b44ae71d272c8d2e48300155fc3b89d711bea268/packages/coding-agent/src/modes/acp/acp-agent.ts)，引用的三处与 v18.20.3 相同。`ompAcp.ts` 在 [v0.1.10](https://github.com/pingdotgg/t3code/tree/v0.1.10/packages/provider-acp-registry/src/server/ompAcp.ts) 已存在。
-
-### 手机 App
-
-- iOS：[App Store](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824)，免费，2.3.0（2026-11-10），最低 iOS 18.0；Android：[Play](https://play.google.com/store/apps/details?id=com.t3tools.t3code) 与 GitHub [`android-beta-*`](https://github.com/pingdotgg/t3code/releases?q=android-beta-) APK。FAQ：“There's no way to pay us to use T3 Code”（[faq.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/faq.md)）。
-- 直连配对不要账号：扫 QR 或粘贴 pairing URL（[remote-access.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/remote-access.md#pair-over-a-lan-or-private-network)）。推送、Live Activity、iOS widget 要 T3 Connect 账号。
-
-| 能力 | 手机 | 说明 |
-|---|---|---|
-| 添加项目、新建线程 | ✅ | 本地目录、clone、新建（`apps/mobile/src/features/projects/`） |
-| 选 provider 与模型 | ✅ | 含已配置的 Local ACP 实例 |
-| **新增** Local ACP provider | ❌ | 只在 web / desktop（[install.md#providers](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/install.md#providers)）；一次性，可用手机浏览器开 web client 完成 `[INFERENCE]` |
-| 忙时追问 | ✅ | Queue 或 Steer；离线也能排队（[composer.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/composer.md#send-while-the-agent-is-working)） |
-| 图片 | ✅ | 相册、文件、分享面板 |
-| 回答提问 / 审批 | ✅ | `PendingUserInputCard.tsx`、`PendingApprovalCard.tsx` |
-| Stop / Resume | ✅ | |
-| diff、worktree、commit / PR | ✅ | commit message 需能生成文本的 provider；ACP 实例不参与（[providers-acp.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/providers-acp.md#checkpoints)） |
-| 斜杠命令、`$` skill | ✅ | |
-
-仅 web / desktop：新增 provider 与 Custom models、一次 fan-out 多线程、Restart agent session、Edit from here 回卷、多机 Load balancing、端口转发。
-
-### 直连、配对与推送
-
-| 方式 | 要点 |
-|---|---|
-| `t3 serve --tailscale-serve` | 需 MagicDNS 与 HTTPS 证书；Linux 非 root 需 `tailscale set --operator`（[remote-access.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/remote-access.md#tailscale-https)） |
-| `t3 serve --lan` / `--host <tailnet-ip>` | 只靠 pairing code 防护 |
-
-- 配对后设备长期有效，30 天不用要重配；`t3 auth session list/revoke` 撤销。
-- **推送必须 T3 Connect**：“Background delivery requires T3 Connect; a direct or Tailscale connection alone does not enable push notifications”（[mobile-notifications.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/mobile-notifications.md)）。T3 Connect 要 Clerk 账号，relay 默认 `relay.t3.codes`，每账号最多 3 台机器；开 “Publish agent activity” 后发项目与线程标题、模型、状态、environment / thread ID，遥测 opt-out 不影响这项（[telemetry.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/telemetry.md#agent-activity-for-mobile-notifications)）。
-- 无替代推送：商店 App 的 relay URL 构建时固定，自建 relay 不可行；web 没有 service worker / PushManager；没有出站 webhook 或 ntfy。只能让 agent 结束时自己 `curl` ntfy `[INFERENCE]`。
-
-### 常驻 server
-
-- `t3 serve` 是前台进程（[background-service.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/background-service.md#troubleshooting)）。
-- **不要用 `t3 service install`**：它把 runtime 复制或下载到 `$T3CODE_HOME/runtime/versions/<ver>/`，由 launcher 拉起，之后 `t3 update` 切版本（`T3@main/apps/server/src/cloud/bootService.ts` L59–198，`serviceLauncher.ts` L74–89），等于自更新。它在 Linux 写 `~/.config/systemd/user/t3code.service`（`Restart=always`、`MemoryLow=1536M` 等，并启用 linger），在 macOS 写 `com.t3tools.t3code.service.plist`。
-- 声明式做法：自写 systemd user unit 跑 `${t3code}/bin/t3 serve --tailscale-serve` `[INFERENCE]`；代价是 `t3 service status/restart` 认不出它。遥测用 `T3CODE_TELEMETRY_ENABLED=false` 加 `OTEL_SDK_DISABLED=true`，或 `/etc/t3code/policy.json` 的 `{"limits":{"telemetry":false}}`；同一 policy 可关 “Allow T3 Connect”（[managed-policy.md](https://github.com/pingdotgg/t3code/blob/1c379b63bafbd5fa54b7fa15282b5900af7bd604/docs/user/managed-policy.md)）。
-- 状态在 `~/.t3`（`userdata/settings.json` 由 server 改写）。
-- 重启恢复：`omp` 声明 `loadSession: true`，sessionCapabilities 为 list / fork / close（[acp-agent.ts L1065–1078](https://github.com/can1357/oh-my-pi/blob/b44ae71d272c8d2e48300155fc3b89d711bea268/packages/coding-agent/src/modes/acp/acp-agent.ts#L1065-L1078)）。T3 重新 spawn `omp acp`，依次试 `session/load`、`session/resume`（`T3@main/packages/provider-acp/src/server/adapter.ts` L7947–7980）。进行中的 turn 会中断，要手动按 Resume。
-- 进程：每线程一个 `omp acp` 子进程（adapter.ts L7655–7680），空闲 30 分钟回收（`ProviderSessionManager.ts` L70）。
-
-### ACP × `omp`
-
-| 能力 | 结论 |
-|---|---|
-| 模型 | ✅ `omp` 的 `model` configOption 列出 `models.yml` 的模型，会话内可切换，不写 `config.yml` |
-| thinking | ✅ `thinking` configOption（Off、Auto 与各级） |
-| Plan 模式 | ✅ `mode` 有 Plan；计划批准走 elicitation。T3 Plan 面板是否接收 ACP plan 更新未核实 |
-| 斜杠命令 | ✅ `available_commands_update` 进入 `/` 菜单 |
-| 提问表单 | ✅ 可执行文件 basename 为 `omp` 时套用 `extractOmpElicitationForm`（[#24012](https://github.com/pingdotgg/t3code/pull/24012)）；wrapper 脚本改名会失效 |
-| 子 agent | ⚠️ ACP 没有子 agent 血缘协议，`omp` 的 task 子 agent 只显示为工具调用 `[INFERENCE]` |
-| Steer | ⚠️ ACP 的 Steer 是中断再重启，会中止正在跑的工具；[#34267](https://github.com/pingdotgg/t3code/issues/34267) open，[#39326](https://github.com/pingdotgg/t3code/issues/39326) not_planned。追问固定用 Queue |
-
-其余 open：[#36163](https://github.com/pingdotgg/t3code/issues/36163)（run 毫秒级结束、agent 仍在跑，线程静默失联）、[#38940](https://github.com/pingdotgg/t3code/issues/38940)（配额错误归为 `provider_error`，网关 429 不触发 “Resume at reset” `[INFERENCE]`）、[#39575](https://github.com/pingdotgg/t3code/issues/39575)（ACP 历史导入失败却标完成）、[#38579](https://github.com/pingdotgg/t3code/pull/38579)（`html_render` 通用修复未合并）。已修：[#36997](https://github.com/pingdotgg/t3code/pull/36997)（`omp` 多选题）、[#37287](https://github.com/pingdotgg/t3code/issues/37287)（`session/load` 失败后起第二个 session）、[#37368](https://github.com/pingdotgg/t3code/issues/37368)（ACP 进程退出后卡 running）、[#36707](https://github.com/pingdotgg/t3code/issues/36707)（Linux ACP 进程树清理）。
-
-### Codex、`dsh`、`pi`
-
-- Codex：原生 `codex app-server`，手机上最完整（原生 steer、Native resume、能生成 commit / PR / 标题文本）。网关模型需出现在 `model/list`，否则先在 web 上加 custom model。
-- `dsh`：Local ACP `dsh --profile acp`，无专用表单解析；是否声明 `loadSession` 未核实。
-- `pi`：原生 Pi RPC 驱动，官方支持；`omp` 不能借用它（[#19490](https://github.com/pingdotgg/t3code/issues/19490)）。
-
 ## `omp` 侧（v18.20.3）
 
 `OMP@<path>` 指 [`can1357/oh-my-pi@v18.20.3`](https://github.com/can1357/oh-my-pi/tree/90935366da0c368a437da4343ae748b03a2ffe97)（commit `90935366`），即本仓 llm-agents `733d5b0f` 打包的版本。上游已发布 v19.0.1（11-19），未核对。
@@ -196,7 +132,7 @@
 
 - `omp acp` 与 `omp --mode rpc` 都用 TUI 同一个 session manager，默认写 `~/.omp/agent/sessions/<cwd 编码>/`；ACP 客户端不能指定目录（`OMP@packages/coding-agent/src/main.ts:575-616`、`OMP@packages/coding-agent/src/session/session-manager.ts:4240-4258`）。所以 TUI 的 `--resume` / `--continue` 能直接接上手机开的会话；反向 ACP 的 `session/list` + `session/load`、RPC 的 `switch_session` / `open_session` 也能打开 TUI 会话（`OMP@packages/coding-agent/src/modes/acp/acp-agent.ts:1064-1124`、`OMP@packages/coding-agent/src/modes/rpc/rpc-mode.ts:921-952`）。
 - ACP 与 RPC 都设 `PI_NO_TITLE=1`，这些会话没有自动标题（`main.ts:2034-2041`）。
-- **会话 lease**：写会话的进程按 session id 持有 OS lease；别的活进程持有时，本进程第一次写入会把整份转录发布到新 sibling 文件、换新 id 继续写（[session.md](https://github.com/can1357/oh-my-pi/blob/90935366da0c368a437da4343ae748b03a2ffe97/docs/session.md)）。宿主的 `omp` 子进程还活着时回桌 `omp --resume`，得到的是内容完整的 fork。T3 空闲 30 分钟、Paseo 空闲 1 小时回收子进程，之后再 resume 就是同一会话 `[INFERENCE]`；也可先在手机上关闭线程，或用 `omp session lease --json -- <id>` 查持有者。
+- **会话 lease**：写会话的进程按 session id 持有 OS lease；别的活进程持有时，本进程第一次写入会把整份转录发布到新 sibling 文件、换新 id 继续写（[session.md](https://github.com/can1357/oh-my-pi/blob/90935366da0c368a437da4343ae748b03a2ffe97/docs/session.md)）。宿主的 `omp` 子进程还活着时回桌 `omp --resume`，得到的是内容完整的 fork。Paseo 空闲 1 小时回收子进程，之后再 resume 就是同一会话 `[INFERENCE]`；也可先在手机上关闭线程，或用 `omp session lease --json -- <id>` 查持有者。
 
 ### 只读 `config.yml`
 
@@ -206,11 +142,11 @@
 ### 扩展、rule、提问与审批
 
 - `config.yml` 的 `extensions` 与 `~/.omp/agent/rules` 在 ACP 和 RPC 都加载（`OMP@packages/coding-agent/src/sdk.ts:1200-1215`、`2447-2465`），ponytail 与 caveman 照常生效。ACP 会话不读磁盘 `.mcp.json`，只用客户端给的 MCP（`main.ts:565-574`）。
-- `ask` 工具：ACP 只在客户端声明 `elicitation.form` 时注册（`acp-agent.ts:810-941`）；T3 实现了 elicitation 处理并对 `omp` 表单专门解析。RPC 只有 `--mode rpc-ui` 才注册（`main.ts:2409`）；Paseo 的 `omp` agent 以 `rpc-ui` 启动（`PS/packages/server/src/server/agent/providers/omp/agent.ts` L429、L2359、L2557，runtime 缺省才是 `rpc`）。
-- 审批：ACP 走 `session/request_permission`。`config.yml` 未显式设 `tools.approvalMode: yolo` 时，ACP 会话仍对 `bash`、`edit`、`delete`、`move` 请求权限（`OMP@packages/coding-agent/src/session/acp-permission-gate.ts:7-20`、`session-tools.ts:1196-1237`）；T3 的 Full access 会自动批准。RPC 走 `extension_ui_request` 的 select。
+- `ask` 工具：ACP 只在客户端声明 `elicitation.form` 时注册（`acp-agent.ts:810-941`）。RPC 只有 `--mode rpc-ui` 才注册（`main.ts:2409`）；Paseo 的 `omp` agent 以 `rpc-ui` 启动（`PS/packages/server/src/server/agent/providers/omp/agent.ts` L429、L2359、L2557，runtime 缺省才是 `rpc`）。
+- 审批：ACP 走 `session/request_permission`。`config.yml` 未显式设 `tools.approvalMode: yolo` 时，ACP 会话仍对 `bash`、`edit`、`delete`、`move` 请求权限（`OMP@packages/coding-agent/src/session/acp-permission-gate.ts:7-20`、`session-tools.ts:1196-1237`）。RPC 走 `extension_ui_request` 的 select。
 - plan：ACP 有 `plan` mode，计划批准走 elicitation，客户端不支持表单时自动批准（`acp-agent.ts:2534-2747`）；RPC 没有进入 plan mode 的命令 `[INFERENCE]`。
 - 子 agent：ACP 只表现为 `task` 工具调用（`acp-event-mapper.ts:198-245`）；RPC 有 `set_subagent_subscription`、`get_subagents`、`cancel_subagent` 等（`rpc-mode.ts:2438-2526`）。
-- 完成信号：RPC 只发 `session_settled`，“There is no Pi `agent_settled` frame”（[rpc.md](https://github.com/can1357/oh-my-pi/blob/90935366da0c368a437da4343ae748b03a2ffe97/docs/rpc.md)），这就是 T3 Pi 驱动接不上 `omp` 的原因。
+- 完成信号：RPC 只发 `session_settled`，“There is no Pi `agent_settled` frame”（[rpc.md](https://github.com/can1357/oh-my-pi/blob/90935366da0c368a437da4343ae748b03a2ffe97/docs/rpc.md)）。
 
 ### `omp` 自带的手机路径
 
@@ -240,7 +176,7 @@
 
 ## 落地要点
 
-两者都放 awesome-pc，都和 herdr 并存。
+Paseo 放在 awesome-pc，与 herdr 并存。
 
 **Paseo（推荐）**
 
@@ -250,25 +186,16 @@
 - 手机：Add host → Direct，填 Tailscale IP:6767 与密码；权限模式用 full。
 - 回桌接力：`omp --resume` 选手机开的会话。Paseo 的 `omp` 子进程空闲 1 小时才回收，回收前 resume 会 fork 出新 id；赶时间就先在手机上 Stop 并归档。
 
-**T3 Code（备选）**
-
-- `t3code.override { providerPackages = [ ]; }`，免得 llm-agents 自带的 `codex` 盖过 HM 的。
-- systemd user unit 跑 `t3 serve --tailscale-serve`，先 `tailscale set --operator=<user>`；同样要 source op-env。
-- 遥测：unit 设 `T3CODE_TELEMETRY_ENABLED=false`、`OTEL_SDK_DISABLED=true`，NixOS 写 `/etc/t3code/policy.json`。
-- 首次在 web 上加 Local ACP `omp`（命令 basename 保持 `omp`），追问设 Queue，Codex 设为文本生成 provider。
-- 接受没有推送，或接受 T3 Connect。
-
 ## 方法
 
-- 三个 subagent 分别查 Paseo、T3 Code 与 `omp` 侧（含广度扫描），只用一手来源（源码、文档、release、issue、包定义）；未安装、未运行任何候选。
-- 主线程复核了决定性结论：Paseo `omp` agent 以 `rpc-ui` 启动（`agent.ts` L429、L2359、L2557）与 `agent_end` + `isSettled` 判定、推送直连 `exp.host` 与 220 字符截断、上游 module 的 `relay.enable` 默认值、#10139 / #9722 / #3749 为 open、#10126 合入晚于 0.16.2；T3 的“推送需 T3 Connect”原文、`ompAcp.ts` 在 v0.1.10 存在、ACP client 的 elicitation 处理、#34267 / #36163 open 与 #39326 not_planned；`omp` v18.20.3 的 `loadSession: true`。
+- 调研覆盖 Paseo 与 `omp` 侧（含广度扫描），只用一手来源（源码、文档、release、issue、包定义）；未安装、未运行任何候选。
+- 主线程复核了决定性结论：Paseo `omp` agent 以 `rpc-ui` 启动（`agent.ts` L429、L2359、L2557）与 `agent_end` + `isSettled` 判定、推送直连 `exp.host` 与 220 字符截断、上游 module 的 `relay.enable` 默认值、#10139 / #9722 / #3749 为 open、#10126 合入晚于 0.16.2；`omp` v18.20.3 的 `loadSession: true`。
 - 本仓事实：`hosts/awesome-pc/default.nix`（禁 suspend、PowerDevil）、`hosts/awesome-macbook-air/default.nix`（保留合盖睡眠）、`modules/shell/fish.nix`（op-env 缓存只在 interactive shell source）。
 
 ## 未能核实
 
-- 两者与 `omp` 18.20.x 的端到端运行：turn 完成判定、扩展与 rule 加载、手机会话用 `omp --resume` 接续。
+- Paseo 与 `omp` 18.20.x 的端到端运行：turn 完成判定、扩展与 rule 加载、手机会话用 `omp --resume` 接续。
 - Paseo：Tailscale-only 时 `exp.host` 推送确实送达；App Store / Play 隐私标签；上游 module 能否直接配 llm-agents 的包；各手机操作在小屏上的实际体验。
-- T3：手机 UI 如何渲染 `omp` 的 thinking / mode 选项；Plan 面板是否接收 ACP plan；`dsh` 是否声明 `loadSession`；T3 Connect managed tunnel 的托管方与加密；自写 unit 下 `t3 doctor` 的行为。
 - `omp` v19（11-19 发布）对 ACP / RPC 有无改动；本仓锁定 18.20.x。
 - `omp`：宿主 `session/close` 后 lease 是否立即释放；plain `--mode rpc` 下审批是否以 `extension_ui_request` 发出。
 - 其他候选：kandev ≥0.99 的 Web Push 在 iOS 主屏 PWA 上是否可用；omp-mobile 用 `rpc` 还是 `rpc-ui`；Telegram 桥能否回答 `ask`。

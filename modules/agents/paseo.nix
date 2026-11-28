@@ -44,7 +44,7 @@ in
         package = paseoFor pkgs;
         user = username;
         group = config.users.users.${username}.group;
-        relay.enable = false;
+        relay.enable = lib.mkDefault false;
         # 上游只加 profile，缺少 HM sessionPath 里的 mise shims。
         inheritUserEnvironment = false;
       };
@@ -100,6 +100,7 @@ in
       aiCatalog,
       config,
       lib,
+      osConfig,
       pkgs,
       withSessionEnv,
       ...
@@ -122,9 +123,10 @@ in
       home.activation.paseoConfig =
         mergeSettings lib pkgs "${config.home.homeDirectory}/.paseo/config.json" "paseo-config.json"
           {
-            daemon = {
-              listen = "127.0.0.1:6767";
-              relay.enabled = false;
+            daemon.listen = "127.0.0.1:6767";
+            # 允许 relay 的主机保留 CLI 写入的配对开关，避免 switch 后又被关闭。
+            daemon.relay = lib.optionalAttrs (!(osConfig.services.paseo.relay.enable or false)) {
+              enabled = false;
             };
             agents.providers.omp = {
               enabled = true;

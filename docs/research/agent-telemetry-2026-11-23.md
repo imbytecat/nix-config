@@ -22,7 +22,7 @@
   - 不可覆盖：在 `requirements.toml` pin `telemetry.trace_upload = false`。
   - 单进程：`GROK_TELEMETRY_TRACE_UPLOAD=0` 或 `DISABLE_TELEMETRY=1`。
   - `/privacy` 管的是账号级的“coding data 保留与训练”，按开源文档不影响 `trace_upload`。
-- **本仓现状**：没有安装任何 Grok CLI。`grok.nix` 已在 2026-07-28 删除（`e384e14`）。T3 Code 用 `providerPackages = [ ]`，llm-agents wrapper 不会把自带的 `grok` 加进 PATH，本机 `which grok` 也找不到。catalog 里的 `grok`（`grok-4.7`）只是 furtherverse 网关上的一个模型 ID，由 pi/omp 经网关的 OpenAI 兼容接口调用，不经过 xAI CLI，也不涉及 `/v1/storage`。本机还残留旧的 `~/.grok/`（0.2.111，含 sessions 与 logs），可手动删除。
+- **本仓现状**：没有安装任何 Grok CLI。`grok.nix` 已在 2026-07-28 删除（`e384e14`）。本机 `which grok` 找不到。catalog 里的 `grok`（`grok-4.7`）只是 furtherverse 网关上的一个模型 ID，由 pi/omp 经网关的 OpenAI 兼容接口调用，不经过 xAI CLI，也不涉及 `/v1/storage`。本机还残留旧的 `~/.grok/`（0.2.111，含 sessions 与 logs），可手动删除。
 
 ## Claude Code
 
@@ -138,7 +138,6 @@ GW 对网关场景的总结：“Claude Code also sends nonessential background 
 
 - 没有。`rg -n -i grok modules` 只命中 `modules/agents/_ai-catalog.nix` 第 126–128 行的 `furtherverse.grok`（`grok-4.7`）。它是 furtherverse 网关（`https://ai-gateway.furtherverse.net`）上的模型 ID，由 `_gateway-providers.nix` 交给 pi/omp，经网关调用。整条路径不涉及 xAI 的 CLI，也没有 `/v1/storage` 或 `code.grok.com`。网关后端是否转发到 xAI API 属于网关自身的数据政策，不在本文范围。
 - 历史上曾经安装：`add8221`（2026-07-13）新增 `home/dev/agents/grok.nix`，写入 `features.telemetry = false`、`telemetry.trace_upload = false`、`harness.disable_codebase_upload = true`；`e384e14`（2026-07-28）删除了整个 grok agent。按上节源码，`harness.disable_codebase_upload` 不是已知的本地配置键 `[INFERENCE]`；真正起作用的是 `trace_upload = false`。
-- `modules/agents/t3code.nix` 用 `providerPackages = [ ]` 覆盖 llm-agents 的 t3code。默认 wrapper 会把 `grok` 等 provider CLI 前置进 PATH（见 [11-18 调研](t3code-alma-2026-11-18.md)第 9 节）。本机 `which grok` 无结果。
 - 残留：`~/.grok/` 仍在（`config.toml.bak`、`sessions/`、`logs/`、`agent_id`），不由 Nix 管理，可手动删除。
 
 ## 未能核实

@@ -1,5 +1,3 @@
-{ lib, username, ... }:
-
 {
   imports = [ ./hardware-configuration.nix ];
 
@@ -10,9 +8,5 @@
 
   networking.useDHCP = true;
   services.tailscale.openFirewall = true;
-
-  home-manager.users.${username}.programs.t3code.server.extraArgs = lib.mkBefore [
-    "--host"
-    "127.0.0.1"
-  ];
+  services.paseo.relay.enable = true;
 }

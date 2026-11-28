@@ -1,4 +1,51 @@
+{ inputs, lib, ... }:
+let
+  catalog = import ./_ai-catalog.nix {
+    inherit lib;
+    modelsDev = inputs.models-dev;
+  };
+  syncLogin =
+    config: pkgs: username:
+    lib.getExe (
+      pkgs.writeShellApplication {
+        name = "codex-api-login";
+        text = ''
+          # shellcheck source=/dev/null
+          source ${lib.escapeShellArg config.sops.secrets."agents.env".path}
+          printf '%s\n' "''${${catalog.gateway.apiKeyEnv}:?}" |
+            ${lib.getExe config.home-manager.users.${username}.programs.codex.package} login --with-api-key
+        '';
+      }
+    );
+in
 {
+  aspects.nixos.workstation =
+    {
+      config,
+      pkgs,
+      username,
+      ...
+    }:
+    {
+      systemd.services.sops-install-secrets.postStart = ''
+        ${pkgs.util-linux}/bin/runuser -u ${lib.escapeShellArg username} -- ${syncLogin config pkgs username}
+      '';
+    };
+
+  aspects.darwin.workstation =
+    {
+      config,
+      pkgs,
+      username,
+      ...
+    }:
+    {
+      # sops-nix 在 mkAfter（1500）解密，首次部署也要等新密钥落盘。
+      system.activationScripts.postActivation.text = lib.mkOrder 1600 ''
+        /usr/bin/sudo -Hu ${lib.escapeShellArg username} ${syncLogin config pkgs username}
+      '';
+    };
+
   aspects.homeManager.workstation =
     {
       agentBundles,

@@ -1,6 +1,6 @@
 ---
 name: ai-agents
-description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code、Paseo）与 Furtherverse 网关、模型 catalog、behavior bundle 的约定。修改 modules/agents/*、模型或网关、ponytail/caveman/共享 skills 前先读。触发词: codex, claude code, omp, pi, t3, paseo, catalog, gateway, ponytail, caveman, skills。"
+description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、Paseo）与 Furtherverse 网关、模型 catalog、behavior bundle 的约定。修改 modules/agents/*、模型或网关、ponytail/caveman/共享 skills 前先读。触发词: codex, claude code, omp, pi, paseo, catalog, gateway, ponytail, caveman, skills。"
 ---
 
 # AI agent 配置
@@ -10,7 +10,7 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code�
 两条轴：
 
 - **behavior bundle**（`_bundles/`）：跨 agent 的行为包。每个 bundle 按 agent 分键（`codex` / `claude` / `omp` / `skills`），`_bundles/default.nix` 按键取列。pin 相关的打包、OMP 文件和 skill 取舍只在各自 bundle 改。
-- **agent 映射**：`codex.nix`、`claude-code.nix`、`omp.nix`、`pi.nix`、`t3code.nix`、`paseo.nix`、`skills.nix` 只把 catalog 与 bundle 映射到各客户端的原生配置。
+- **agent 映射**：`codex.nix`、`claude-code.nix`、`omp.nix`、`pi.nix`、`paseo.nix`、`skills.nix` 只把 catalog 与 bundle 映射到各客户端的原生配置。
 
 `agents/default.nix` 经 `_module.args` 向 HM `workstation` 注入：
 
@@ -34,7 +34,7 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code�
 
 ### Codex（`codex.nix`）
 
-- 内置 `openai` provider，`openai_base_url` 指向网关。TUI 与 T3 的 app-server 都读原生登录文件，T3 启动前用网关 key 执行 `codex login --with-api-key`（见 `t3code.nix`）。
+- 内置 `openai` provider，`openai_base_url` 指向网关。TUI 与 app-server 都读原生登录文件。SOPS 解密后以工作站用户同步网关登录凭据。
 - `config.toml` 必须可写，Codex 要持久化项目与 hook 信任：关掉 HM 的只读 symlink，激活时用 `mkImpureConfigMerger` 把静态配置合并进去。
 - 插件经 HM marketplace/cache 加载。Codex 0.146 只把真实目录算 installed，`materializeCodexPlugins` 在 link 后把 store symlink 落成实体目录。
 - hook 信任：Codex 把信任同时钉在声明 hash 与整个插件目录的内容 hash 上，插件或 Codex 一更新，手钉的 hash 就失效，hook 静默报 `Failed`（曾因此长期没生效）。Codex 没有持久的“信任全部”开关：`--dangerously-bypass-hook-trust` 只管单次调用，`app-server` 也不认。所以不钉 hash，`trustCodexHooks` 经 `codex app-server` 的 `hooks/list` + `config/batchWrite`（与 TUI 审批同一写法）信任 `$HOME` 下列出的全部 hook。Codex 本就是 `never` 审批 + 完全访问，这一步不扩大权限；项目自带 `.codex/` 的 hook 仍按项目审批。
@@ -44,7 +44,7 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code�
 - 用户级 `permissions.defaultMode = "bypassPermissions"` 覆盖独立 CLI；`enableAllProjectMcpServers` 单独批准项目 `.mcp.json`。首次进入新仓库的交互式工作区信任独立于工具审批。
 - HM `programs.claude-code`。bundle 的 `claude.plugin` 是自带 `.claude-plugin/` 的上游仓库根，整目录 link 成 personal plugin，hooks/skills/commands 随 manifest 生效；`claude.files` 放 bundle 额外需要的文件。
 - 模型只经 settings `env` 的 `ANTHROPIC_DEFAULT_{FABLE,OPUS,SONNET,HAIKU}_MODEL` 指到 catalog；context 1M 的加 `[1m]`，因为网关不替它确认扩展上下文。`apiKeyHelper` 读网关变量，不另设 `ANTHROPIC_AUTH_TOKEN`。
-- 遥测开关全开：`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` 外加冗余的单项开关（政策见 AGENTS.md 的 Telemetry）。`ENABLE_TOOL_SEARCH=false`：网关会丢 Anthropic server tool（`web_search` 实测，tool search 未实测）。这些放 settings `env` 而非 session 变量，从 T3 服务起的会话也生效。
+- 遥测开关全开：`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` 外加冗余的单项开关（政策见 AGENTS.md 的 Telemetry）。`ENABLE_TOOL_SEARCH=false`：网关会丢 Anthropic server tool（`web_search` 实测，tool search 未实测）。这些放 settings `env` 而非 session 变量，从 Paseo 起的会话也生效。
 
 ### OMP（`omp.nix`）与 Pi（`pi.nix`）
 
@@ -53,19 +53,11 @@ description: "本仓 AI agent 配置（Codex、Claude Code、OMP、Pi、T3 Code�
 - OMP 生成 `~/.omp/agent/{models,config}.yml` 并合并 bundle 的 extension 与文件。`config.yml` 只读，所以关掉会写 `setupVersion` 的向导。
 - Pi 的 `enabledModels` 取自 catalog，apiKey 写成网关变量的 `$NAME` 插值，`enableInstallTelemetry = false`（不管更新检查），`PI_SKIP_VERSION_CHECK=1` 只放在 HM session 变量里。Pi 对不可用的默认档位会静默回退，`checks.pi-default` 在新会话里核对实际默认值。
 
-### T3 Code（`t3code.nix`）
-
-- HM `programs.t3code`：装 `t3` CLI，把 omp 的 Local ACP 合并进 `settings.json`（命令名必须是 `omp`），`server` 起常驻 daemon（launchd agent / systemd user service）。NixOS 工作站开 linger。
-- 服务不经 login shell：补上取自 `home.sessionPath` 的 PATH、会话 env 与 `T3CODE_TELEMETRY_ENABLED=false`（同时放 session 变量给 CLI）。Linux 用 `EnvironmentFile` + `ExecStartPre` 登录 Codex；launchd 没有 EnvironmentFile，用包装脚本先载入再 exec。macOS 的 `ProcessType` 改回 `Interactive`。sops 解密成功后重启 T3，因为用户服务读不到 system 级 `restartUnits`。
-- 桌面端是同一 llm-agents 包的 `desktop` output，Nix 构建不自更新，装在两个 `desktop` role，只当客户端：HM 激活时把 `~/.t3/userdata/desktop-settings.json` 的 `localEnvironmentEnabled` 合并为 `false`，否则它要在同一个 `~/.t3` 起本地服务器，撞上 daemon 的锁就弹 “This T3 home is unavailable” 并退出。直连用 `t3 pair`，把链接贴进桌面端的 Add environment。
-- 桌面机用 `--lan` 直连配对，NixOS 桌面只在 `tailscale0` 放行 3773。`awesome-devbox` 只监听 loopback，经 Tailscale Serve 提供访问。T3 Connect 用 Nix 的 cloudflared；每台需要中继的机器手动运行 `t3 connect link` 授权，然后重启 HM 的 t3code 服务。
-- agent 只能在 daemon 里跑：桌面端本地环境经 `zsh -ilc` 只导入白名单变量（PATH、LANG、SSH_AUTH_SOCK、`T3CODE_TELEMETRY_ENABLED` 等），不含网关密钥，Codex 会报 `Missing environment variable: FURTHERVERSE_API_KEY`。不用 managed policy：它是 root 写的机器级文件，缺 `schemaVersion`/`organization` 时服务器报 `ManagedPolicyFileError` 拒绝启动（曾因此起不来）。
-
 ### Paseo（`paseo.nix`）
 
 - NixOS 使用 `inputs.paseo.nixosModules.paseo`，系统服务以工作站用户运行，直接读取 SOPS 模板。上游 `services.paseo.settings` 会在重启时覆盖可写配置，因此只用 HM 合并 `~/.paseo/config.json`。
 - 工作站 daemon 在 provider snapshot 中为 Codex、Claude、OMP 指定新会话默认模式，供客户端、CLI、MCP 和定时任务共用。客户端保存的模式、显式选择和受限父会话沿用上游行为。Pi 没有权限模式。升级 Paseo 时核对 `_paseo-default-modes.patch`。
-- macOS 用 HM LaunchAgent 运行 llm-agents 的 `paseo-server`，cask 提供 GUI 和 CLI。两个桌面端均关闭 `manageBuiltInDaemon`，本机直连，devbox 经 SSH 隧道连接。
+- macOS 用 HM LaunchAgent 运行 llm-agents 的 `paseo-server`，cask 提供 GUI 和 CLI。两个桌面端均关闭 `manageBuiltInDaemon`，本机直连。devbox 支持 SSH 隧道和 relay：`services.paseo.relay.enable = true` 解除上游的 `--no-relay` 启动限制，实际开关由 Paseo 持久化。
 
 ## Bundle 与共享 skill
 
